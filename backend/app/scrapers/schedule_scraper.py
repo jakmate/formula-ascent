@@ -35,7 +35,7 @@ TRACK_TIMEZONES = {
     "Jeddah": "Asia/Riyadh",
     "Baku": "Asia/Baku",
     "Melbourne": "Australia/Melbourne",
-    "Lusail": "Asia/Doha"
+    "Lusail": "Asia/Bahrain"
 }
 TRACK_COUNTRIES = {
     "Sakhir": "Bahrain",
@@ -177,7 +177,9 @@ def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
         # Convert to UTC if location is provided
         if location:
             tz_str = get_timezone_for_location(location)
+            print(tz_str)
             tz = pytz.timezone(tz_str)
+            print(tz)
 
             # Localize and convert to UTC
             start_dt = tz.localize(start_dt).astimezone(pytz.utc)
