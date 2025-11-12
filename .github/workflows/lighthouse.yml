@@ -21,8 +21,11 @@ jobs:
       - name: Run lighthouse-badges in docker
         run: |
           mkdir -p badges
+          chmod 0777 badges
+
           docker run --rm \
-            -v "$PWD/badges":/home/chrome/reports \
+            -u 0:0 \
+            -v "$PWD/badges":/home/chrome/reports:rw \
             emazzotta/lighthouse-badges \
             /bin/sh -c "lighthouse-badges \
               --url https://formula-ascent.onrender.com/predictions \
@@ -31,6 +34,9 @@ jobs:
               --output-path /home/chrome/reports \
               --badge-style flat-square \
               --save-report"
+
+          echo "Produced files:"
+          ls -la badges || true
 
           generated_svg=$(ls badges/*.svg 2>/dev/null | head -n 1 || true)
           if [ -n "$generated_svg" ]; then
