@@ -1,13 +1,15 @@
 # Formula Career Predictor
 
 [![codecov](https://codecov.io/gh/jakmate/formula-career-predictor/branch/main/graph/badge.svg)](https://codecov.io/gh/jakmate/formula-career-predictor)
-[![CI/CD](https://github.com/jakmate/formula-career-predictor/workflows/CI%2FCD/badge.svg)](https://github.com/jakmate/formula-career-predictor/actions)
+[![CI/CD](https://github.com/jakmate/formula-ascent/workflows/CI%2FCD/badge.svg)](https://github.com/jakmate/formula-ascent/actions/workflows/ci.yml)
+![Lighthouse](https://raw.githubusercontent.com/jakmate/formula-ascent/main/badges/lighthouse-badge.svg)
 
 A machine learning application that predicts drivers' likelihood of advancing to parent series using historical performance data.
 
 ## Deployment
 
 The application is containerized and deployed on:
+
 - **Backend**: FastAPI on Render
 - **Frontend**: Vite on Render
 - **CI/CD**: GitHub Actions for testing
@@ -21,10 +23,12 @@ The application is containerized and deployed on:
 ## Quick Start
 
 ### Prerequisites
+
 - Python 3.11+
 - Node.js 20+
 
 ### Backend Setup
+
 ```bash
 cd backend
 pip install -r requirements.txt
@@ -32,6 +36,7 @@ python main.py
 ```
 
 ### Frontend Setup
+
 ```bash
 cd frontend
 npm install
@@ -41,6 +46,7 @@ npm run dev
 ## Development
 
 ### Running Tests
+
 ```bash
 # Backend
 cd backend
@@ -52,6 +58,7 @@ npm run test:coverage
 ```
 
 ### Code Quality
+
 ```bash
 # Backend linting
 flake8 --max-line-length=100 .

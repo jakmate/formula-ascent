@@ -9,3 +9,5 @@ backend/htmlcov
 
 frontend/node_modules
 frontend/coverage
+
+badges/*.html
