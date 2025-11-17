@@ -284,9 +284,10 @@ class TestTrainModels:
 
 class TestEdgeCases:
     @patch("app.services.model_service.MODELS_DIR", "/test/models")
+    @patch('os.makedirs')
     @patch("joblib.dump")
     @pytest.mark.asyncio
-    async def test_save_models_empty_models_dict(self, mock_dump, model_service):
+    async def test_save_models_empty_models_dict(self, mock_dump, mock_makedirs, model_service):
         """Test saving when models dict is empty"""
         model_service.app_state.models["f3_to_f2"] = {}
 
