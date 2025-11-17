@@ -103,7 +103,7 @@ def test_build_headers_team_label():
     race_headers = [
         make_soup("<th>Pos</th>").find("th"),
         make_soup("<th>Team</th>").find("th"),
-        make_soup("<th>Race1</th>").find("th")
+        make_soup("<th>Race1</th>").find("th"),
     ]
     combined, _ = build_headers(race_headers, None, 2020, 1, "my_team_suffix")
     assert combined[1] == "Team"  # ensure 'Team' used instead of 'Driver'
@@ -173,8 +173,14 @@ def test_get_footer_rows_count_2020_series3_drivers():
 def test_process_table_row_too_few_cells():
     cells = [make_soup("<td>only</td>").find("td"), make_soup("<td>two</td>").find("td")]
     headers = ["Pos", "Driver", "Points"]
-    tracker = {'pos_rowspan': 0, 'team_rowspan': 0, 'points_rowspan': 0,
-               'current_pos': '', 'current_team': '', 'current_points': ''}
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
     assert process_table_row(cells, headers, False, tracker) is None
 
 
@@ -185,8 +191,14 @@ def test_process_table_row_basic():
         make_soup("<td>25</td>").find("td"),
     ]
     headers = ["Pos", "Driver", "Points"]
-    tracker = {'pos_rowspan': 0, 'team_rowspan': 0, 'points_rowspan': 0,
-               'current_pos': '', 'current_team': '', 'current_points': ''}
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
     result = process_table_row(cells, headers, False, tracker)
     assert result == ["1", "Max", "25"]
 
@@ -196,12 +208,18 @@ def test_process_table_row_rowspan_and_missing_points():
     # Row has pos (rowspan=2), team (rowspan=2), race cell(s) but no points cell
     r1 = make_soup('<td rowspan="2">1</td>').find("td")
     r2 = make_soup('<td rowspan="2">Team A</td>').find("td")
-    race_cell = make_soup('<td>R</td>').find("td")
+    race_cell = make_soup("<td>R</td>").find("td")
     # only three cells in this row; points missing -> should go into missing-points branch
     cells = [r1, r2, race_cell]
     headers = ["Pos", "Team", "Race1", "Points"]  # combined headers length used by padding logic
-    tracker = {'pos_rowspan': 0, 'team_rowspan': 0, 'points_rowspan': 0,
-               'current_pos': '', 'current_team': '', 'current_points': ''}
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
     result = process_table_row(cells, headers, False, tracker)
     # Expect position and team to be taken, race cell value, and empty string for points
     assert result[0] == "1"
@@ -220,8 +238,14 @@ def test_process_table_row_with_no_col_skips_column():
         make_soup("<td>30</td>").find("td"),
     ]
     headers = ["Pos", "Driver", "R1", "Points"]
-    tracker = {'pos_rowspan': 0, 'team_rowspan': 0, 'points_rowspan': 0,
-               'current_pos': '', 'current_team': '', 'current_points': ''}
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
     result = process_table_row(cells, headers, True, tracker)
     # Should pick up Pos, Driver, then race R1, then Points
     assert result[0] == "1"
@@ -257,7 +281,7 @@ def test_write_championship_csv_rowspan_across_rows(mock_file):
 
     write_championship_csv("dummy.csv", headers, data_rows, False)
 
-    mock_file.assert_called_once_with("dummy.csv", "w", newline='', encoding="utf-8")
+    mock_file.assert_called_once_with("dummy.csv", "w", newline="", encoding="utf-8")
     handle = mock_file()
     # csv.writer writes lines - ensure header + two data rows exist
     handle.write.assert_any_call("Pos,Driver,Race1,Points\r\n")

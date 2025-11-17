@@ -45,28 +45,28 @@ def calculate_age(df):
         return df
 
     try:
-        if 'dob' not in df.columns:
-            df['age'] = np.nan
+        if "dob" not in df.columns:
+            df["age"] = np.nan
             return df
 
         ages = []
         for _, row in df.iterrows():
             try:
-                if len(str(row['dob'])) != 10:
+                if len(str(row["dob"])) != 10:
                     ages.append(np.nan)
                     continue
 
-                dob = datetime.strptime(str(row['dob']), '%Y-%m-%d')
-                season_start = datetime(int(row['year']), 1, 1)
+                dob = datetime.strptime(str(row["dob"]), "%Y-%m-%d")
+                season_start = datetime(int(row["year"]), 1, 1)
                 age = round((season_start - dob).days / 365.25, 1)
                 ages.append(age)
             except (ValueError, TypeError):
                 ages.append(np.nan)
 
-        df['age'] = ages
+        df["age"] = ages
         return df
 
     except Exception as e:
         print(f"Error in calculate_age: {e}")
-        df['age'] = np.nan
+        df["age"] = np.nan
         return df

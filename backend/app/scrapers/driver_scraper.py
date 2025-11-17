@@ -17,14 +17,14 @@ DRIVER_ALIASES = {
     "Gabriel Chaves": "Gabby Chaves",
     "Robert Kubica": "Robert Jozef Kubica",
     "Yifei Ye": "Ye Yifei",
-    "Frederik Vesti": "Frederik Stamm Vesti"
+    "Frederik Vesti": "Frederik Stamm Vesti",
 }
 
 
 def get_driver_filename(driver_name):
     """Create safe filename from driver name."""
-    safe_name = re.sub(r'[^\w\s-]', '', driver_name)
-    safe_name = re.sub(r'[-\s]+', '_', safe_name)
+    safe_name = re.sub(r"[^\w\s-]", "", driver_name)
+    safe_name = re.sub(r"[-\s]+", "_", safe_name)
     return f"{safe_name.lower()}.json"
 
 
@@ -34,7 +34,7 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
 
     # Process in batches
     for i in range(0, len(driver_names), batch_size):
-        batch = driver_names[i:i + batch_size]
+        batch = driver_names[i : i + batch_size]
 
         # Build VALUES clause for batch
         values_list = []
@@ -65,16 +65,14 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
 
         try:
             response = session.get(
-                SPARQL_ENDPOINT,
-                params={'query': query, 'format': 'json'},
-                timeout=30
+                SPARQL_ENDPOINT, params={"query": query, "format": "json"}, timeout=30
             )
 
             if response.status_code == 200:
                 data = response.json()
                 # Group results by matched name
-                for binding in data['results']['bindings']:
-                    name = binding['nameMatch']['value']
+                for binding in data["results"]["bindings"]:
+                    name = binding["nameMatch"]["value"]
                     if name not in results:
                         results[name] = binding
             else:
@@ -89,30 +87,30 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
 def extract_nationality_from_result(result):
     """Extract nationality from Wikidata result, preferring country for sport."""
     # Prefer country for sport over citizenship
-    if 'nationalityLabel' in result and result['nationalityLabel']['value']:
-        return result['nationalityLabel']['value']
-    elif 'citizenshipLabel' in result and result['citizenshipLabel']['value']:
-        return result['citizenshipLabel']['value']
+    if "nationalityLabel" in result and result["nationalityLabel"]["value"]:
+        return result["nationalityLabel"]["value"]
+    elif "citizenshipLabel" in result and result["citizenshipLabel"]["value"]:
+        return result["citizenshipLabel"]["value"]
     return None
 
 
 def extract_dob_from_result(result):
     """Extract date of birth from Wikidata result."""
-    if 'dob' in result and result['dob']['value']:
+    if "dob" in result and result["dob"]["value"]:
         # Wikidata returns dates in ISO format, extract just the date part
-        return result['dob']['value'].split('T')[0]
+        return result["dob"]["value"].split("T")[0]
     return None
 
 
 def save_profile(filename, profile):
     """Save profile to JSON file."""
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(filename, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=2, ensure_ascii=False)
 
 
 def needs_rescrape(existing_profile, new_data):
     """Check if profile needs to be rescraped based on data changes."""
-    if not existing_profile.get('scraped', False):
+    if not existing_profile.get("scraped", False):
         # If previous scrape failed, try again
         return True
 
@@ -121,8 +119,8 @@ def needs_rescrape(existing_profile, new_data):
     new_nationality = extract_nationality_from_result(new_data)
 
     # Compare with existing values
-    dob_changed = existing_profile.get('dob') != new_dob
-    nationality_changed = existing_profile.get('nationality') != new_nationality
+    dob_changed = existing_profile.get("dob") != new_dob
+    nationality_changed = existing_profile.get("nationality") != new_nationality
 
     return dob_changed or nationality_changed
 
@@ -131,9 +129,9 @@ def get_all_drivers_from_data():
     """Extract all driver names from data files."""
     all_drivers = set()
     series_map = {
-        'F1': 'f1_{year}_entries.csv',
-        'F2': 'f2_{year}_entries.csv',
-        'F3': 'f3_{year}_entries.csv'
+        "F1": "f1_{year}_entries.csv",
+        "F2": "f2_{year}_entries.csv",
+        "F3": "f3_{year}_entries.csv",
     }
 
     for series, pattern in series_map.items():
@@ -149,8 +147,8 @@ def get_all_drivers_from_data():
             if os.path.exists(entries_file):
                 try:
                     df = pd.read_csv(entries_file)
-                    if 'Driver' in df.columns:
-                        drivers = df['Driver'].dropna().str.strip().unique()
+                    if "Driver" in df.columns:
+                        drivers = df["Driver"].dropna().str.strip().unique()
                         all_drivers.update(drivers)
                 except Exception as e:
                     print(f"Error reading {entries_file}: {e}")
@@ -215,21 +213,16 @@ def scrape_drivers(session=None):
 
                 if not result:
                     print(f"NO RESULTS FOR {driver}")
-                    profile = {
-                        "name": driver,
-                        "dob": None,
-                        "nationality": None,
-                        "scraped": False
-                    }
+                    profile = {"name": driver, "dob": None, "nationality": None, "scraped": False}
                 else:
                     profile = {
                         "name": driver,
                         "dob": extract_dob_from_result(result),
                         "nationality": extract_nationality_from_result(result),
-                        "wikidata_id": result['person']['value'].split('/')[-1],
-                        "wikidata_url": result['person']['value'],
+                        "wikidata_id": result["person"]["value"].split("/")[-1],
+                        "wikidata_url": result["person"]["value"],
                         "scraped": True,
-                        "scraped_date": datetime.now().isoformat()
+                        "scraped_date": datetime.now().isoformat(),
                     }
 
                 profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
@@ -252,7 +245,7 @@ def scrape_drivers(session=None):
             updated_count = 0
             for driver in existing_drivers:
                 profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
-                with open(profile_file, 'r', encoding='utf-8') as f:
+                with open(profile_file, "r", encoding="utf-8") as f:
                     existing_profile = json.load(f)
 
                 result = existing_results.get(driver)
@@ -262,10 +255,10 @@ def scrape_drivers(session=None):
                         "name": driver,
                         "dob": extract_dob_from_result(result),
                         "nationality": extract_nationality_from_result(result),
-                        "wikidata_id": result['person']['value'].split('/')[-1],
-                        "wikidata_url": result['person']['value'],
+                        "wikidata_id": result["person"]["value"].split("/")[-1],
+                        "wikidata_url": result["person"]["value"],
                         "scraped": True,
-                        "scraped_date": datetime.now().isoformat()
+                        "scraped_date": datetime.now().isoformat(),
                     }
                     save_profile(profile_file, profile)
                     updated_count += 1

@@ -31,7 +31,7 @@ def create_app() -> FastAPI:
         title="Formula Predictions API",
         version="1.0.0",
         description="API for predicting Formula 2 and 3 career promotions",
-        lifespan=lifespan
+        lifespan=lifespan,
     )
 
     # CORS middleware
@@ -40,7 +40,7 @@ def create_app() -> FastAPI:
         allow_origins=[
             "http://localhost:5173",
             "http://localhost:3000",
-            os.getenv("CORS_ORIGINS", "")
+            os.getenv("CORS_ORIGINS", ""),
         ],
         allow_credentials=True,
         allow_methods=["*"],

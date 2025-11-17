@@ -15,7 +15,7 @@ def test_root_endpoint():
     assert response.json() == {
         "name": "Formula Predictions API",
         "status": "running",
-        "health": health_path
+        "health": health_path,
     }
 
 
@@ -24,10 +24,7 @@ def test_health_check():
     client = TestClient(app)
 
     class MockAppState:
-        models = {
-            "f3_to_f2": {"KNN": None, "SVM": None},
-            "f2_to_f1": {"Random Forest": None}
-        }
+        models = {"f3_to_f2": {"KNN": None, "SVM": None}, "f2_to_f1": {"Random Forest": None}}
         system_status = {"last_training": "2023-01-01T12:00:00"}
 
     app.dependency_overrides[get_app_state] = lambda: MockAppState()
@@ -39,10 +36,7 @@ def test_health_check():
     data = response.json()
 
     assert data["status"] == "healthy"
-    assert data["models_loaded"] == {
-        "f3_to_f2": 2,
-        "f2_to_f1": 1
-    }
+    assert data["models_loaded"] == {"f3_to_f2": 2, "f2_to_f1": 1}
     assert data["last_training"] == "2023-01-01T12:00:00"
     assert "timestamp" in data
 

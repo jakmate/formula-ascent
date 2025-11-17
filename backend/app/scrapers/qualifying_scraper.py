@@ -5,19 +5,19 @@ from app.config import DATA_DIR
 from app.scrapers.scraping_utils import create_session, remove_superscripts, safe_request
 
 COLUMN_MAPPING = {
-    'Name': 'Driver',
-    'Entrant': 'Team',
-    'Part 1': 'Q1',
-    'Part 2': 'Q2',
-    'Part 3': 'Q3',
-    'Finalgrid': 'Grid',
-    'Pos': 'Pos.',
-    'Carno.': 'No.',
-    'No': 'No.',
-    'Constructor': 'Team',
-    'GridFR': 'Grid',
-    'R2': 'Grid',
-    'Q2 Time': 'Time'
+    "Name": "Driver",
+    "Entrant": "Team",
+    "Part 1": "Q1",
+    "Part 2": "Q2",
+    "Part 3": "Q3",
+    "Finalgrid": "Grid",
+    "Pos": "Pos.",
+    "Carno.": "No.",
+    "No": "No.",
+    "Constructor": "Team",
+    "GridFR": "Grid",
+    "R2": "Grid",
+    "Q2 Time": "Time",
 }
 
 
@@ -25,8 +25,8 @@ def add_time_gap(base_time, gap):
     """Add gap time to base time (e.g., '1:19.429' + '0.016' = '1:19.445')"""
     try:
         # Parse base time
-        if ':' in base_time:
-            time_parts = base_time.split(':')
+        if ":" in base_time:
+            time_parts = base_time.split(":")
             minutes = int(time_parts[0])
             seconds = float(time_parts[1])
         else:
@@ -54,10 +54,12 @@ def add_time_gap(base_time, gap):
 def extract_race_report_links(soup):
     """Extract race report links from the season summary table"""
     # Find Season summary heading
-    season_heading = (soup.find("h3", {"id": "Season_summary"}) or
-                      soup.find("h3", {"id": "Summary"}) or
-                      soup.find("h2", {"id": "Results"}) or
-                      soup.find("h2", {"id": "Results_and_standings"}))
+    season_heading = (
+        soup.find("h3", {"id": "Season_summary"})
+        or soup.find("h3", {"id": "Summary"})
+        or soup.find("h2", {"id": "Results"})
+        or soup.find("h2", {"id": "Results_and_standings"})
+    )
 
     if not season_heading:
         print("No season summary table found")
@@ -91,9 +93,11 @@ def process_qualifying_data(race_url, round_info, session):
         soup = BeautifulSoup(response.text, "lxml", parse_only=parse_only)
 
         # Find Qualifying heading
-        qualifying_heading = (soup.find("h3", {"id": "Qualifying"}) or
-                              soup.find("h3", {"id": "Qualifying_classification"}) or
-                              soup.find("h2", {"id": "Qualifying"}))
+        qualifying_heading = (
+            soup.find("h3", {"id": "Qualifying"})
+            or soup.find("h3", {"id": "Qualifying_classification"})
+            or soup.find("h2", {"id": "Qualifying"})
+        )
         if not qualifying_heading:
             print(f"No qualifying section found for {race_url}")
             return None
@@ -118,11 +122,11 @@ def parse_time_to_seconds(t):
     """Convert a time string to total seconds."""
     t = t.strip()
     # Case 1: "M:SS.mmm"
-    if ':' in t:
-        minutes, sec_ms = t.split(':', 1)
+    if ":" in t:
+        minutes, sec_ms = t.split(":", 1)
     # Case 2: "M.SS.mmm"
-    elif t.count('.') >= 2:
-        minutes, sec_ms = t.split('.', 1)
+    elif t.count(".") >= 2:
+        minutes, sec_ms = t.split(".", 1)
     else:
         raise ValueError(f"Unrecognized time format: '{t}'")
     return int(minutes) * 60 + float(sec_ms)
@@ -131,8 +135,8 @@ def parse_time_to_seconds(t):
 def normalize_time_str(t):
     """Turn 'M.SS.mmm' into 'M:SS.mmm'."""
     t = t.strip()
-    if t.count('.') >= 2:
-        mins, rest = t.split('.', 1)
+    if t.count(".") >= 2:
+        mins, rest = t.split(".", 1)
         return f"{mins}:{rest}"
     return t
 
@@ -153,28 +157,28 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
             return None
 
         # Get headers from the first available table
-        headers = group_a_data['headers'] if group_a_data else group_b_data['headers']
+        headers = group_a_data["headers"] if group_a_data else group_b_data["headers"]
 
-        group_a_rows = group_a_data['data'] if group_a_data else []
-        group_b_rows = group_b_data['data'] if group_b_data else []
+        group_a_rows = group_a_data["data"] if group_a_data else []
+        group_b_rows = group_b_data["data"] if group_b_data else []
 
         # Get faster group
         time_idx = headers.index("Time")
         tA = parse_time_to_seconds(group_a_rows[0][time_idx])
         tB = parse_time_to_seconds(group_b_rows[0][time_idx])
-        start_with_a = (tA <= tB)
+        start_with_a = tA <= tB
 
         # Create alternating grid pattern
         combined_data = []
         max_len = max(len(group_a_rows), len(group_b_rows))
 
         # Determine order: ['A','B'] or ['B','A']
-        order = ['A', 'B'] if start_with_a else ['B', 'A']
+        order = ["A", "B"] if start_with_a else ["B", "A"]
         pos = 1
 
         for i in range(max_len):
             for grp in order:
-                rows = group_a_rows if grp == 'A' else group_b_rows
+                rows = group_a_rows if grp == "A" else group_b_rows
                 if i < len(rows):
                     row = rows[i]
                     row[0] = str(pos)  # update Pos.
@@ -182,10 +186,10 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
                     pos += 1
 
         return {
-            'headers': headers,
-            'data': combined_data,
-            'round_info': round_info,
-            'url': race_url,
+            "headers": headers,
+            "data": combined_data,
+            "round_info": round_info,
+            "url": race_url,
         }
 
     except Exception as e:
@@ -206,10 +210,10 @@ def process_single_qualifying_table(qualifying_heading, round_info, race_url):
             return None
 
         return {
-            'headers': table_data['headers'],
-            'data': table_data['data'],
-            'round_info': round_info,
-            'url': race_url,
+            "headers": table_data["headers"],
+            "data": table_data["data"],
+            "round_info": round_info,
+            "url": race_url,
         }
 
     except Exception as e:
@@ -229,9 +233,9 @@ def extract_quali_table_data(table):
         second_row = all_rows[1] if len(all_rows) > 1 else None
 
         # Check if second row contains th elements
-        has_two_row_header = (second_row and
-                              second_row.find_all("th") and
-                              not second_row.find_all("td"))
+        has_two_row_header = (
+            second_row and second_row.find_all("th") and not second_row.find_all("td")
+        )
 
         if has_two_row_header:
             # Process two-row header structure
@@ -267,7 +271,7 @@ def extract_quali_table_data(table):
 
         # Drop unwanted columns for single row headers
         if not has_two_row_header:
-            columns_to_drop = {'R1', 'GridSR', 'Gap', 'Q1 Time', 'Rank'}
+            columns_to_drop = {"R1", "GridSR", "Gap", "Q1 Time", "Rank"}
             indices_to_keep = [i for i, h in enumerate(headers) if h not in columns_to_drop]
             headers = [headers[i] for i in indices_to_keep]
 
@@ -309,14 +313,14 @@ def extract_quali_table_data(table):
             for row in data_rows:
                 if time_col_index < len(row):
                     time_value = row[time_col_index]
-                    if time_value.startswith('+') and pole_time:
+                    if time_value.startswith("+") and pole_time:
                         time_value = add_time_gap(pole_time, time_value[1:])
 
-                    if time_value.count('.') >= 2:
+                    if time_value.count(".") >= 2:
                         time_value = normalize_time_str(time_value)
                     row[time_col_index] = time_value
 
-        return {'headers': headers, 'data': data_rows}
+        return {"headers": headers, "data": data_rows}
 
     except Exception as e:
         print(f"Error extracting table data: {str(e)}")
@@ -340,10 +344,10 @@ def save_qualifying_data(qualifying_results, year, series):
         filename = f"{base_filename}_round_{i:02d}.csv"
         full_path = os.path.join(dir_path, filename)
 
-        with open(full_path, "w", newline='', encoding="utf-8") as f:
+        with open(full_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(result['headers'])
-            writer.writerows(result['data'])
+            writer.writerow(result["headers"])
+            writer.writerows(result["data"])
 
 
 def scrape_quali(soup, year, num, session=None):

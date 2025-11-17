@@ -23,12 +23,7 @@ def map_url(num, year):
     return None
 
 
-def scrape_wiki(
-        session=None,
-        formulas=[1, 2, 3],
-        start_year=2010,
-        end_year=CURRENT_YEAR + 1
-):
+def scrape_wiki(session=None, formulas=[1, 2, 3], start_year=2010, end_year=CURRENT_YEAR + 1):
     if not session:
         session = create_session()
 

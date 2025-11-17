@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timezone, timedelta
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, patch
 
 from app.scrapers.schedule_scraper import (
     get_country_for_location,
@@ -10,7 +10,7 @@ from app.scrapers.schedule_scraper import (
     parse_time_to_datetime,
     scrape_f1_schedule,
     scrape_fia_formula_schedule,
-    scrape_schedules
+    scrape_schedules,
 )
 
 
@@ -32,8 +32,8 @@ class TestGetTimezoneForLocation:
         assert get_timezone_for_location("Monaco") == "Europe/Monaco"
         assert get_timezone_for_location("Silverstone") == "Europe/London"
 
-    @patch('app.scrapers.schedule_scraper.Nominatim')
-    @patch('app.scrapers.schedule_scraper.TimezoneFinder')
+    @patch("app.scrapers.schedule_scraper.Nominatim")
+    @patch("app.scrapers.schedule_scraper.TimezoneFinder")
     def test_geocoding_fallback(self, mock_tf, mock_nominatim):
         mock_geolocator = Mock()
         mock_location = Mock()
@@ -48,7 +48,7 @@ class TestGetTimezoneForLocation:
         result = get_timezone_for_location("New York")
         assert result == "America/New_York"
 
-    @patch('app.scrapers.schedule_scraper.Nominatim')
+    @patch("app.scrapers.schedule_scraper.Nominatim")
     def test_geocoding_failure_returns_utc(self, mock_nominatim):
         mock_geolocator = Mock()
         mock_geolocator.geocode.side_effect = Exception("Geocoding failed")
@@ -74,28 +74,16 @@ class TestIsRaceCompletedOrOngoing:
 
     def test_race_with_past_session(self):
         past_time = datetime.now(timezone.utc) - timedelta(days=2)
-        race = {
-            "sessions": {
-                "race": {"start": past_time.replace(tzinfo=None).isoformat()}
-            }
-        }
+        race = {"sessions": {"race": {"start": past_time.replace(tzinfo=None).isoformat()}}}
         assert is_race_completed_or_ongoing(race) is True
 
     def test_race_with_future_session(self):
         future_time = datetime.now(timezone.utc) + timedelta(days=2)
-        race = {
-            "sessions": {
-                "race": {"start": future_time.replace(tzinfo=None).isoformat()}
-            }
-        }
+        race = {"sessions": {"race": {"start": future_time.replace(tzinfo=None).isoformat()}}}
         assert is_race_completed_or_ongoing(race) is False
 
     def test_race_with_invalid_date(self):
-        race = {
-            "sessions": {
-                "race": {"start": "invalid-date"}
-            }
-        }
+        race = {"sessions": {"race": {"start": "invalid-date"}}}
         assert is_race_completed_or_ongoing(race) is False
 
 
@@ -171,7 +159,7 @@ class TestScrapeF1Schedule:
     def test_successful_scrape(self):
         mock_session = Mock()
         mock_response = Mock()
-        mock_response.content = b'''
+        mock_response.content = b"""
         <a class="group" href="/en/racing/2025/bahrain">
             <span class="typography-module_body-2-xs-bold__M03Ei">ROUND 1</span>
             <span class="typography-module_display-xl-bold__Gyl5W">Sakhir</span>
@@ -179,10 +167,10 @@ class TestScrapeF1Schedule:
             FORMULA 1 BAHRAIN GRAND PRIX 2025</span>
             <span class="typography-module_technical-xs-regular__-W0Gs">28 Feb - 02 Mar</span>
         </a>
-        '''
+        """
         mock_session.get.return_value = mock_response
 
-        with patch('app.scrapers.schedule_scraper.CURRENT_YEAR', 2025):
+        with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):
             races = scrape_f1_schedule(mock_session)
             assert isinstance(races, list)
 
@@ -193,7 +181,7 @@ class TestScrapeF1Schedule:
         races = scrape_f1_schedule(mock_session)
         assert races == []
 
-    @patch('app.scrapers.schedule_scraper.BeautifulSoup')
+    @patch("app.scrapers.schedule_scraper.BeautifulSoup")
     def test_scrape_with_session_details(self, mock_bs):
         mock_session = Mock()
         mock_soup = Mock()
@@ -203,19 +191,19 @@ class TestScrapeF1Schedule:
         mock_round = Mock()
         mock_round.text = "ROUND 1"
         mock_card.select_one.side_effect = lambda sel: {
-            '.typography-module_body-2-xs-bold__M03Ei': mock_round,
-            '.typography-module_display-xl-bold__Gyl5W': Mock(text="Sakhir"),
-            '.typography-module_body-xs-semibold__Fyfwn': Mock(text="FORMULA 1 BAHRAIN GP 2025"),
-            '.typography-module_technical-xs-regular__-W0Gs': Mock(text="02 Mar")
+            ".typography-module_body-2-xs-bold__M03Ei": mock_round,
+            ".typography-module_display-xl-bold__Gyl5W": Mock(text="Sakhir"),
+            ".typography-module_body-xs-semibold__Fyfwn": Mock(text="FORMULA 1 BAHRAIN GP 2025"),
+            ".typography-module_technical-xs-regular__-W0Gs": Mock(text="02 Mar"),
         }.get(sel, None)
 
         mock_card.get.return_value = "/en/racing/2025/bahrain"
         mock_soup.find_all.return_value = [mock_card]
         mock_bs.return_value = mock_soup
 
-        mock_session.get.return_value = Mock(content=b'')
+        mock_session.get.return_value = Mock(content=b"")
 
-        with patch('app.scrapers.schedule_scraper.CURRENT_YEAR', 2025):
+        with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):
             races = scrape_f1_schedule(mock_session)
             assert isinstance(races, list)
 
@@ -225,12 +213,12 @@ class TestScrapeFiaFormulaSchedule:
     def test_unsupported_series(self):
         mock_session = Mock()
         with pytest.raises(ValueError, match="Unsupported series"):
-            scrape_fia_formula_schedule(mock_session, 'f4')
+            scrape_fia_formula_schedule(mock_session, "f4")
 
     def test_f2_scrape(self):
         mock_session = Mock()
         mock_response = Mock()
-        mock_response.content = b'''
+        mock_response.content = b"""
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
             <span class="h6">Round 1</span>
             <span class="event-place"><span class="ellipsis">Bahrain</span></span>
@@ -240,49 +228,53 @@ class TestScrapeFiaFormulaSchedule:
             </p>
             <a href="/race/bahrain"></a>
         </div>
-        '''
+        """
         mock_session.get.return_value = mock_response
 
-        with patch('app.scrapers.schedule_scraper.CURRENT_YEAR', 2025):
-            races = scrape_fia_formula_schedule(mock_session, 'f2')
+        with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):
+            races = scrape_fia_formula_schedule(mock_session, "f2")
             assert isinstance(races, list)
 
     def test_f3_scrape(self):
         mock_session = Mock()
         mock_response = Mock()
-        mock_response.content = b'<div></div>'
+        mock_response.content = b"<div></div>"
         mock_session.get.return_value = mock_response
 
-        races = scrape_fia_formula_schedule(mock_session, 'f3')
+        races = scrape_fia_formula_schedule(mock_session, "f3")
         assert isinstance(races, list)
 
     def test_network_error(self):
         mock_session = Mock()
         mock_session.get.side_effect = Exception("Connection error")
 
-        races = scrape_fia_formula_schedule(mock_session, 'f2')
+        races = scrape_fia_formula_schedule(mock_session, "f2")
         assert races == []
 
 
 # Tests for scrape_schedules
 class TestSaveSchedules:
-    @patch('app.scrapers.schedule_scraper.scrape_f1_schedule')
-    @patch('app.scrapers.schedule_scraper.scrape_fia_formula_schedule')
-    @patch('app.scrapers.schedule_scraper.os.path.exists')
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('app.scrapers.schedule_scraper.json.dump')
-    @patch('app.scrapers.schedule_scraper.json.load')
-    def test_save_new_schedules(self, mock_json_load, mock_json_dump,
-                                mock_file, mock_exists, mock_f2_scraper, mock_f1_scraper):
+    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
+    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
+    @patch("app.scrapers.schedule_scraper.os.path.exists")
+    def test_save_new_schedules(self, mock_exists, mock_f2_scraper, mock_f1_scraper):
         mock_session = Mock()
         mock_exists.return_value = False
         mock_f1_scraper.return_value = [
-            {"round": 1, "name": "Bahrain", "location": "Bahrain",
-             "sessions": {"race": {"start": "2025-03-02T15:00:00"}}}
+            {
+                "round": 1,
+                "name": "Bahrain",
+                "location": "Bahrain",
+                "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
+            }
         ]
         mock_f2_scraper.return_value = [
-            {"round": 1, "name": "Bahrain", "location": "Bahrain",
-             "sessions": {"race": {"start": "2025-03-02T14:00:00"}}}
+            {
+                "round": 1,
+                "name": "Bahrain",
+                "location": "Bahrain",
+                "sessions": {"race": {"start": "2025-03-02T14:00:00"}},
+            }
         ]
 
         scrape_schedules(mock_session)
@@ -291,16 +283,21 @@ class TestSaveSchedules:
         assert mock_f1_scraper.called
         assert mock_f2_scraper.called
 
-    @patch('app.scrapers.schedule_scraper.scrape_f1_schedule')
-    @patch('app.scrapers.schedule_scraper.scrape_fia_formula_schedule')
-    @patch('app.scrapers.schedule_scraper.os.path.exists')
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('app.scrapers.schedule_scraper.json.load')
-    @patch('app.scrapers.schedule_scraper.json.dump')
-    @patch('app.scrapers.schedule_scraper.is_race_completed_or_ongoing')
-    def test_preserve_completed_races(self, mock_is_completed, mock_json_dump,
-                                      mock_json_load, mock_file, mock_exists,
-                                      mock_f2_scraper, mock_f1_scraper):
+    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
+    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
+    @patch("app.scrapers.schedule_scraper.os.path.exists")
+    @patch("app.scrapers.schedule_scraper.json.load")
+    @patch("app.scrapers.schedule_scraper.json.dump")
+    @patch("app.scrapers.schedule_scraper.is_race_completed_or_ongoing")
+    def test_preserve_completed_races(
+        self,
+        mock_is_completed,
+        mock_json_dump,
+        mock_json_load,
+        mock_exists,
+        mock_f2_scraper,
+        mock_f1_scraper,
+    ):
         mock_session = Mock()
         mock_exists.return_value = True
 
@@ -308,14 +305,18 @@ class TestSaveSchedules:
             "round": 1,
             "name": "Bahrain",
             "location": "Bahrain",
-            "sessions": {"race": {"start": "2025-03-02T15:00:00"}}
+            "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
         }
         mock_json_load.return_value = [existing_race]
         mock_is_completed.return_value = True
 
         mock_f1_scraper.return_value = [
-            {"round": 1, "name": "Bahrain Updated", "location": "Bahrain",
-             "sessions": {"race": {"start": "2025-03-02T16:00:00"}}}
+            {
+                "round": 1,
+                "name": "Bahrain Updated",
+                "location": "Bahrain",
+                "sessions": {"race": {"start": "2025-03-02T16:00:00"}},
+            }
         ]
         mock_f2_scraper.return_value = []
 
@@ -327,8 +328,8 @@ class TestSaveSchedules:
         # Verify completed race was preserved
         assert mock_json_dump.called
 
-    @patch('app.scrapers.schedule_scraper.scrape_f1_schedule')
-    @patch('app.scrapers.schedule_scraper.scrape_fia_formula_schedule')
+    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
+    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
     def test_scraper_exception_handling(self, mock_f2_scraper, mock_f1_scraper):
         mock_session = Mock()
         mock_f1_scraper.side_effect = Exception("Scraper error")
@@ -337,13 +338,13 @@ class TestSaveSchedules:
         # Should not raise exception
         scrape_schedules(mock_session)
 
-    @patch('app.scrapers.schedule_scraper.scrape_f1_schedule')
-    @patch('app.scrapers.schedule_scraper.scrape_fia_formula_schedule')
-    @patch('app.scrapers.schedule_scraper.os.path.exists')
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('app.scrapers.schedule_scraper.json.load')
-    def test_invalid_json_handling(self, mock_json_load, mock_file,
-                                   mock_exists, mock_f2_scraper, mock_f1_scraper):
+    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
+    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
+    @patch("app.scrapers.schedule_scraper.os.path.exists")
+    @patch("app.scrapers.schedule_scraper.json.load")
+    def test_invalid_json_handling(
+        self, mock_json_load, mock_exists, mock_f2_scraper, mock_f1_scraper
+    ):
         mock_session = Mock()
         mock_exists.return_value = True
         mock_json_load.side_effect = Exception("Invalid JSON")

@@ -10,7 +10,7 @@ from app.scrapers.qualifying_scraper import (
     process_two_table_qualifying,
     extract_quali_table_data,
     save_qualifying_data,
-    scrape_quali
+    scrape_quali,
 )
 
 
@@ -101,9 +101,9 @@ class TestExtractQualiTableData:
         result = extract_quali_table_data(table)
 
         assert result is not None
-        assert result['headers'] == ['Pos.', 'No.', 'Driver', 'Team', 'Time', 'Grid']
-        assert len(result['data']) == 1
-        assert result['data'][0] == ['1', '1', 'Max Verstappen', 'Red Bull', '1:19.429', '1']
+        assert result["headers"] == ["Pos.", "No.", "Driver", "Team", "Time", "Grid"]
+        assert len(result["data"]) == 1
+        assert result["data"][0] == ["1", "1", "Max Verstappen", "Red Bull", "1:19.429", "1"]
 
     def test_extract_two_row_header(self):
         html = """
@@ -129,8 +129,8 @@ class TestExtractQualiTableData:
         result = extract_quali_table_data(table)
 
         assert result is not None
-        assert result['headers'] == ['Pos.', 'No.', 'Driver', 'Team', 'Q1', 'Q2', 'Q3', 'Grid']
-        assert len(result['data']) == 1
+        assert result["headers"] == ["Pos.", "No.", "Driver", "Team", "Q1", "Q2", "Q3", "Grid"]
+        assert len(result["data"]) == 1
 
     def test_convert_time_gaps_to_actual_times(self):
         html = """
@@ -149,9 +149,9 @@ class TestExtractQualiTableData:
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
-        assert result['headers'][4] == 'Time'  # Renamed from Time/Gap
-        assert result['data'][0][4] == '1:19.429'
-        assert result['data'][1][4] == '1:19.445'
+        assert result["headers"][4] == "Time"  # Renamed from Time/Gap
+        assert result["data"][0][4] == "1:19.429"
+        assert result["data"][1][4] == "1:19.445"
 
     def test_normalize_dotted_times(self):
         html = """
@@ -167,7 +167,7 @@ class TestExtractQualiTableData:
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
-        assert result['data'][0][4] == '1:19.429'
+        assert result["data"][0][4] == "1:19.429"
 
     def test_truncate_long_grid_numbers(self):
         html = """
@@ -183,7 +183,7 @@ class TestExtractQualiTableData:
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
-        assert result['data'][0][5] == '12'
+        assert result["data"][0][5] == "12"
 
     def test_insufficient_rows_returns_none(self):
         html = """
@@ -198,23 +198,23 @@ class TestExtractQualiTableData:
 
 
 class TestProcessTwoTableQualifying:
-    @patch('app.scrapers.qualifying_scraper.extract_quali_table_data')
+    @patch("app.scrapers.qualifying_scraper.extract_quali_table_data")
     def test_alternating_faster_grid(self, mock_extract):
         mock_extract.side_effect = [
             {
-                'headers': ['Pos.', 'No.', 'Driver', 'Team', 'Time', 'Grid'],
-                'data': [
-                    ['1', '1', 'Driver A1', 'Team A', '1:19.000', '1'],
-                    ['2', '2', 'Driver A2', 'Team A', '1:19.500', '2']
-                ]
+                "headers": ["Pos.", "No.", "Driver", "Team", "Time", "Grid"],
+                "data": [
+                    ["1", "1", "Driver A1", "Team A", "1:19.000", "1"],
+                    ["2", "2", "Driver A2", "Team A", "1:19.500", "2"],
+                ],
             },
             {
-                'headers': ['Pos.', 'No.', 'Driver', 'Team', 'Time', 'Grid'],
-                'data': [
-                    ['1', '3', 'Driver B1', 'Team B', '1:19.200', '1'],
-                    ['2', '4', 'Driver B2', 'Team B', '1:19.600', '2']
-                ]
-            }
+                "headers": ["Pos.", "No.", "Driver", "Team", "Time", "Grid"],
+                "data": [
+                    ["1", "3", "Driver B1", "Team B", "1:19.200", "1"],
+                    ["2", "4", "Driver B2", "Team B", "1:19.600", "2"],
+                ],
+            },
         ]
 
         group_a_head = Mock()
@@ -225,21 +225,21 @@ class TestProcessTwoTableQualifying:
         result = process_two_table_qualifying(group_a_head, group_b_head, "Round 1", "url")
 
         assert result is not None
-        assert len(result['data']) == 4
+        assert len(result["data"]) == 4
         # Check alternating pattern: A1, B1, A2, B2
-        assert result['data'][0][2] == 'Driver A1'
-        assert result['data'][1][2] == 'Driver B1'
-        assert result['data'][2][2] == 'Driver A2'
-        assert result['data'][3][2] == 'Driver B2'
+        assert result["data"][0][2] == "Driver A1"
+        assert result["data"][1][2] == "Driver B1"
+        assert result["data"][2][2] == "Driver A2"
+        assert result["data"][3][2] == "Driver B2"
         # Check position renumbering
-        assert result['data'][0][0] == '1'
-        assert result['data'][1][0] == '2'
-        assert result['data'][2][0] == '3'
-        assert result['data'][3][0] == '4'
+        assert result["data"][0][0] == "1"
+        assert result["data"][1][0] == "2"
+        assert result["data"][2][0] == "3"
+        assert result["data"][3][0] == "4"
 
 
 class TestProcessQualifyingData:
-    @patch('app.scrapers.qualifying_scraper.safe_request')
+    @patch("app.scrapers.qualifying_scraper.safe_request")
     def test_process_standard_qualifying(self, mock_request):
         html = """
         <h3 id="Qualifying">Qualifying</h3>
@@ -260,11 +260,11 @@ class TestProcessQualifyingData:
         result = process_qualifying_data("http://test.com", "Round 1", session)
 
         assert result is not None
-        assert result['round_info'] == "Round 1"
-        assert result['url'] == "http://test.com"
-        assert len(result['data']) == 1
+        assert result["round_info"] == "Round 1"
+        assert result["url"] == "http://test.com"
+        assert len(result["data"]) == 1
 
-    @patch('app.scrapers.qualifying_scraper.safe_request')
+    @patch("app.scrapers.qualifying_scraper.safe_request")
     def test_no_qualifying_section_returns_none(self, mock_request):
         html = "<html><body></body></html>"
         mock_response = Mock()
@@ -276,7 +276,7 @@ class TestProcessQualifyingData:
 
         assert result is None
 
-    @patch('app.scrapers.qualifying_scraper.safe_request')
+    @patch("app.scrapers.qualifying_scraper.safe_request")
     def test_failed_request_returns_none(self, mock_request):
         mock_request.return_value = None
 
@@ -287,47 +287,46 @@ class TestProcessQualifyingData:
 
 
 class TestSaveQualifyingData:
-    @patch('builtins.open', create=True)
-    @patch('os.makedirs')
+    @patch("builtins.open", create=True)
+    @patch("os.makedirs")
     def test_save_qualifying_data(self, mock_makedirs, mock_open):
         mock_file = MagicMock()
         mock_open.return_value.__enter__.return_value = mock_file
 
         qualifying_results = [
             {
-                'headers': ['Pos.', 'No.', 'Driver', 'Team', 'Time', 'Grid'],
-                'data': [['1', '1', 'Driver', 'Team', '1:19.429', '1']],
-                'round_info': 'Round 1',
-                'url': 'http://test.com'
+                "headers": ["Pos.", "No.", "Driver", "Team", "Time", "Grid"],
+                "data": [["1", "1", "Driver", "Team", "1:19.429", "1"]],
+                "round_info": "Round 1",
+                "url": "http://test.com",
             }
         ]
 
-        with patch('app.scrapers.qualifying_scraper.DATA_DIR', '/data'):
+        with patch("app.scrapers.qualifying_scraper.DATA_DIR", "/data"):
             save_qualifying_data(qualifying_results, 2024, 1)
 
         mock_makedirs.assert_called_once()
         mock_open.assert_called_once()
 
-    @patch('os.makedirs')
+    @patch("os.makedirs")
     def test_save_skips_none_results(self, mock_makedirs):
         qualifying_results = [None, None]
 
-        with patch('app.scrapers.qualifying_scraper.DATA_DIR', '/data'):
+        with patch("app.scrapers.qualifying_scraper.DATA_DIR", "/data"):
             save_qualifying_data(qualifying_results, 2024, 1)
 
         mock_makedirs.assert_called_once()
 
 
 class TestScrapeQuali:
-    @patch('app.scrapers.qualifying_scraper.save_qualifying_data')
-    @patch('app.scrapers.qualifying_scraper.process_qualifying_data')
-    @patch('app.scrapers.qualifying_scraper.extract_race_report_links')
-    @patch('app.scrapers.qualifying_scraper.create_session')
-    def test_scrape_quali_full_flow(self, mock_session, mock_extract, mock_process, mock_save):
-        mock_extract.return_value = ['http://race1.com', 'http://race2.com']
+    @patch("app.scrapers.qualifying_scraper.save_qualifying_data")
+    @patch("app.scrapers.qualifying_scraper.process_qualifying_data")
+    @patch("app.scrapers.qualifying_scraper.extract_race_report_links")
+    def test_scrape_quali_full_flow(self, mock_extract, mock_process, mock_save):
+        mock_extract.return_value = ["http://race1.com", "http://race2.com"]
         mock_process.side_effect = [
-            {'headers': [], 'data': [], 'round_info': 'Round 1', 'url': 'http://race1.com'},
-            {'headers': [], 'data': [], 'round_info': 'Round 2', 'url': 'http://race2.com'}
+            {"headers": [], "data": [], "round_info": "Round 1", "url": "http://race1.com"},
+            {"headers": [], "data": [], "round_info": "Round 2", "url": "http://race2.com"},
         ]
 
         soup = Mock()
@@ -336,9 +335,8 @@ class TestScrapeQuali:
         assert mock_process.call_count == 2
         mock_save.assert_called_once()
 
-    @patch('app.scrapers.qualifying_scraper.extract_race_report_links')
-    @patch('app.scrapers.qualifying_scraper.create_session')
-    def test_scrape_quali_no_links(self, mock_session, mock_extract):
+    @patch("app.scrapers.qualifying_scraper.extract_race_report_links")
+    def test_scrape_quali_no_links(self, mock_extract):
         mock_extract.return_value = []
 
         soup = Mock()

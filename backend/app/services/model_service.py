@@ -20,22 +20,30 @@ class ModelService:
             series_dir = os.path.join(MODELS_DIR, self.series) if self.series else MODELS_DIR
             os.makedirs(series_dir, exist_ok=True)
 
-            models_to_save = self.app_state.models[self.series] if self.series else self.app_state.models  # noqa: 501
+            models_to_save = (
+                self.app_state.models[self.series] if self.series else self.app_state.models
+            )  # noqa: 501
 
             for name, model in models_to_save.items():
                 if name == "PyTorch":
                     torch.save(
                         model.state_dict(),
                         os.path.join(series_dir, f"{name}.pt"),
-                        _use_new_zipfile_serialization=True
+                        _use_new_zipfile_serialization=True,
                     )
                 else:
                     joblib.dump(model, os.path.join(series_dir, f"{name}.joblib"))
 
             # Save preprocessor
             preprocessor_data = {
-                'scaler': self.app_state.scaler[self.series] if self.series else self.app_state.scaler,  # noqa: 501
-                'feature_cols': self.app_state.feature_cols[self.series] if self.series else self.app_state.feature_cols  # noqa: 501
+                "scaler": (
+                    self.app_state.scaler[self.series] if self.series else self.app_state.scaler
+                ),  # noqa: 501
+                "feature_cols": (
+                    self.app_state.feature_cols[self.series]
+                    if self.series
+                    else self.app_state.feature_cols
+                ),  # noqa: 501
             }
             joblib.dump(preprocessor_data, os.path.join(series_dir, "preprocessor.joblib"))
 
@@ -50,7 +58,7 @@ class ModelService:
             models_loaded = False
 
             # Load for specific series or all series
-            series_to_load = [self.series] if self.series else ['f3_to_f2', 'f2_to_f1']
+            series_to_load = [self.series] if self.series else ["f3_to_f2", "f2_to_f1"]
 
             for series in series_to_load:
                 series_dir = os.path.join(MODELS_DIR, series)
@@ -61,8 +69,8 @@ class ModelService:
                 preprocessor_path = os.path.join(series_dir, "preprocessor.joblib")
                 if os.path.exists(preprocessor_path):
                     preprocessor = joblib.load(preprocessor_path)
-                    self.app_state.scaler[series] = preprocessor['scaler']
-                    self.app_state.feature_cols[series] = preprocessor['feature_cols']
+                    self.app_state.scaler[series] = preprocessor["scaler"]
+                    self.app_state.feature_cols[series] = preprocessor["feature_cols"]
 
                 # Load models
                 for model_file in os.listdir(series_dir):
@@ -79,9 +87,7 @@ class ModelService:
                     elif model_file.endswith(".pt"):
                         model = RacingPredictor(len(self.app_state.feature_cols[series]))
                         state_dict = torch.load(
-                            model_path,
-                            map_location=torch.device('cpu'),
-                            weights_only=False
+                            model_path, map_location=torch.device("cpu"), weights_only=False
                         )
                         model.load_state_dict(state_dict)
                         self.app_state.models[series][name] = model
@@ -104,8 +110,11 @@ class ModelService:
 
     async def train_models(self, trainable_df):
         """Train models on provided data"""
-        LOGGER.info(f"Training classification models for {self.series} on {len(trainable_df)} records")  # noqa: 501
+        LOGGER.info(
+            f"Training classification models for {self.series} on {len(trainable_df)} records"
+        )  # noqa: 501
         from app.core.predictor import train_models
+
         (models, feature_cols, scaler) = train_models(trainable_df)
 
         # Store in series-specific slots
@@ -114,12 +123,12 @@ class ModelService:
         self.app_state.scaler[self.series] = scaler
 
         self.app_state.system_status["last_training"] = datetime.now()
-        self.app_state.system_status["last_trained_season"] = trainable_df['year'].max()
+        self.app_state.system_status["last_trained_season"] = trainable_df["year"].max()
 
         # Update available models for this series
         self.app_state.system_status["models_available"][self.series] = list(models.keys())
 
         self.app_state.system_status["data_health"][self.series] = {
             "historical_records": len(trainable_df),
-            "current_records": 0
+            "current_records": 0,
         }

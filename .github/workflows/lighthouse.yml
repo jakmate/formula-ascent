@@ -39,8 +39,12 @@ jobs:
           ls -la badges || true
 
           generated_svg=$(ls badges/*.svg 2>/dev/null | head -n 1 || true)
+          target_svg="badges/lighthouse-badge.svg"
+
           if [ -n "$generated_svg" ]; then
-            mv -f "$generated_svg" badges/lighthouse-badge.svg
+            if [ "$generated_svg" != "$target_svg" ]; then
+              mv -f "$generated_svg" "$target_svg"
+            fi
           else
             echo "No badge generated!"
             exit 1

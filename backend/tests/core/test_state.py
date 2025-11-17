@@ -8,8 +8,8 @@ from app.core.state import AppState
 
 @pytest.fixture
 def mock_state_file():
-    with patch('app.core.state.STATE_FILE', '/tmp/test_state.json'):
-        yield '/tmp/test_state.json'
+    with patch("app.core.state.STATE_FILE", "/tmp/test_state.json"):
+        yield "/tmp/test_state.json"
 
 
 @pytest.fixture
@@ -20,10 +20,7 @@ def sample_state_data():
         "last_scrape_schedule": "2024-01-01T12:00:00",
         "last_training": "2024-01-01T13:00:00",
         "last_trained_season": "2024",
-        "models_available": {
-            "f3_to_f2": ["f3_to_f2_model1"],
-            "f2_to_f1": ["f2_to_f1_model2"]
-        }
+        "models_available": {"f3_to_f2": ["f3_to_f2_model1"], "f2_to_f1": ["f2_to_f1_model2"]},
     }
 
 
@@ -32,18 +29,9 @@ class TestAppStateInit:
         state = AppState()
 
         # Test series-specific structures
-        assert state.models == {
-            'f3_to_f2': {},
-            'f2_to_f1': {}
-        }
-        assert state.feature_cols == {
-            'f3_to_f2': [],
-            'f2_to_f1': []
-        }
-        assert state.scaler == {
-            'f3_to_f2': None,
-            'f2_to_f1': None
-        }
+        assert state.models == {"f3_to_f2": {}, "f2_to_f1": {}}
+        assert state.feature_cols == {"f3_to_f2": [], "f2_to_f1": []}
+        assert state.scaler == {"f3_to_f2": None, "f2_to_f1": None}
 
         # Test other default values
         assert state.current_predictions == {}
@@ -52,10 +40,7 @@ class TestAppStateInit:
         assert state.system_status["last_scrape_schedule"] is None
         assert state.system_status["last_training"] is None
         assert state.system_status["last_trained_season"] is None
-        assert state.system_status["models_available"] == {
-            "f3_to_f2": [],
-            "f2_to_f1": []
-        }
+        assert state.system_status["models_available"] == {"f3_to_f2": [], "f2_to_f1": []}
         assert state.system_status["data_health"] == {}
         assert state.scheduler is not None
 
@@ -70,19 +55,16 @@ class TestSaveState:
         state.system_status["last_scrape_schedule"] = test_time
         state.system_status["last_training"] = test_time
         state.system_status["last_trained_season"] = "2024"
-        state.system_status["models_available"] = {
-            "f3_to_f2": ["f3_to_f2_model1"],
-            "f2_to_f1": []
-        }
+        state.system_status["models_available"] = {"f3_to_f2": ["f3_to_f2_model1"], "f2_to_f1": []}
 
-        with patch('builtins.open', mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()) as mock_file:
             state.save_state()
 
-            mock_file.assert_called_once_with(mock_state_file, 'w')
+            mock_file.assert_called_once_with(mock_state_file, "w")
 
             # Check JSON was written
             handle = mock_file.return_value.__enter__.return_value
-            written_data = ''.join(call.args[0] for call in handle.write.call_args_list)
+            written_data = "".join(call.args[0] for call in handle.write.call_args_list)
             saved_data = json.loads(written_data)
 
             assert saved_data["last_scrape_full"] == "2024-01-01T12:00:00"
@@ -92,17 +74,17 @@ class TestSaveState:
             assert saved_data["last_trained_season"] == "2024"
             assert saved_data["models_available"] == {
                 "f3_to_f2": ["f3_to_f2_model1"],
-                "f2_to_f1": []
+                "f2_to_f1": [],
             }
 
     def test_save_state_with_none_values(self):
         state = AppState()
 
-        with patch('builtins.open', mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()) as mock_file:
             state.save_state()
 
             handle = mock_file.return_value.__enter__.return_value
-            written_data = ''.join(call.args[0] for call in handle.write.call_args_list)
+            written_data = "".join(call.args[0] for call in handle.write.call_args_list)
             saved_data = json.loads(written_data)
 
             assert saved_data["last_scrape_full"] is None
@@ -110,18 +92,16 @@ class TestSaveState:
             assert saved_data["last_scrape_schedule"] is None
             assert saved_data["last_training"] is None
             assert saved_data["last_trained_season"] is None
-            assert saved_data["models_available"] == {
-                "f3_to_f2": [],
-                "f2_to_f1": []
-            }
+            assert saved_data["models_available"] == {"f3_to_f2": [], "f2_to_f1": []}
 
 
 class TestLoadState:
     def test_load_state_success(self, sample_state_data):
         state = AppState()
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=json.dumps(sample_state_data))):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=json.dumps(sample_state_data))
+        ):
 
             result = state.load_state()
 
@@ -131,22 +111,19 @@ class TestLoadState:
             assert state.system_status["last_trained_season"] == "2024"
             assert state.system_status["models_available"] == {
                 "f3_to_f2": ["f3_to_f2_model1"],
-                "f2_to_f1": ["f2_to_f1_model2"]
+                "f2_to_f1": ["f2_to_f1_model2"],
             }
 
     def test_load_state_file_not_exists(self):
         state = AppState()
 
-        with patch('os.path.exists', return_value=False):
+        with patch("os.path.exists", return_value=False):
             result = state.load_state()
 
             assert result is False
             # State should remain at default values
             assert state.system_status["last_scrape_full"] is None
-            assert state.models == {
-                'f3_to_f2': {},
-                'f2_to_f1': {}
-            }
+            assert state.models == {"f3_to_f2": {}, "f2_to_f1": {}}
 
     def test_load_state_none_datetime_values(self):
         state = AppState()
@@ -154,11 +131,12 @@ class TestLoadState:
             "last_scrape_full": None,
             "last_training": None,
             "last_trained_season": "2024",
-            "models_available": ["f3_to_f2_model1"]
+            "models_available": ["f3_to_f2_model1"],
         }
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=json.dumps(state_data))):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        ):
 
             result = state.load_state()
 
@@ -170,10 +148,9 @@ class TestLoadState:
     def test_load_state_json_decode_error(self, mock_state_file):
         state = AppState()
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data="invalid json")), \
-             patch('app.core.state.LOGGER') as mock_logger, \
-             patch('os.rename') as mock_rename:
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data="invalid json")
+        ), patch("app.core.state.LOGGER") as mock_logger, patch("os.rename") as mock_rename:
 
             result = state.load_state()
 
@@ -184,9 +161,9 @@ class TestLoadState:
     def test_load_state_general_exception(self):
         state = AppState()
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', side_effect=IOError("File error")), \
-             patch('app.core.state.LOGGER') as mock_logger:
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", side_effect=IOError("File error")
+        ), patch("app.core.state.LOGGER") as mock_logger:
 
             result = state.load_state()
 
@@ -199,11 +176,12 @@ class TestLoadState:
             "last_scrape_full": "2024-06-15T14:30:45",
             "last_training": "2024-06-15T15:45:30",
             "last_trained_season": "2024",
-            "models_available": []
+            "models_available": [],
         }
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=json.dumps(state_data))):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        ):
 
             result = state.load_state()
 
@@ -222,11 +200,12 @@ class TestLoadState:
             "models_available": {
                 "f3_to_f2": ["f3_model_only"]
                 # "f2_to_f1" intentionally missing
-            }
+            },
         }
 
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=json.dumps(state_data))):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        ):
 
             result = state.load_state()
 
@@ -234,7 +213,7 @@ class TestLoadState:
             # missing key should be added and set to empty list
             assert state.system_status["models_available"] == {
                 "f3_to_f2": ["f3_model_only"],
-                "f2_to_f1": []
+                "f2_to_f1": [],
             }
 
 
@@ -252,20 +231,21 @@ class TestStateIntegration:
         state1.system_status["last_trained_season"] = "2024"
         state1.system_status["models_available"] = {
             "f3_to_f2": ["f3_to_f2_model1"],
-            "f2_to_f1": ["f2_to_f1_model2"]
+            "f2_to_f1": ["f2_to_f1_model2"],
         }
 
         # Save state
         saved_data = None
-        with patch('builtins.open', mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()) as mock_file:
             state1.save_state()
             handle = mock_file.return_value.__enter__.return_value
-            saved_data = ''.join(call.args[0] for call in handle.write.call_args_list)
+            saved_data = "".join(call.args[0] for call in handle.write.call_args_list)
 
         # Load into new state object
         state2 = AppState()
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=saved_data)):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=saved_data)
+        ):
 
             result = state2.load_state()
 
@@ -275,68 +255,51 @@ class TestStateIntegration:
             assert state2.system_status["last_trained_season"] == "2024"
             assert state2.system_status["models_available"] == {
                 "f3_to_f2": ["f3_to_f2_model1"],
-                "f2_to_f1": ["f2_to_f1_model2"]
+                "f2_to_f1": ["f2_to_f1_model2"],
             }
 
             # Verify series structures are preserved
-            assert state2.models == {
-                'f3_to_f2': {},
-                'f2_to_f1': {}
-            }
-            assert state2.feature_cols == {
-                'f3_to_f2': [],
-                'f2_to_f1': []
-            }
-            assert state2.scaler == {
-                'f3_to_f2': None,
-                'f2_to_f1': None
-            }
+            assert state2.models == {"f3_to_f2": {}, "f2_to_f1": {}}
+            assert state2.feature_cols == {"f3_to_f2": [], "f2_to_f1": []}
+            assert state2.scaler == {"f3_to_f2": None, "f2_to_f1": None}
 
     def test_save_load_with_series_data(self):
         """Test roundtrip with actual series data"""
         state1 = AppState()
 
         # Add series-specific data
-        state1.models['f3_to_f2'] = {'RandomForest': 'model1'}
-        state1.models['f2_to_f1'] = {'LightGBM': 'model2'}
-        state1.feature_cols['f3_to_f2'] = ['wins', 'points']
-        state1.feature_cols['f2_to_f1'] = ['experience', 'age']
+        state1.models["f3_to_f2"] = {"RandomForest": "model1"}
+        state1.models["f2_to_f1"] = {"LightGBM": "model2"}
+        state1.feature_cols["f3_to_f2"] = ["wins", "points"]
+        state1.feature_cols["f2_to_f1"] = ["experience", "age"]
 
         # Only system_status persists
         state1.system_status["models_available"] = {
             "f3_to_f2": ["RandomForest"],
-            "f2_to_f1": ["LightGBM"]
+            "f2_to_f1": ["LightGBM"],
         }
 
         # Save state
         saved_data = None
-        with patch('builtins.open', mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()) as mock_file:
             state1.save_state()
             handle = mock_file.return_value.__enter__.return_value
-            saved_data = ''.join(call.args[0] for call in handle.write.call_args_list)
+            saved_data = "".join(call.args[0] for call in handle.write.call_args_list)
 
         # Load into new state object
         state2 = AppState()
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=saved_data)):
+        with patch("os.path.exists", return_value=True), patch(
+            "builtins.open", mock_open(read_data=saved_data)
+        ):
 
             result = state2.load_state()
 
             assert result is True
             assert state2.system_status["models_available"] == {
                 "f3_to_f2": ["RandomForest"],
-                "f2_to_f1": ["LightGBM"]
+                "f2_to_f1": ["LightGBM"],
             }
             # Series structures reset to defaults (models/scalers not persisted)
-            assert state2.models == {
-                'f3_to_f2': {},
-                'f2_to_f1': {}
-            }
-            assert state2.feature_cols == {
-                'f3_to_f2': [],
-                'f2_to_f1': []
-            }
-            assert state2.scaler == {
-                'f3_to_f2': None,
-                'f2_to_f1': None
-            }
+            assert state2.models == {"f3_to_f2": {}, "f2_to_f1": {}}
+            assert state2.feature_cols == {"f3_to_f2": [], "f2_to_f1": []}
+            assert state2.scaler == {"f3_to_f2": None, "f2_to_f1": None}

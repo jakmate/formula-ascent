@@ -7,17 +7,18 @@ from app.dependencies import (
     get_app_state,
     get_model_service,
     get_data_service,
-    get_cronjob_service
+    get_cronjob_service,
 )
 
 
 @pytest.fixture
 def mock_services():
     """Mock all service classes"""
-    with patch("app.dependencies.AppState") as mock_app_state, \
-         patch("app.dependencies.ModelService") as mock_model_service, \
-         patch("app.dependencies.DataService") as mock_data_service, \
-         patch("app.dependencies.CronjobService") as mock_cronjob_service:
+    with patch("app.dependencies.AppState") as mock_app_state, patch(
+        "app.dependencies.ModelService"
+    ) as mock_model_service, patch("app.dependencies.DataService") as mock_data_service, patch(
+        "app.dependencies.CronjobService"
+    ) as mock_cronjob_service:
 
         # Configure mocks
         mock_app_state_instance = MagicMock()
@@ -40,7 +41,7 @@ def mock_services():
             "app_state_instance": mock_app_state_instance,
             "model_service_instance": mock_model_service_instance,
             "data_service_instance": mock_data_service_instance,
-            "cronjob_service_instance": mock_cronjob_service_instance
+            "cronjob_service_instance": mock_cronjob_service_instance,
         }
 
 
@@ -48,6 +49,7 @@ def mock_services():
 def reset_global_state():
     """Reset global state before each test"""
     import app.dependencies
+
     app.dependencies.app_state = None
     app.dependencies.model_service = None
     app.dependencies.data_service = None
@@ -131,6 +133,7 @@ class TestGetDependencies:
     def test_get_app_state_success(self, mock_services):
         # Set up global state
         import app.dependencies
+
         app.dependencies.app_state = mock_services["app_state_instance"]
 
         result = get_app_state()
@@ -142,6 +145,7 @@ class TestGetDependencies:
 
     def test_get_model_service_success(self, mock_services):
         import app.dependencies
+
         app.dependencies.model_service = mock_services["model_service_instance"]
 
         result = get_model_service()
@@ -153,6 +157,7 @@ class TestGetDependencies:
 
     def test_get_data_service_success(self, mock_services):
         import app.dependencies
+
         app.dependencies.data_service = mock_services["data_service_instance"]
 
         result = get_data_service()
@@ -164,6 +169,7 @@ class TestGetDependencies:
 
     def test_get_cronjob_service_success(self, mock_services):
         import app.dependencies
+
         app.dependencies.cronjob_service = mock_services["cronjob_service_instance"]
 
         result = get_cronjob_service()

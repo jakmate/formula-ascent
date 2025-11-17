@@ -18,9 +18,7 @@ class CronjobService:
     async def start(self):
         """Start scheduler"""
         self.scheduler.add_job(
-            self.scrape_and_train_task,
-            'cron', day_of_week='mon', hour=3,
-            id='weekly_scrape_train'
+            self.scrape_and_train_task, "cron", day_of_week="mon", hour=3, id="weekly_scrape_train"
         )
         self.scheduler.start()
         LOGGER.info("Scheduler started")
@@ -39,18 +37,19 @@ class CronjobService:
             self.app_state.system_status["last_scrape_schedule"] = datetime.now()
             LOGGER.info("Data scraping completed")
 
-            if (self._is_season_complete() and CURRENT_YEAR >
-                    self.app_state.system_status["last_trained_season"]):
+            if (
+                self._is_season_complete()
+                and CURRENT_YEAR > self.app_state.system_status["last_trained_season"]
+            ):
                 LOGGER.info(f"New season {CURRENT_YEAR} complete. Starting training...")
                 await self._train_models_task()
             else:
                 LOGGER.info("No new complete season available. Updating predictions only.")
                 from app.services.prediction_service import PredictionService
-                for series in ['f3_to_f2', 'f2_to_f1']:
+
+                for series in ["f3_to_f2", "f2_to_f1"]:
                     prediction_service = PredictionService(
-                        self.app_state,
-                        series,
-                        self.data_service
+                        self.app_state, series, self.data_service
                     )
                     await prediction_service.update_predictions()
         except Exception as e:
@@ -75,20 +74,16 @@ class CronjobService:
         try:
             LOGGER.info("Starting predictions scraping task...")
             await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: scrape_wiki(start_year=CURRENT_YEAR)
+                None, lambda: scrape_wiki(start_year=CURRENT_YEAR)
             )
             self.app_state.system_status["last_scrape_predictions"] = datetime.now()
             LOGGER.info("Predictions scraping completed")
 
             # Update predictions without training
             from app.services.prediction_service import PredictionService
-            for series in ['f3_to_f2', 'f2_to_f1']:
-                prediction_service = PredictionService(
-                    self.app_state,
-                    series,
-                    self.data_service
-                )
+
+            for series in ["f3_to_f2", "f2_to_f1"]:
+                prediction_service = PredictionService(self.app_state, series, self.data_service)
                 await prediction_service.update_predictions()
         except Exception as e:
             LOGGER.error(f"Predictions scrape task failed: {e}")

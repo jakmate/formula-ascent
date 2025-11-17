@@ -14,11 +14,15 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install flake8
+        pip install flake8 black
     - name: Lint with flake8
       run: |
         cd backend
-        flake8 --max-line-length=100 .
+        flake8 .
+    - name: Check formatting with Black
+      run: |
+        cd backend
+        black --check --line-length 100 .
 
   backend-test:
     runs-on: ubuntu-latest
@@ -58,11 +62,11 @@ jobs:
     - name: Run ESLint
       run: |
         cd frontend
-        npx eslint . --ext .js,.jsx,.ts,.tsx
+        npx eslint .
     - name: Check Prettier formatting
       run: |
         cd frontend
-        npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,md}"
+        npx prettier --check "src/**/*.{ts,tsx}"
 
   frontend-test:
     runs-on: ubuntu-latest

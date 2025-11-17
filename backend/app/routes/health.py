@@ -14,7 +14,7 @@ async def root(request: Request):
     return {
         "name": "Formula Predictions API",
         "status": "running",
-        "health": str(request.app.url_path_for("health_check"))
+        "health": str(request.app.url_path_for("health_check")),
     }
 
 
@@ -23,14 +23,14 @@ async def health_check(app_state: AppState = Depends(get_app_state)):
     """Health check with system status"""
     models_loaded = {
         "f3_to_f2": len(app_state.models.get("f3_to_f2", {})),
-        "f2_to_f1": len(app_state.models.get("f2_to_f1", {}))
+        "f2_to_f1": len(app_state.models.get("f2_to_f1", {})),
     }
 
     return HealthResponse(
         status="healthy",
         timestamp=datetime.now(),
         models_loaded=models_loaded,
-        last_training=app_state.system_status.get("last_training")
+        last_training=app_state.system_status.get("last_training"),
     )
 
 

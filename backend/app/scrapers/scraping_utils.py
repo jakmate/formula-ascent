@@ -9,14 +9,16 @@ def create_session():
     """Create a session with a single, stable user agent"""
     session = requests.Session()
 
-    session.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', # noqa: 501
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-    })
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",  # noqa: 501
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+        }
+    )
 
     return session
 
@@ -58,11 +60,11 @@ def remove_superscripts(cell, preserve_spaces=True):
         sup.decompose()
 
     # Get clean text with or without spaces between elements
-    separator = ' ' if preserve_spaces else ''
+    separator = " " if preserve_spaces else ""
     text = cell.get_text(separator=separator, strip=True)
 
     # Remove dagger symbols
-    return text.replace('†', '')
+    return text.replace("†", "")
 
 
 def create_output_file(series, year, filename):

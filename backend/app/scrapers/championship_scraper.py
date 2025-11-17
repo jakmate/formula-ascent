@@ -5,11 +5,11 @@ from app.scrapers.scraping_utils import create_output_file, remove_superscripts
 def map_url(championship_type, series, year):
     # Determine heading ID based on year and championship type
     if series == 1:
-        if championship_type == 'Drivers\'':
-            return "World_Drivers\'_Championship_standings"
-        elif championship_type == 'Teams\'':
-            return "World_Constructors\'_Championship_standings"
-    elif year == 2013 and series == 2 and championship_type == 'Drivers\'':
+        if championship_type == "Drivers'":
+            return "World_Drivers'_Championship_standings"
+        elif championship_type == "Teams'":
+            return "World_Constructors'_Championship_standings"
+    elif year == 2013 and series == 2 and championship_type == "Drivers'":
         return f"{championship_type}_championship"
     elif year < 2013:
         return f"{championship_type}_Championship"
@@ -27,7 +27,7 @@ def find_championship_table(soup, championship_type, series, year):
         return None, f"No {championship_type} heading found for {year} {series}"
 
     # Special case for 2013 series 2 drivers
-    if year == 2013 and series == 2 and championship_type == 'Drivers\'':
+    if year == 2013 and series == 2 and championship_type == "Drivers'":
         # Find the 3rd wikitable after the heading
         current = heading
         for _ in range(3):
@@ -62,10 +62,10 @@ def build_headers(race_headers, round_headers, year, series, file_suffix):
 
     for i, th in enumerate(race_headers[col_index:], col_index):
         race_name = remove_superscripts(th, False)
-        if not race_name or race_name in ['Points', 'Pts']:
+        if not race_name or race_name in ["Points", "Pts"]:
             break
 
-        colspan = int(th.get('colspan', 1))
+        colspan = int(th.get("colspan", 1))
 
         # Get round names
         if (year > 2012 and series == 3) or (year > 2016 and series == 2):
@@ -73,7 +73,9 @@ def build_headers(race_headers, round_headers, year, series, file_suffix):
         else:
             race_rounds = [f"R{r+1}" for r in range(colspan)]
 
-        race_rounds.sort(key=lambda x: int(x.replace('R', '')) if x.replace('R', '').isdigit() else 999) # noqa:501
+        race_rounds.sort(
+            key=lambda x: int(x.replace("R", "")) if x.replace("R", "").isdigit() else 999
+        )  # noqa:501
 
         for round_name in race_rounds:
             combined_headers.append(f"{race_name} {round_name}")
@@ -119,7 +121,7 @@ def get_footer_rows_count(year, series, championship_type):
     """Determine how many footer rows to remove."""
     if championship_type == "Drivers'" and year == 2013 and series == 1:
         return 3
-    if ((year < 2013 and series == 3) or (series == 2 and year < 2017) or series == 1):
+    if (year < 2013 and series == 3) or (series == 2 and year < 2017) or series == 1:
         return 2
     elif championship_type == "Drivers'" and year == 2020 and series == 3:
         return 4
@@ -135,16 +137,16 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
     cell_index = 0
 
     # Handle position with rowspan
-    if rowspan_tracker['pos_rowspan'] <= 0:
+    if rowspan_tracker["pos_rowspan"] <= 0:
         pos_cell = cells[cell_index]
-        rowspan_tracker['current_pos'] = remove_superscripts(pos_cell)
-        rowspan_tracker['pos_rowspan'] = int(pos_cell.get('rowspan', 1))
+        rowspan_tracker["current_pos"] = remove_superscripts(pos_cell)
+        rowspan_tracker["pos_rowspan"] = int(pos_cell.get("rowspan", 1))
         cell_index += 1
-    rowspan_tracker['pos_rowspan'] -= 1
-    row_data.append(rowspan_tracker['current_pos'])
+    rowspan_tracker["pos_rowspan"] -= 1
+    row_data.append(rowspan_tracker["current_pos"])
 
     # Handle team/driver with rowspan
-    if rowspan_tracker['team_rowspan'] <= 0:
+    if rowspan_tracker["team_rowspan"] <= 0:
         team_cell = cells[cell_index]
         driver_name = remove_superscripts(team_cell)
 
@@ -154,11 +156,11 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
         if driver_name == "Andrea Kimi Antonelli":
             driver_name = "Kimi Antonelli"
 
-        rowspan_tracker['current_team'] = driver_name
-        rowspan_tracker['team_rowspan'] = int(team_cell.get('rowspan', 1))
+        rowspan_tracker["current_team"] = driver_name
+        rowspan_tracker["team_rowspan"] = int(team_cell.get("rowspan", 1))
         cell_index += 1
-    rowspan_tracker['team_rowspan'] -= 1
-    row_data.append(rowspan_tracker['current_team'])
+    rowspan_tracker["team_rowspan"] -= 1
+    row_data.append(rowspan_tracker["current_team"])
 
     # Skip No. column if present
     if has_no_col and cell_index < len(cells):
@@ -166,7 +168,7 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
 
     # Process race columns
     num_race_columns = len(combined_headers) - 3
-    race_cells = cells[cell_index:cell_index + num_race_columns]
+    race_cells = cells[cell_index : cell_index + num_race_columns]
 
     for cell in race_cells:
         row_data.append(remove_superscripts(cell, False))
@@ -176,20 +178,20 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
         row_data.append("")
 
     # Handle points with rowspan
-    if rowspan_tracker['points_rowspan'] <= 0:
+    if rowspan_tracker["points_rowspan"] <= 0:
         if cell_index + num_race_columns < len(cells):
             points_cell = cells[cell_index + num_race_columns]
-            rowspan_tracker['current_points'] = remove_superscripts(points_cell)
-            rowspan_tracker['points_rowspan'] = int(points_cell.get('rowspan', 1))
+            rowspan_tracker["current_points"] = remove_superscripts(points_cell)
+            rowspan_tracker["points_rowspan"] = int(points_cell.get("rowspan", 1))
         else:
             # If no points cell found, use empty string
-            rowspan_tracker['current_points'] = ""
-            rowspan_tracker['points_rowspan'] = 1
-    rowspan_tracker['points_rowspan'] -= 1
-    row_data.append(rowspan_tracker['current_points'])
+            rowspan_tracker["current_points"] = ""
+            rowspan_tracker["points_rowspan"] = 1
+    rowspan_tracker["points_rowspan"] -= 1
+    row_data.append(rowspan_tracker["current_points"])
 
     # Ensure correct column count
-    row_data = row_data[:len(combined_headers)]
+    row_data = row_data[: len(combined_headers)]
     while len(row_data) < len(combined_headers):
         row_data.append("")
 
@@ -199,15 +201,15 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
 def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
     """Write the processed championship data to CSV."""
     rowspan_tracker = {
-        'pos_rowspan': 0,
-        'team_rowspan': 0,
-        'points_rowspan': 0,
-        'current_pos': "",
-        'current_team': "",
-        'current_points': ""
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
     }
 
-    with open(file_path, "w", newline='', encoding="utf-8") as f:
+    with open(file_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(combined_headers)
 
@@ -236,8 +238,9 @@ def process_championship(soup, championship_type, year, file_suffix, series):
     if (year > 2012 and series == 3) or (year > 2016 and series == 2):
         round_headers = all_rows[1].find_all("th")
 
-    combined_headers, has_no_col = build_headers(race_headers, round_headers,
-                                                 year, series, file_suffix)
+    combined_headers, has_no_col = build_headers(
+        race_headers, round_headers, year, series, file_suffix
+    )
 
     # Get data rows
     data_rows = get_data_rows(all_rows, year, series, championship_type)

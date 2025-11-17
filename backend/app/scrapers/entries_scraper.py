@@ -2,15 +2,15 @@ import csv
 from app.scrapers.scraping_utils import create_output_file, remove_superscripts
 
 HEADER_MAPPING = {
-    'Entrant': 'Team',
-    'Teams': 'Team',
-    'Driver name': 'Driver',
-    'Drivers': 'Driver',
-    'Race Drivers': 'Driver',
-    'Race drivers': 'Driver',
+    "Entrant": "Team",
+    "Teams": "Team",
+    "Driver name": "Driver",
+    "Drivers": "Driver",
+    "Race Drivers": "Driver",
+    "Race drivers": "Driver",
 }
 
-UNWANTED_COLUMNS = {'Chassis', 'Engine', 'Status', 'Constructor', 'Power unit'}
+UNWANTED_COLUMNS = {"Chassis", "Engine", "Status", "Constructor", "Power unit"}
 
 
 def get_entries_heading_id(year, series):
@@ -68,7 +68,7 @@ def process_multirow_headers(all_rows):
 
     # Build placeholder structure from first row
     for th in headers_row1:
-        colspan = int(th.get('colspan', '1'))
+        colspan = int(th.get("colspan", "1"))
         if colspan > 1:
             combined_headers.extend([None] * colspan)
         else:
@@ -99,8 +99,7 @@ def clean_headers(headers):
     """Apply header mapping and return unwanted column indices."""
     mapped_headers = [HEADER_MAPPING.get(h, h) for h in headers]
     unwanted_indices = [
-        idx for idx, header in enumerate(mapped_headers)
-        if header.strip() in UNWANTED_COLUMNS
+        idx for idx, header in enumerate(mapped_headers) if header.strip() in UNWANTED_COLUMNS
     ]
 
     # Remove unwanted columns
@@ -128,22 +127,19 @@ def process_rowspan_columns(trackers, cells, rowspan_columns):
     cell_index = 0
 
     for col_idx in range(rowspan_columns):
-        if trackers[col_idx]['remaining'] > 0:
-            row_data.append(trackers[col_idx]['value'])
-            trackers[col_idx]['remaining'] -= 1
+        if trackers[col_idx]["remaining"] > 0:
+            row_data.append(trackers[col_idx]["value"])
+            trackers[col_idx]["remaining"] -= 1
         else:
             if cell_index < len(cells):
                 cell = cells[cell_index]
                 cell_index += 1
                 value = remove_superscripts(cell)
-                rowspan_val = int(cell.get('rowspan', '1'))
-                trackers[col_idx] = {
-                    'value': value,
-                    'remaining': rowspan_val - 1
-                }
+                rowspan_val = int(cell.get("rowspan", "1"))
+                trackers[col_idx] = {"value": value, "remaining": rowspan_val - 1}
                 row_data.append(value)
             else:
-                row_data.append('')
+                row_data.append("")
 
     return row_data, cell_index
 
@@ -154,7 +150,7 @@ def process_f1_modern_drivers(remaining_cells):
 
     for cell in remaining_cells:
         # Remove superscripts
-        for sup in cell.find_all('sup'):
+        for sup in cell.find_all("sup"):
             sup.decompose()
 
         # Extract and merge text lines
@@ -162,8 +158,8 @@ def process_f1_modern_drivers(remaining_cells):
         merged = []
         i = 0
         while i < len(lines):
-            if (i + 1 < len(lines) and lines[i].isdigit() and lines[i+1].startswith('–')):
-                merged.append(lines[i] + lines[i+1])
+            if i + 1 < len(lines) and lines[i].isdigit() and lines[i + 1].startswith("–"):
+                merged.append(lines[i] + lines[i + 1])
                 i += 2
             else:
                 merged.append(lines[i])
@@ -185,7 +181,7 @@ def write_f1_modern_rows(writer, row_data, processed_cells, unwanted_indices):
             if i < len(driver_data):
                 driver_row.append(driver_data[i])
             else:
-                driver_row.append('')
+                driver_row.append("")
 
         # Remove unwanted columns
         final_row = driver_row.copy()
@@ -196,8 +192,9 @@ def write_f1_modern_rows(writer, row_data, processed_cells, unwanted_indices):
         writer.writerow(final_row)
 
 
-def process_standard_row(cells, cell_index, row_data, num_columns,
-                         driver_idx, series, unwanted_indices):
+def process_standard_row(
+    cells, cell_index, row_data, num_columns, driver_idx, series, unwanted_indices
+):
     """Process standard row structure and return final row data."""
     # Fill remaining columns
     while len(row_data) < num_columns:
@@ -206,7 +203,7 @@ def process_standard_row(cells, cell_index, row_data, num_columns,
             cell_index += 1
             row_data.append(remove_superscripts(cell))
         else:
-            row_data.append('')
+            row_data.append("")
 
     # Handle special cases
     if series == 3 and row_data[driver_idx] == "Robert Visoiu":
@@ -254,7 +251,7 @@ def process_entries(soup, year, series):
 
     # Setup for processing
     rowspan_columns = get_rowspan_column_count(series, year)
-    trackers = [{'value': '', 'remaining': 0} for _ in range(rowspan_columns)]
+    trackers = [{"value": "", "remaining": 0} for _ in range(rowspan_columns)]
 
     # Pre-sort unwanted indices for performance
     sorted_unwanted_indices = sorted(unwanted_indices, reverse=True)
@@ -263,7 +260,7 @@ def process_entries(soup, year, series):
     filename = f"f{series}_{year}_entries.csv"
     full_path = create_output_file(series, year, filename)
 
-    with open(full_path, "w", newline='', encoding="utf-8") as f:
+    with open(full_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(clean_headers_list)
 
@@ -271,9 +268,7 @@ def process_entries(soup, year, series):
             cells = row.find_all(["td", "th"])
 
             # Process rowspan columns
-            row_data, cell_index = process_rowspan_columns(
-                trackers, cells, rowspan_columns
-            )
+            row_data, cell_index = process_rowspan_columns(trackers, cells, rowspan_columns)
 
             remaining_cells = cells[cell_index:]
 
@@ -285,7 +280,12 @@ def process_entries(soup, year, series):
             else:
                 # Standard structure
                 final_row = process_standard_row(
-                    cells, cell_index, row_data, num_columns,
-                    driver_idx, series, sorted_unwanted_indices
+                    cells,
+                    cell_index,
+                    row_data,
+                    num_columns,
+                    driver_idx,
+                    series,
+                    sorted_unwanted_indices,
                 )
                 writer.writerow(final_row)

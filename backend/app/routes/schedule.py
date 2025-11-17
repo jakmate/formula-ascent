@@ -9,17 +9,11 @@ router = APIRouter()
 
 @router.get("/{series}")
 async def get_series_schedule(
-    series: str,
-    timezone: Optional[str] = Query(None),
-    x_timezone: Optional[str] = Header(None)
+    series: str, timezone: Optional[str] = Query(None), x_timezone: Optional[str] = Header(None)
 ):
     """Get schedule for a specific racing series with timezone conversion"""
     try:
-        request = ScheduleRequest(
-            series=series,
-            timezone=timezone,
-            x_timezone=x_timezone
-        )
+        request = ScheduleRequest(series=series, timezone=timezone, x_timezone=x_timezone)
         schedule_service = ScheduleService()
         return await schedule_service.get_series_schedule(request)
     except Exception as e:
@@ -29,17 +23,11 @@ async def get_series_schedule(
 
 @router.get("/{series}/next")
 async def get_next_race(
-    series: str,
-    timezone: Optional[str] = Query(None),
-    x_timezone: Optional[str] = Header(None)
+    series: str, timezone: Optional[str] = Query(None), x_timezone: Optional[str] = Header(None)
 ):
     """Get the next upcoming race for a series with timezone conversion"""
     try:
-        request = ScheduleRequest(
-            series=series,
-            timezone=timezone,
-            x_timezone=x_timezone
-        )
+        request = ScheduleRequest(series=series, timezone=timezone, x_timezone=x_timezone)
         schedule_service = ScheduleService()
         return await schedule_service.get_next_race(request)
     except Exception as e:

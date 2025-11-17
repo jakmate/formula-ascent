@@ -62,6 +62,7 @@ npm run test:coverage
 ```bash
 # Backend linting
 flake8 --max-line-length=100 .
+black --line-length 100 .
 
 # Frontend linting
 npx eslint . --ext .js,.jsx,.ts,.tsx

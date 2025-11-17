@@ -9,7 +9,7 @@ class RacingPredictor(nn.Module):
             nn.Linear(input_dim, hidden_dim),
             nn.LeakyReLU(0.1),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim, 1)
+            nn.Linear(hidden_dim, 1),
         )
         # Initialize weights for stability
         self._initialize_weights()
@@ -17,7 +17,7 @@ class RacingPredictor(nn.Module):
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, nonlinearity='leaky_relu')
+                nn.init.kaiming_normal_(m.weight, nonlinearity="leaky_relu")
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):

@@ -11,8 +11,11 @@ router = APIRouter()
 
 
 @router.get("/{series}", response_model=PredictionsResponse)
-async def get_predictions(series: str, app_state: AppState = Depends(get_app_state),
-                          data_service: DataService = Depends(get_data_service)):
+async def get_predictions(
+    series: str,
+    app_state: AppState = Depends(get_app_state),
+    data_service: DataService = Depends(get_data_service),
+):
     """Get predictions from all models"""
     try:
         prediction_service = PredictionService(app_state, series, data_service)

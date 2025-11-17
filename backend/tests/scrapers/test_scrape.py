@@ -9,8 +9,12 @@ class TestMapUrl:
 
     def test_map_url_f1(self):
         """Test F1 URL mapping."""
-        assert map_url(1, 2020) == "https://en.wikipedia.org/wiki/2020_Formula_One_World_Championship" # noqa: 501
-        assert map_url(1, 2010) == "https://en.wikipedia.org/wiki/2010_Formula_One_World_Championship" # noqa: 501
+        assert (
+            map_url(1, 2020) == "https://en.wikipedia.org/wiki/2020_Formula_One_World_Championship"
+        )  # noqa: 501
+        assert (
+            map_url(1, 2010) == "https://en.wikipedia.org/wiki/2010_Formula_One_World_Championship"
+        )  # noqa: 501
 
     def test_map_url_f2_after_2016(self):
         """Test F2 URL mapping for years after 2016."""
@@ -42,14 +46,13 @@ class TestMapUrl:
 class TestScrapeWiki:
     """Test scrape_wiki function."""
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.safe_request')
-    @patch('app.scrapers.scrape.process_entries')
-    @patch('app.scrapers.scrape.process_championship')
-    @patch('app.scrapers.scrape.scrape_quali')
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.safe_request")
+    @patch("app.scrapers.scrape.process_entries")
+    @patch("app.scrapers.scrape.process_championship")
+    @patch("app.scrapers.scrape.scrape_quali")
     def test_scrape_wiki_successful(
-        self, mock_quali, mock_championship, mock_entries,
-        mock_request, mock_session
+        self, mock_quali, mock_championship, mock_entries, mock_request, mock_session
     ):
         """Test successful scraping for a year range."""
         mock_sess = Mock()
@@ -66,8 +69,8 @@ class TestScrapeWiki:
         assert mock_championship.call_count == 2  # Teams and Drivers
         assert mock_quali.call_count == 1
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.safe_request')
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.safe_request")
     def test_scrape_wiki_request_failure(self, mock_request, mock_session):
         """Test handling of request failures."""
         mock_sess = Mock()
@@ -78,12 +81,10 @@ class TestScrapeWiki:
 
         assert mock_request.call_count == 1
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.safe_request')
-    @patch('app.scrapers.scrape.process_entries')
-    def test_scrape_wiki_processing_error(
-        self, mock_entries, mock_request, mock_session
-    ):
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.safe_request")
+    @patch("app.scrapers.scrape.process_entries")
+    def test_scrape_wiki_processing_error(self, mock_entries, mock_request, mock_session):
         """Test handling of processing errors."""
         mock_sess = Mock()
         mock_session.return_value = mock_sess
@@ -97,14 +98,13 @@ class TestScrapeWiki:
         # Should not raise, just log error
         scrape_wiki(mock_sess, formulas=[1], start_year=2020, end_year=2021)
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.safe_request')
-    @patch('app.scrapers.scrape.process_entries')
-    @patch('app.scrapers.scrape.process_championship')
-    @patch('app.scrapers.scrape.scrape_quali')
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.safe_request")
+    @patch("app.scrapers.scrape.process_entries")
+    @patch("app.scrapers.scrape.process_championship")
+    @patch("app.scrapers.scrape.scrape_quali")
     def test_creates_session_when_none(
-        self, mock_quali, mock_championship, mock_entries,
-        mock_request, mock_create_session
+        self, mock_quali, mock_championship, mock_entries, mock_request, mock_create_session
     ):
         """If no session is provided scrape_wiki should call create_session()."""
         mock_sess = Mock()
@@ -132,10 +132,10 @@ class TestScrapeWiki:
 class TestScrapeFunctions:
     """Test main scrape functions."""
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.scrape_wiki')
-    @patch('app.scrapers.scrape.scrape_drivers')
-    @patch('app.scrapers.scrape.scrape_schedules')
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.scrape_wiki")
+    @patch("app.scrapers.scrape.scrape_drivers")
+    @patch("app.scrapers.scrape.scrape_schedules")
     def test_scrape(self, mock_schedules, mock_drivers, mock_wiki, mock_session):
         """Test scrape function calls all scrapers."""
         mock_sess = Mock()
@@ -148,14 +148,12 @@ class TestScrapeFunctions:
         mock_schedules.assert_called_once_with(mock_sess)
         mock_sess.close.assert_called_once()
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.scrape_wiki')
-    @patch('app.scrapers.scrape.scrape_drivers')
-    @patch('app.scrapers.scrape.scrape_schedules')
-    @patch('app.scrapers.scrape.CURRENT_YEAR', 2024)
-    def test_scrape_current_year(
-        self, mock_schedules, mock_drivers, mock_wiki, mock_session
-    ):
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.scrape_wiki")
+    @patch("app.scrapers.scrape.scrape_drivers")
+    @patch("app.scrapers.scrape.scrape_schedules")
+    @patch("app.scrapers.scrape.CURRENT_YEAR", 2024)
+    def test_scrape_current_year(self, mock_schedules, mock_drivers, mock_wiki, mock_session):
         """Test scrape_current_year only scrapes current year."""
         mock_sess = Mock()
         mock_session.return_value = mock_sess
@@ -167,8 +165,8 @@ class TestScrapeFunctions:
         mock_schedules.assert_called_once_with(mock_sess)
         mock_sess.close.assert_called_once()
 
-    @patch('app.scrapers.scrape.create_session')
-    @patch('app.scrapers.scrape.scrape_wiki')
+    @patch("app.scrapers.scrape.create_session")
+    @patch("app.scrapers.scrape.scrape_wiki")
     def test_scrape_closes_session_on_error(self, mock_wiki, mock_session):
         """Test session closes even if scraping fails."""
         mock_sess = Mock()

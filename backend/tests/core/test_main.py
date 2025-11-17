@@ -8,8 +8,9 @@ from app.main import create_app, lifespan
 
 @pytest.fixture
 def mock_dependencies():
-    with patch("app.main.initialize_app_state", new_callable=AsyncMock) as mock_init, \
-            patch("app.main.cleanup_app_state", new_callable=AsyncMock) as mock_cleanup:
+    with patch("app.main.initialize_app_state", new_callable=AsyncMock) as mock_init, patch(
+        "app.main.cleanup_app_state", new_callable=AsyncMock
+    ) as mock_cleanup:
         yield mock_init, mock_cleanup
 
 
@@ -100,11 +101,13 @@ class TestAppIntegration:
 
 
 def test_main_block_execution():
-    with patch("app.main.os.environ.get", return_value="8000"), \
-         patch("app.main.uvicorn.run") as mock_run:
+    with patch("app.main.os.environ.get", return_value="8000"), patch(
+        "app.main.uvicorn.run"
+    ) as mock_run:
 
         # Test by importing the module with __name__ set to "__main__"
         import importlib.util
+
         spec = importlib.util.spec_from_file_location("__main__", "app/main.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
