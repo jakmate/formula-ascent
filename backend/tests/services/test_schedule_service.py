@@ -443,3 +443,129 @@ class TestScheduleService:
         # Should not fail
         result = schedule_service._convert_race_timezone(race, "America/New_York")
         assert "nextSession" in result
+
+    @pytest.mark.asyncio
+    @patch('app.config.SCHEDULE_DIR', '/test/schedules')
+    async def test_get_next_race_fallback_skips_invalid_dates_and_appends_earliest(self, schedule_service):
+        # Build a schedule with two races. Use arbitrary start strings that map in _parse_datetime.
+        schedule = [
+            {
+                "round": 1,
+                "name": "Race A",
+                "location": "A",
+                "sessions": {
+                    "practice": {"start": "A_practice"},
+                    "race": {"start": "A_race"}
+                }
+            },
+            {
+                "round": 2,
+                "name": "Race B",
+                "location": "B",
+                "sessions": {
+                    "practice": {"start": "B_practice"},
+                    "race": {"start": "B_race"}
+                }
+            }
+        ]
+
+        # Map pseudo-strings to datetimes via _parse_datetime:
+        # - A_practice -> raises ValueError (exercise except branch)
+        # - A_race -> returns a future date 2030-01-10
+        # - B_practice -> returns a future date 2030-01-05 (earlier)
+        # - B_race -> returns future date 2030-01-20
+        def fake_parse(dt_str):
+            if dt_str == "A_practice":
+                raise ValueError("invalid")
+            if dt_str == "A_race":
+                return datetime(2030, 1, 10, tzinfo=pytz.UTC)
+            if dt_str == "B_practice":
+                return datetime(2030, 1, 5, tzinfo=pytz.UTC)
+            if dt_str == "B_race":
+                return datetime(2030, 1, 20, tzinfo=pytz.UTC)
+            raise ValueError("unknown")
+
+        # Ensure "now" is before these future dates so they are considered future sessions
+        fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
+
+        with patch('os.path.exists', return_value=True), \
+             patch('builtins.open', mock_open(read_data=json.dumps(schedule))), \
+             patch.object(ScheduleService, '_parse_datetime', side_effect=fake_parse), \
+             patch('app.services.schedule_service.datetime') as mock_dt:
+
+            mock_dt.now.return_value = fake_now
+
+            result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))
+
+            # B_practice (2030-01-05) is the earliest valid session, so Race B should be selected
+            assert result is not None
+            assert result['round'] == 2
+            assert result['totalRounds'] == 2
+            # seasonCompleted should be False because we found a future session
+            assert result.get('seasonCompleted') is False
+
+    @pytest.mark.asyncio
+    @patch('app.config.SCHEDULE_DIR', '/test/schedules')
+    async def test_get_next_race_fallback_sorting_picks_earliest_race(self, schedule_service):
+        schedule = [
+            {
+                "round": 1,
+                "name": "Alpha",
+                "location": "X",
+                "sessions": {
+                    "practice": {"start": "alpha_practice"},
+                    "race": {"start": "alpha_race"}
+                }
+            },
+            {
+                "round": 2,
+                "name": "Beta",
+                "location": "Y",
+                "sessions": {
+                    "practice": {"start": "beta_practice"},
+                    "race": {"start": "beta_race"}
+                }
+            },
+            {
+                "round": 3,
+                "name": "Gamma",
+                "location": "Z",
+                "sessions": {
+                    "practice": {"start": "gamma_practice"},
+                    "race": {"start": "gamma_race"}
+                }
+            }
+        ]
+
+        # Map pseudo-strings to datetimes so earliest dates are:
+        # Alpha -> 2030-06-10
+        # Beta  -> 2030-04-01  <-- earliest
+        # Gamma -> 2030-05-05
+        mapping = {
+            "alpha_practice": datetime(2030, 6, 10, tzinfo=pytz.UTC),
+            "alpha_race": datetime(2030, 6, 12, tzinfo=pytz.UTC),
+            "beta_practice": datetime(2030, 4, 1, tzinfo=pytz.UTC),
+            "beta_race": datetime(2030, 4, 3, tzinfo=pytz.UTC),
+            "gamma_practice": datetime(2030, 5, 5, tzinfo=pytz.UTC),
+            "gamma_race": datetime(2030, 5, 7, tzinfo=pytz.UTC),
+        }
+
+        def fake_parse(dt_str):
+            return mapping[dt_str]
+
+        fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
+
+        with patch('os.path.exists', return_value=True), \
+             patch('builtins.open', mock_open(read_data=json.dumps(schedule))), \
+             patch.object(ScheduleService, '_parse_datetime', side_effect=fake_parse), \
+             patch('app.services.schedule_service.datetime') as mock_dt:
+
+            mock_dt.now.return_value = fake_now
+
+            result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))
+
+            # Beta (round 2) has the earliest session
+            assert result is not None
+            assert result['round'] == 2
+            assert result['totalRounds'] == 3
+            assert result.get('seasonCompleted') is False

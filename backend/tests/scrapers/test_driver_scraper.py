@@ -182,6 +182,20 @@ class TestGetAllDriversFromData:
 
         assert drivers == []
 
+    @patch('app.scrapers.driver_scraper.glob.glob')
+    def test_skips_non_digit_year_dirs(self, mock_glob):
+        mock_glob.return_value = [
+            'data/F1/2023',   # valid year
+            'data/F1/latest', # invalid year, should be skipped
+            'data/F2/abcd'    # invalid year, should be skipped
+        ]
+
+        with patch('app.scrapers.driver_scraper.os.path.exists', return_value=False):
+            drivers = get_all_drivers_from_data()
+
+        # Since no CSV exists, the result should be empty
+        assert drivers == []
+
 
 class TestScrapeDrivers:
     @patch('app.scrapers.driver_scraper.create_session')

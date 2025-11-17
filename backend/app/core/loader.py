@@ -73,10 +73,10 @@ def load_year_data(year_dir, series, data_type):
 
         # Case of Konstantin Tereshchenko
         if data_type == 'drivers' and 'Pos' in df.columns:
-            df = df.dropna(subset=['Pos'])
+            df = df.dropna(subset=['Pos']).copy()
 
-        df['year'] = year_int
-        df['series'] = series
+        df.loc[:, 'year'] = year_int
+        df.loc[:, 'series'] = series
         return df
 
     except ValueError as e:

@@ -140,6 +140,31 @@ class TestParseTimeToDatetime:
         result = parse_time_to_datetime(None, base_date)
         assert result is None
 
+    def test_day_name_adjustment_backward(self):
+        # Base date is Monday (0)
+        base_date = datetime(2025, 3, 17)  # Monday
+        day_name = "Friday"  # 4
+        time_str = "10:00"
+
+        result = parse_time_to_datetime(time_str, base_date, day_name=day_name)
+        assert result is not None
+
+        # Expected date is previous Friday, 3 days before Monday = 2025-03-14
+        assert result["start"].startswith("2025-03-14")
+
+    def test_tbc_day_name_adjustment_backward(self):
+        # Base date is Monday (0)
+        base_date = datetime(2025, 3, 17)  # Monday
+        day_name = "Friday"  # 4
+        time_str = "TBC"
+
+        result = parse_time_to_datetime(time_str, base_date, day_name=day_name)
+        assert result is not None
+
+        # Expected date is previous Friday, 3 days before Monday = 2025-03-14
+        assert result["start"] == "2025-03-14"
+        assert result["time"] == "TBC"
+
 
 # Tests for scrape_f1_schedule
 class TestScrapeF1Schedule:

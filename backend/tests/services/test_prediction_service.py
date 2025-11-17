@@ -241,6 +241,44 @@ class TestGetModelPredictions:
         with pytest.raises(ValueError, match="Model InvalidModel not found"):
             prediction_service._get_model_predictions('InvalidModel', X_current)
 
+    def test_pytorch_model_uses_cuda(self, prediction_service):
+        X_current = pd.DataFrame(np.random.rand(2, 5))
+        mock_model = prediction_service.app_state.models['f1']['PyTorch_MLP']
+        mock_model.eval = Mock()
+        mock_model.calibrator = None
+
+        # scaler returns scaled array
+        prediction_service.app_state.scaler['f1'].transform.return_value = np.random.rand(2, 5)
+
+        # Prepare a mock tensor with a .cuda() method we can assert was called
+        mock_tensor = Mock()
+        mock_tensor.cuda.return_value = mock_tensor  # .cuda() returns the tensor (chained use)
+
+        # Prepare a mock logits / sigmoid return object with cpu().numpy().flatten() chain
+        mock_sig_ret = Mock()
+        mock_cpu = Mock()
+        mock_cpu.numpy.return_value.flatten.return_value = np.array([0.1, 0.2])
+        mock_sig_ret.cpu.return_value = mock_cpu
+
+        # Make the model call return a logits-like object (mock)
+        mock_logits = Mock()
+        mock_model.return_value = mock_logits
+
+        # Patch tensor creation, cuda availability and sigmoid behaviour
+        with patch('torch.no_grad'), \
+             patch('torch.FloatTensor', return_value=mock_tensor), \
+             patch('torch.cuda.is_available', return_value=True), \
+             patch('torch.sigmoid', return_value=mock_sig_ret):
+
+            result = prediction_service._get_model_predictions('PyTorch_MLP', X_current)
+
+        # .cuda() should have been called on the tensor
+        mock_tensor.cuda.assert_called_once()
+
+        # result should be a numpy-like array of length 2
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+
 
 class TestCreatePredictionResponses:
     """Test _create_prediction_responses method"""
@@ -338,6 +376,49 @@ class TestUpdatePredictions:
 
         # Should not raise, just log error
         await prediction_service.update_predictions()
+
+    @pytest.mark.asyncio
+    async def test_update_predictions_initializes_current_predictions_when_missing(self, mock_data_service, sample_dataframe):
+        # Build a minimal app_state object without current_predictions
+        class MinimalState:
+            pass
+
+        app_state = MinimalState()
+        app_state.models = {
+            'f1': {
+                'RandomForest': Mock()
+            }
+        }
+        app_state.feature_cols = {'f1': ['points', 'wins', 'podiums', 'dnf_rate', 'experience']}
+        app_state.scaler = {'f1': Mock()}
+        # Ensure system_status has a current_year so the features_df slicing keeps rows
+        app_state.system_status = {'current_year': 2024}
+
+        # Prepare the model to produce predictable output
+        rf_model = app_state.models['f1']['RandomForest']
+        rf_model.predict_proba.return_value = np.array([[0.3, 0.7],
+                                                        [0.4, 0.6],
+                                                        [0.5, 0.5]])
+        rf_model.calibrator = None
+
+        # DataService not used because we pass features_df
+        data_service = Mock(spec=DataService)
+
+        svc = PredictionService(app_state=app_state, series='f1', data_service=data_service)
+
+        # Call with features_df containing matching year rows
+        await svc.update_predictions(features_df=sample_dataframe)
+
+        # Now the attribute should exist and contain the series key
+        assert hasattr(app_state, 'current_predictions')
+        assert 'f1' in app_state.current_predictions
+        # Expect one entry per model in app_state.models['f1']
+        assert isinstance(app_state.current_predictions['f1'], list)
+        assert len(app_state.current_predictions['f1']) == 1
+        entry = app_state.current_predictions['f1'][0]
+        assert entry['model'] == 'RandomForest'
+        assert 'predictions' in entry
+        assert 'timestamp' in entry
 
 
 class TestClearPredictionCache:

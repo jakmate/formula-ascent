@@ -97,6 +97,37 @@ class TestScrapeWiki:
         # Should not raise, just log error
         scrape_wiki(mock_sess, formulas=[1], start_year=2020, end_year=2021)
 
+    @patch('app.scrapers.scrape.create_session')
+    @patch('app.scrapers.scrape.safe_request')
+    @patch('app.scrapers.scrape.process_entries')
+    @patch('app.scrapers.scrape.process_championship')
+    @patch('app.scrapers.scrape.scrape_quali')
+    def test_creates_session_when_none(
+        self, mock_quali, mock_championship, mock_entries,
+        mock_request, mock_create_session
+    ):
+        """If no session is provided scrape_wiki should call create_session()."""
+        mock_sess = Mock()
+        mock_create_session.return_value = mock_sess
+
+        mock_response = Mock()
+        mock_response.text = "<html><body></body></html>"
+        mock_request.return_value = mock_response
+
+        # Call with session=None (default) — function should invoke create_session()
+        scrape_wiki(session=None, formulas=[1], start_year=2020, end_year=2021)
+
+        # create_session must have been called once to create the session used internally
+        mock_create_session.assert_called_once()
+
+        # safe_request should be called using that session (we at least ensure it was called)
+        assert mock_request.call_count == 1
+
+        # downstream processors should have been invoked once for the single year
+        assert mock_entries.call_count == 1
+        assert mock_championship.call_count == 2
+        assert mock_quali.call_count == 1
+
 
 class TestScrapeFunctions:
     """Test main scrape functions."""

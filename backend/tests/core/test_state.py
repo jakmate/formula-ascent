@@ -211,6 +211,32 @@ class TestLoadState:
             assert state.system_status["last_scrape_full"] == datetime(2024, 6, 15, 14, 30, 45)
             assert state.system_status["last_training"] == datetime(2024, 6, 15, 15, 45, 30)
 
+    def test_load_state_adds_missing_models_available_keys(self):
+        """If models_available is a dict but missing a key, it should be added as an empty list."""
+        state = AppState()
+        # models_available dict missing "f2_to_f1"
+        state_data = {
+            "last_scrape_full": "2024-01-01T12:00:00",
+            "last_training": "2024-01-01T13:00:00",
+            "last_trained_season": "2024",
+            "models_available": {
+                "f3_to_f2": ["f3_model_only"]
+                # "f2_to_f1" intentionally missing
+            }
+        }
+
+        with patch('os.path.exists', return_value=True), \
+             patch('builtins.open', mock_open(read_data=json.dumps(state_data))):
+
+            result = state.load_state()
+
+            assert result is True
+            # missing key should be added and set to empty list
+            assert state.system_status["models_available"] == {
+                "f3_to_f2": ["f3_model_only"],
+                "f2_to_f1": []
+            }
+
 
 class TestStateIntegration:
     """Test save/load integration"""
