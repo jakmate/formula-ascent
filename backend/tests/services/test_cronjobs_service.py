@@ -176,3 +176,71 @@ class TestCronjobsService:
 
             result = cronjobs_service._is_season_complete()
             assert result is False
+
+    @pytest.mark.asyncio
+    @patch("app.services.cronjobs_service.scrape_wiki")
+    @patch("app.services.cronjobs_service.CURRENT_YEAR", 2024)
+    @patch("app.services.cronjobs_service.datetime")
+    async def test_scrape_predictions_success(
+        self, mock_datetime, mock_scrape_wiki, cronjobs_service
+    ):
+        """Test successful predictions scraping"""
+        mock_now = datetime(2024, 6, 15)
+        mock_datetime.now.return_value = mock_now
+
+        with patch("app.services.prediction_service.PredictionService") as mock_ps_class:
+            mock_ps = Mock()
+            mock_ps.update_predictions = AsyncMock()
+            mock_ps_class.return_value = mock_ps
+
+            await cronjobs_service.scrape_predictions()
+
+        mock_scrape_wiki.assert_called_once_with(start_year=2024)
+        assert cronjobs_service.app_state.system_status["last_scrape_predictions"] == mock_now
+        assert mock_ps_class.call_count == 2
+        assert mock_ps.update_predictions.call_count == 2
+        cronjobs_service.app_state.save_state.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("app.services.cronjobs_service.scrape_wiki")
+    @patch("app.services.cronjobs_service.LOGGER")
+    async def test_scrape_predictions_exception(
+        self, mock_logger, mock_scrape_wiki, cronjobs_service
+    ):
+        """Test predictions scraping with exception"""
+        mock_scrape_wiki.side_effect = Exception("Scrape failed")
+
+        await cronjobs_service.scrape_predictions()
+
+        mock_logger.error.assert_called_with("Predictions scrape task failed: Scrape failed")
+        cronjobs_service.app_state.save_state.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("app.services.cronjobs_service.scrape_schedules")
+    @patch("app.services.cronjobs_service.datetime")
+    async def test_scrape_schedule_success(
+        self, mock_datetime, mock_scrape_schedules, cronjobs_service
+    ):
+        """Test successful schedule scraping"""
+        mock_now = datetime(2024, 6, 15)
+        mock_datetime.now.return_value = mock_now
+
+        await cronjobs_service.scrape_schedule()
+
+        mock_scrape_schedules.assert_called_once()
+        assert cronjobs_service.app_state.system_status["last_scrape_schedule"] == mock_now
+        cronjobs_service.app_state.save_state.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("app.services.cronjobs_service.scrape_schedules")
+    @patch("app.services.cronjobs_service.LOGGER")
+    async def test_scrape_schedule_exception(
+        self, mock_logger, mock_scrape_schedules, cronjobs_service
+    ):
+        """Test schedule scraping with exception"""
+        mock_scrape_schedules.side_effect = Exception("Schedule scrape failed")
+
+        await cronjobs_service.scrape_schedule()
+
+        mock_logger.error.assert_called_with("Schedule scrape task failed: Schedule scrape failed")
+        cronjobs_service.app_state.save_state.assert_called_once()

@@ -810,22 +810,7 @@ def predict_drivers(models, df, feature_cols, scaler=None):
     return pd.DataFrame()
 
 
-import cProfile  # noqa: 402
-import pstats  # noqa: 402
-import psutil  # noqa: 402
-
-
 def main():
-    """Wrap with profiling and memory measurements."""
-    process = psutil.Process()
-
-    # Record starting memory (RSS in bytes)
-    mem_start = process.memory_info().rss
-
-    # Set up profiler
-    profiler = cProfile.Profile()
-    profiler.enable()
-
     series = ["F3", "F2"]
 
     print(f"Loading {series[0]} qualifying data...")
@@ -850,21 +835,6 @@ def main():
 
     print(f"Making predictions for {series[0]} {CURRENT_YEAR} drivers...")
     predict_drivers(models, features_df, feature_cols, scaler)
-
-    # Stop profiling
-    profiler.disable()
-
-    # Record ending memory
-    mem_end = process.memory_info().rss
-
-    # Print memory usage summary
-    print(f"\nMemory (RSS) before: {mem_start / (1024**2):.2f} MiB")
-    print(f"Memory (RSS) after: {mem_end   / (1024**2):.2f} MiB")
-    print(f"Memory delta: {(mem_end - mem_start) / (1024**2):.2f} MiB\n")
-
-    # Print top 5 functions by cumulative time
-    stats = pstats.Stats(profiler).sort_stats("cumtime")
-    stats.print_stats(5)
 
 
 if __name__ == "__main__":  # pragma: no cover

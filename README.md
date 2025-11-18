@@ -1,6 +1,6 @@
 # Formula Career Predictor
 
-[![codecov](https://codecov.io/gh/jakmate/formula-career-predictor/branch/main/graph/badge.svg)](https://codecov.io/gh/jakmate/formula-career-predictor)
+[![codecov](https://codecov.io/gh/jakmate/formula-ascent/branch/main/graph/badge.svg)](https://codecov.io/gh/jakmate/formula-ascent)
 [![CI/CD](https://github.com/jakmate/formula-ascent/workflows/CI%2FCD/badge.svg)](https://github.com/jakmate/formula-ascent/actions/workflows/ci.yml)
 ![Lighthouse](https://raw.githubusercontent.com/jakmate/formula-ascent/main/badges/lighthouse-badge.svg)
 

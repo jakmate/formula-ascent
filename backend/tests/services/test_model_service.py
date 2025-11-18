@@ -284,7 +284,7 @@ class TestTrainModels:
 
 class TestEdgeCases:
     @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch('os.makedirs')
+    @patch("os.makedirs")
     @patch("joblib.dump")
     @pytest.mark.asyncio
     async def test_save_models_empty_models_dict(self, mock_dump, mock_makedirs, model_service):
