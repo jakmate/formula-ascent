@@ -29,25 +29,27 @@ export const Navbar = ({ activeView }: NavbarProps) => {
           <div className="flex space-x-1">
             <Link
               to="/predictions"
+              aria-label="View Promotions"
               className={`px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
                 isActive('predictions')
                   ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg shadow-cyan-500/20'
                   : 'text-cyan-300 hover:text-white hover:bg-gray-800/50'
               }`}
             >
-              <TrendingUp className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Promotions</span>
             </Link>
 
             <Link
               to="/schedule"
+              aria-label="View Schedule"
               className={`px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
                 isActive('schedule')
                   ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg shadow-cyan-500/20'
                   : 'text-cyan-300 hover:text-white hover:bg-gray-800/50'
               }`}
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Schedule</span>
             </Link>
 
@@ -55,9 +57,10 @@ export const Navbar = ({ activeView }: NavbarProps) => {
               href="https://www.buymeacoffee.com/jakmate"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Buy me a coffee - Support the project"
               className="px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-cyan-300 hover:text-white hover:bg-gray-800/50"
             >
-              <Coffee className="w-4 h-4" />
+              <Coffee className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Coffee</span>
             </a>
           </div>

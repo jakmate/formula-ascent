@@ -521,6 +521,90 @@ def create_target_variable(feeder_df, parent_df, series):
     return feeder_df
 
 
+def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols):
+    """Train a PyTorch neural network model for binary classification."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Scale features
+    scaler = RobustScaler()
+    X_train_sub_scaled = scaler.fit_transform(X_train_sub)
+    X_val_scaled = scaler.transform(X_val)
+    X_test_scaled = scaler.transform(X_test)
+
+    # Convert to PyTorch tensors
+    X_train_torch = torch.FloatTensor(X_train_sub_scaled).to(device)
+    y_train_torch = torch.FloatTensor(y_train_sub.values).to(device)
+    X_val_torch = torch.FloatTensor(X_val_scaled).to(device)
+    y_val_torch = torch.FloatTensor(y_val.values).to(device)
+    X_test_torch = torch.FloatTensor(X_test_scaled).to(device)
+
+    pytorch_model = RacingPredictor(X_train_sub_scaled.shape[1]).to(device)
+
+    # Calculate class weights for imbalanced data
+    n_neg = (y_train_sub == 0).sum()
+    n_pos = (y_train_sub == 1).sum()
+    pos_weight = torch.tensor([n_neg / n_pos]).to(device)
+
+    # Loss function, optimizer, and scheduler
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    optimizer = optim.AdamW(pytorch_model.parameters(), lr=0.01, weight_decay=1e-2)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=2)
+
+    # Training loop
+    best_val_loss = float("inf")
+    patience_counter = 0
+    best_state = None
+
+    for epoch in range(30):
+        pytorch_model.train()
+        optimizer.zero_grad()
+
+        outputs = pytorch_model(X_train_torch).squeeze()
+        loss = criterion(outputs, y_train_torch)
+        loss.backward()
+        optimizer.step()
+
+        # Validation
+        pytorch_model.eval()
+        with torch.no_grad():
+            val_outputs = pytorch_model(X_val_torch).squeeze()
+            val_loss = criterion(val_outputs, y_val_torch)
+
+        scheduler.step(val_loss)
+
+        # Early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            patience_counter = 0
+            best_state = pytorch_model.state_dict().copy()
+        else:
+            patience_counter += 1
+            if patience_counter >= 3:
+                break
+
+    # Load best model and evaluate
+    pytorch_model.load_state_dict(best_state)
+    pytorch_model.eval()
+
+    # Validation and Test evaluation
+    with torch.no_grad():
+        val_probas = torch.sigmoid(pytorch_model(X_val_torch)).cpu().numpy().flatten()
+        test_probas = torch.sigmoid(pytorch_model(X_test_torch)).cpu().numpy().flatten()
+
+    # Calibrate PyTorch model using validation set
+    iso_reg = IsotonicRegression(out_of_bounds="clip")
+    iso_reg.fit(val_probas, y_val)
+    pytorch_model.calibrator = iso_reg
+
+    # Store additional attributes for inference
+    pytorch_model.scaler = scaler
+    pytorch_model.feature_cols = feature_cols
+    pytorch_model.device = device
+
+    print("PyTorch model training completed successfully")
+    return pytorch_model, scaler, test_probas
+
+
 def train_models(df):
     """Training function."""
     if df.empty:
@@ -651,76 +735,9 @@ def train_models(df):
 
     # Train PyTorch Model
     print("\nTraining PyTorch Model...")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Scale features
-    scaler = RobustScaler()
-    X_train_sub_scaled = scaler.fit_transform(X_train_sub)
-    X_val_scaled = scaler.transform(X_val)
-    X_test_scaled = scaler.transform(X_test)
-
-    # Convert to PyTorch tensors
-    X_train_torch = torch.FloatTensor(X_train_sub_scaled).to(device)
-    y_train_torch = torch.FloatTensor(y_train_sub.values).to(device)
-    X_val_torch = torch.FloatTensor(X_val_scaled).to(device)
-    y_val_torch = torch.FloatTensor(y_val.values).to(device)
-    X_test_torch = torch.FloatTensor(X_test_scaled).to(device)
-
-    pytorch_model = RacingPredictor(X_train_sub_scaled.shape[1]).to(device)
-
-    # Calculate class weights for PyTorch
-    n_neg = (y_train_sub == 0).sum()
-    n_pos = (y_train_sub == 1).sum()
-    pos_weight = torch.tensor([n_neg / n_pos]).to(device)
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    optimizer = optim.AdamW(pytorch_model.parameters(), lr=0.01, weight_decay=1e-2)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=2)
-
-    # Training loop with proper validation
-    best_val_loss = float("inf")
-    patience_counter = 0
-    best_state = None
-
-    for epoch in range(30):
-        pytorch_model.train()
-        optimizer.zero_grad()
-
-        outputs = pytorch_model(X_train_torch).squeeze()
-        loss = criterion(outputs, y_train_torch)
-        loss.backward()
-        optimizer.step()
-
-        # Validation
-        pytorch_model.eval()
-        with torch.no_grad():
-            val_outputs = pytorch_model(X_val_torch).squeeze()
-            val_loss = criterion(val_outputs, y_val_torch)
-
-        scheduler.step(val_loss)
-
-        # Early stopping
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            patience_counter = 0
-            best_state = pytorch_model.state_dict().copy()
-        else:
-            patience_counter += 1
-            if patience_counter >= 3:
-                break
-
-    # Load best model and evaluate
-    pytorch_model.load_state_dict(best_state)
-    pytorch_model.eval()
-
-    # Validation and Test evaluation
-    with torch.no_grad():
-        val_probas = torch.sigmoid(pytorch_model(X_val_torch)).cpu().numpy().flatten()
-        test_probas = torch.sigmoid(pytorch_model(X_test_torch)).cpu().numpy().flatten()
-
-    # Calibrate PyTorch model using validation set
-    iso_reg = IsotonicRegression(out_of_bounds="clip")
-    iso_reg.fit(val_probas, y_val)
-    pytorch_model.calibrator = iso_reg
+    pytorch_model, scaler, test_probas = train_pytorch_model(
+        X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols, seed=SEED
+    )
 
     calibrated_probas = pytorch_model.calibrator.transform(test_probas)
     y_pred = (test_probas > 0.5).astype(int)
