@@ -2,7 +2,7 @@ name: Lighthouse badge
 
 on:
   push:
-    branches: [ 'main' ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -23,9 +23,8 @@ jobs:
           mkdir -p badges
           chmod 0777 badges
 
-          docker run --rm \
+          container_id=$(docker create \
             -u 0:0 \
-            -v "$PWD/badges":/home/chrome/reports:rw \
             emazzotta/lighthouse-badges \
             /bin/sh -c "lighthouse-badges \
               --url https://formula-ascent.onrender.com/predictions \
@@ -33,22 +32,13 @@ jobs:
               --single-badge \
               --output-path /home/chrome/reports \
               --badge-style flat \
-              --save-report"
+              --save-report")
 
-          echo "Produced files:"
-          ls -la badges || true
+          docker start -a "$container_id"
+          docker cp "$container_id:/home/chrome/reports/lighthouse.svg" badges/lighthouse-badge.svg
+          docker rm "$container_id"
 
-          generated_svg=$(ls badges/*.svg 2>/dev/null | head -n 1 || true)
-          target_svg="badges/lighthouse-badge.svg"
-
-          if [ -n "$generated_svg" ]; then
-            if [ "$generated_svg" != "$target_svg" ]; then
-              mv -f "$generated_svg" "$target_svg"
-            fi
-          else
-            echo "No badge generated!"
-            exit 1
-          fi
+          ls -la badges
 
       - name: Commit and push badge if changed
         env:
@@ -57,7 +47,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet badges/lighthouse-badge.svg || git diff --cached --quiet badges/lighthouse-badge.svg; then
+          if git diff --quiet badges/lighthouse-badge.svg; then
             echo "No SVG changes to commit"
           else
             git add badges/lighthouse-badge.svg
