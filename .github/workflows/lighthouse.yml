@@ -1,4 +1,4 @@
-name: Lighthouse badge (docker image)
+name: Lighthouse badge
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
               --url https://formula-ascent.onrender.com/schedule \
               --single-badge \
               --output-path /home/chrome/reports \
-              --badge-style flat-square \
+              --badge-style flat \
               --save-report"
 
           echo "Produced files:"
@@ -56,10 +56,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add badges/lighthouse-badge.svg || true
-          if git diff --staged --quiet -- badges/lighthouse-badge.svg; then
+
+          if git diff --quiet badges/lighthouse-badge.svg || git diff --cached --quiet badges/lighthouse-badge.svg; then
             echo "No SVG changes to commit"
           else
+            git add badges/lighthouse-badge.svg
             git commit -m "chore(ci): update Lighthouse badge"
             git push origin HEAD:${{ github.ref_name }}
           fi

@@ -23,18 +23,21 @@ export const Schedule = () => {
         title="Race Schedule"
         rightContent={
           <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              value={selectedSeries}
-              onChange={(e) => setSelectedSeries(e.target.value)}
-              disabled={loading}
-              className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
-            >
-              {series.map((s) => (
-                <option key={s.value} value={s.value} className="bg-gray-900">
-                  {s.label}
-                </option>
-              ))}
-            </select>
+            <label className="flex flex-col gap-2">
+              <span className="text-sm text-gray-300 sr-only">Series</span>
+              <select
+                value={selectedSeries}
+                onChange={(e) => setSelectedSeries(e.target.value)}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
+              >
+                {series.map((s) => (
+                  <option key={s.value} value={s.value} className="bg-gray-900">
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <button
               onClick={refreshSchedule}
