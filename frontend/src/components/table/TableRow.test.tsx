@@ -54,6 +54,21 @@ describe('TableRow', () => {
     expect(screen.getByTestId('probability-bar')).toBeInTheDocument();
   });
 
+  it('displays "-" when position is -1', () => {
+    const noPositionDriver = { ...mockDriver, position: -1 };
+
+    render(
+      <table>
+        <tbody>
+          <TableRow driver={noPositionDriver} />
+        </tbody>
+      </table>
+    );
+
+    expect(screen.getByText('-')).toBeInTheDocument();
+    expect(screen.queryByText(/#\d+/)).not.toBeInTheDocument();
+  });
+
   it('applies correct CSS classes', () => {
     render(
       <table>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useSchedule } from './useSchedule';
 
 // Mock fetch globally
@@ -38,9 +38,20 @@ describe('useSchedule', () => {
     vi.restoreAllMocks();
   });
 
-  it('should initialize with default values', () => {
+  it('should initialize with default values', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      });
+
     const { result } = renderHook(() => useSchedule());
 
+    // Check initial values immediately
     expect(result.current.races).toEqual([]);
     expect(result.current.nextRace).toBeNull();
     expect(result.current.selectedSeries).toBe('f1');
@@ -51,6 +62,11 @@ describe('useSchedule', () => {
       { value: 'f2', label: 'Formula 2' },
       { value: 'f3', label: 'Formula 3' },
     ]);
+
+    // Wait for async updates to complete
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it('should fetch schedule data on mount', async () => {
@@ -112,6 +128,11 @@ describe('useSchedule', () => {
   });
 
   it('should handle next race API error gracefully', async () => {
+    // Suppress console.warn for this test
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {});
+
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -131,6 +152,8 @@ describe('useSchedule', () => {
     expect(result.current.races).toEqual(mockRacesData);
     expect(result.current.nextRace).toBeNull();
     expect(result.current.error).toBeNull();
+
+    consoleWarnSpy.mockRestore();
   });
 
   it('should handle network errors', async () => {
@@ -159,6 +182,16 @@ describe('useSchedule', () => {
   });
 
   it('should include timezone in API calls', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      });
+
     const { result } = renderHook(() => useSchedule());
 
     await waitFor(() => {
@@ -175,5 +208,155 @@ describe('useSchedule', () => {
         }),
       })
     );
+  });
+
+  it('should refresh schedule successfully', async () => {
+    // Initial fetch on mount
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      })
+      // Refresh endpoint
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue({}),
+      })
+      // Refetch after refresh
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      });
+
+    const { result } = renderHook(() => useSchedule());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    // Call refreshSchedule and wait for completion
+    await act(async () => {
+      await result.current.refreshSchedule();
+    });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/system/refresh/schedule',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    );
+
+    expect(mockFetch).toHaveBeenCalledTimes(5);
+  });
+
+  it('should handle refresh schedule error', async () => {
+    // Initial fetch on mount
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      })
+      // Refresh endpoint fails
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+
+    const { result } = renderHook(() => useSchedule());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    // Call refreshSchedule
+    await act(async () => {
+      await result.current.refreshSchedule();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Failed to trigger schedule refresh');
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it('should handle refresh schedule network error', async () => {
+    // Initial fetch on mount
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      })
+      // Refresh endpoint throws
+      .mockRejectedValueOnce(new Error('Connection failed'));
+
+    const { result } = renderHook(() => useSchedule());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    // Call refreshSchedule
+    await act(async () => {
+      await result.current.refreshSchedule();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Connection failed');
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it('should handle refresh schedule unknown error', async () => {
+    // Initial fetch on mount
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockRacesData),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockNextRaceData),
+      })
+      // Refresh endpoint throws non-Error
+      .mockRejectedValueOnce('Unknown error');
+
+    const { result } = renderHook(() => useSchedule());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    // Call refreshSchedule
+    await act(async () => {
+      await result.current.refreshSchedule();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('An unknown error occurred');
+      expect(result.current.loading).toBe(false);
+    });
   });
 });
