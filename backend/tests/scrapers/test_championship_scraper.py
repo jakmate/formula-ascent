@@ -149,6 +149,10 @@ def test_get_footer_rows_count_series1():
     assert get_footer_rows_count(2020, 1, "Drivers'") == 2
 
 
+def test_get_footer_rows_count_2013_series1_drivers():
+    assert get_footer_rows_count(2013, 1, "Drivers'") == 3
+
+
 def test_get_footer_rows_count_series2_pre_2017():
     assert get_footer_rows_count(2016, 2, "Drivers'") == 2
 
@@ -167,7 +171,6 @@ def test_get_footer_rows_count_series3_post_2012():
 
 def test_get_footer_rows_count_2020_series3_drivers():
     assert get_footer_rows_count(2020, 3, "Drivers'") == 4
-
 
 # process_table_row tests (too few cells, rowspan, missing points, no. column)
 def test_process_table_row_too_few_cells():
@@ -253,6 +256,42 @@ def test_process_table_row_with_no_col_skips_column():
     assert "R1" in result
     assert result[-1] == "30"
 
+def test_process_table_row_zhou_guanyu():
+    cells = [
+        make_soup("<td>1</td>").find("td"),
+        make_soup("<td>Guanyu Zhou</td>").find("td"),
+        make_soup("<td>10</td>").find("td"),
+    ]
+    headers = ["Pos", "Driver", "Points"]
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
+    result = process_table_row(cells, headers, False, tracker)
+    assert result[1] == "Zhou Guanyu"
+
+
+def test_process_table_row_kimi_antonelli():
+    cells = [
+        make_soup("<td>2</td>").find("td"),
+        make_soup("<td>Andrea Kimi Antonelli</td>").find("td"),
+        make_soup("<td>8</td>").find("td"),
+    ]
+    headers = ["Pos", "Driver", "Points"]
+    tracker = {
+        "pos_rowspan": 0,
+        "team_rowspan": 0,
+        "points_rowspan": 0,
+        "current_pos": "",
+        "current_team": "",
+        "current_points": "",
+    }
+    result = process_table_row(cells, headers, False, tracker)
+    assert result[1] == "Kimi Antonelli"
 
 # write_championship_csv tests (rowspan persistence across rows)
 @patch("app.scrapers.championship_scraper.open", new_callable=mock_open)
@@ -325,3 +364,19 @@ def test_process_championship_missing_heading_prints_error(mock_print):
     mock_print.assert_called()
     called_with = mock_print.call_args[0][0]
     assert "No Drivers' heading found for 2020 1" in called_with
+
+@patch("builtins.print")
+def test_process_championship_not_enough_rows(mock_print):
+    html = """
+    <h3 id="World_Drivers'_Championship_standings"></h3>
+    <table class="wikitable">
+        <tr><th>Pos</th><th>Driver</th></tr>
+        <tr><td>1</td><td>Max</td></tr>
+    </table>
+    """
+    soup = make_soup(html)
+    process_championship(soup, "Drivers'", 2020, "drivers", 1)
+    
+    mock_print.assert_called()
+    called_with = mock_print.call_args[0][0]
+    assert "Not enough rows in Drivers' 2020 1" in called_with
