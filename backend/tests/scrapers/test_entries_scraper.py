@@ -144,6 +144,28 @@ class TestProcessMultirowHeaders:
             assert headers == ["Name", "Constructor", "Driver"]
             assert len(data_rows) == 1
 
+    def test_stopiteration_when_second_row_has_fewer_headers(self):
+        """When second row has fewer headers than placeholders, StopIteration is caught"""
+        html = """
+        <tr><th colspan="3">Team</th><th>Driver</th></tr>
+        <tr><th>Name</th><th>Constructor</th></tr>
+        <tr><td>Data</td></tr>
+        """
+        soup = BeautifulSoup(html, "lxml")
+        rows = soup.find_all("tr")
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Name", "Constructor", "Driver"]
+            headers, data_rows = process_multirow_headers(rows)
+
+            # Should have placeholders filled until StopIteration, rest stay None
+            assert len(headers) == 4
+            assert headers[0] == "Name"
+            assert headers[1] == "Constructor"
+            # Third placeholder couldn't be filled due to StopIteration
+            assert headers[2] is None
+            assert headers[3] == "Driver"
+
 
 class TestProcessSingleRowHeaders:
     def test_basic_headers(self):
@@ -231,6 +253,23 @@ class TestProcessRowspanColumns:
             assert row_data == ["Team A", "Driver 2"]
             assert trackers[0]["remaining"] == 0
 
+    def test_empty_string_when_cells_exhausted(self):
+        """When cell_index exceeds cells length, append empty string"""
+        # Only one cell available but need to process 2 rowspan columns
+        html = "<td>Team A</td>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = [soup.find("td")]
+
+        trackers = [{"value": "", "remaining": 0}, {"value": "", "remaining": 0}]
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.return_value = "Team A"
+            row_data, cell_index = process_rowspan_columns(trackers, cells, 2)
+
+            # First column gets "Team A", second column gets empty string
+            assert row_data == ["Team A", ""]
+            assert cell_index == 1
+
 
 class TestProcessF1ModernDrivers:
     def test_merge_numbered_lines(self):
@@ -281,6 +320,97 @@ class TestProcessStandardRow:
 
             result = process_standard_row(cells, 0, [], 2, 1, 3, [])
             assert result[1] == "Robert Vișoiu"
+
+    def test_kimi_antonelli_name_fix(self):
+        """Andrea Kimi Antonelli should be changed to Kimi Antonelli for F2"""
+        html = "<tr><td>Team</td><td>Andrea Kimi Antonelli</td></tr>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = soup.find("tr").find_all(["td", "th"])
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Andrea Kimi Antonelli"]
+
+            result = process_standard_row(cells, 0, [], 2, 1, 2, [])
+            assert result[1] == "Kimi Antonelli"
+
+    def test_zhou_guanyu_name_fix_f2(self):
+        """Guanyu Zhou should be changed to Zhou Guanyu for F2"""
+        html = "<tr><td>Team</td><td>Guanyu Zhou</td></tr>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = soup.find("tr").find_all(["td", "th"])
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Guanyu Zhou"]
+
+            result = process_standard_row(cells, 0, [], 2, 1, 2, [])
+            assert result[1] == "Zhou Guanyu"
+
+    def test_unwanted_index_within_bounds(self):
+        """When unwanted index is within bounds, delete it"""
+        html = "<tr><td>Team</td><td>Engine</td><td>Driver</td></tr>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = soup.find("tr").find_all(["td", "th"])
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Engine", "Driver"]
+
+            # Index 1 (Engine column) should be removed
+            result = process_standard_row(cells, 0, [], 3, 2, 1, [1])
+
+            assert len(result) == 2
+            assert result == ["Team", "Driver"]
+
+    def test_unwanted_index_out_of_bounds(self):
+        """When unwanted index is out of bounds, skip deletion"""
+        html = "<tr><td>Team</td><td>Driver</td></tr>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = soup.find("tr").find_all(["td", "th"])
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Driver"]
+
+            # Index 5 is out of bounds, should not cause error
+            result = process_standard_row(cells, 0, [], 2, 1, 1, [5])
+
+            assert len(result) == 2
+            assert result == ["Team", "Driver"]
+
+    def test_empty_string_for_missing_driver_data(self):
+        """When driver_data list is shorter than driver_count, append empty string"""
+        writer = Mock()
+        row_data = ["Team A", "Constructor", "Engine", "Car"]
+        # First cell has 3 drivers, second has only 1 number
+        processed_cells = [["Driver 1", "Driver 2", "Driver 3"], ["44"]]
+        unwanted_indices = []
+
+        write_f1_modern_rows(writer, row_data, processed_cells, unwanted_indices)
+
+        # Should write 3 rows, with empty strings for missing numbers
+        assert writer.writerow.call_count == 3
+        writer.writerow.assert_any_call(
+            ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"]
+        )
+        writer.writerow.assert_any_call(["Team A", "Constructor", "Engine", "Car", "Driver 2", ""])
+        writer.writerow.assert_any_call(["Team A", "Constructor", "Engine", "Car", "Driver 3", ""])
+
+    def test_empty_string_when_cells_exhausted(self):
+        """When cell_index exceeds cells, append empty string to fill columns"""
+        # Only 2 cells but num_columns is 4
+        html = "<tr><td>Team</td><td>Driver</td></tr>"
+        soup = BeautifulSoup(html, "lxml")
+        cells = soup.find("tr").find_all(["td", "th"])
+
+        with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
+            mock_remove.side_effect = ["Team", "Driver"]
+
+            result = process_standard_row(cells, 0, [], 4, 1, 2, [])
+
+            # Should fill with empty strings: ["Team", "Driver", "", ""]
+            assert len(result) == 4
+            assert result[0] == "Team"
+            assert result[1] == "Driver"
+            assert result[2] == ""
+            assert result[3] == ""
 
 
 @patch("app.scrapers.scraping_utils.create_output_file")
