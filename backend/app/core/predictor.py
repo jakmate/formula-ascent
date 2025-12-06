@@ -736,7 +736,7 @@ def train_models(df):
     # Train PyTorch Model
     print("\nTraining PyTorch Model...")
     pytorch_model, scaler, test_probas = train_pytorch_model(
-        X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols, seed=SEED
+        X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols
     )
 
     calibrated_probas = pytorch_model.calibrator.transform(test_probas)
