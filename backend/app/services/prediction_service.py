@@ -86,12 +86,12 @@ class PredictionService:
         model = self.app_state.models[self.series][model_name]
 
         if "PyTorch" in model_name:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model = model.to(device)
             X_current_scaled = self.app_state.scaler[self.series].transform(X_current)
             model.eval()
             with torch.no_grad():
-                X_torch = torch.FloatTensor(X_current_scaled)
-                if torch.cuda.is_available():
-                    X_torch = X_torch.cuda()
+                X_torch = torch.FloatTensor(X_current_scaled).to(device)
                 logits = model(X_torch)
                 raw_predictions = torch.sigmoid(logits).cpu().numpy().flatten()
         else:

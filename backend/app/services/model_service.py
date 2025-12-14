@@ -35,6 +35,11 @@ class ModelService:
                         os.path.join(series_dir, f"{name}.pt"),
                         _use_new_zipfile_serialization=True,
                     )
+                    if hasattr(model, "calibrator") and model.calibrator is not None:
+                        joblib.dump(
+                            model.calibrator,
+                            os.path.join(series_dir, f"{name}_calibrator.joblib"),
+                        )
                 else:
                     joblib.dump(model, os.path.join(series_dir, f"{name}.joblib"))
 
@@ -82,7 +87,7 @@ class ModelService:
 
                 # Load models
                 for model_file in os.listdir(series_dir):
-                    if model_file == "preprocessor.joblib":
+                    if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
                         continue
 
                     name = os.path.splitext(model_file)[0]
@@ -93,13 +98,23 @@ class ModelService:
                         self.app_state.models[series][name] = model
                         models_loaded = True
                     elif model_file.endswith(".pt"):
+                        device = torch.device(
+                            "cuda" if torch.cuda.is_available() else "cpu"
+                        )
                         model = RacingPredictor(len(self.app_state.feature_cols[series]))
                         state_dict = torch.load(
                             model_path,
-                            map_location=torch.device("cpu"),
+                            map_location=device,  # Load directly to target device
                             weights_only=False,
                         )
                         model.load_state_dict(state_dict)
+                        model = model.to(device)  # Ensure model is on correct device
+                        model.eval()  # Set to evaluation mode
+                        calibrator_path = os.path.join(
+                            series_dir, f"{name}_calibrator.joblib"
+                        )
+                        if os.path.exists(calibrator_path):
+                            model.calibrator = joblib.load(calibrator_path)
                         self.app_state.models[series][name] = model
                         models_loaded = True
 

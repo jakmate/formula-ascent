@@ -83,7 +83,7 @@ class TestSaveModels:
         )
 
         # Verify sklearn model save and preprocessor save
-        assert mock_joblib_dump.call_count == 2  # sklearn model + preprocessor
+        assert mock_joblib_dump.call_count == 3  # ml model + preprocessor + calibrator
 
         mock_logger.info.assert_called_with("Models saved successfully for f3_to_f2")
 
@@ -133,11 +133,15 @@ class TestLoadModels:
     @patch("os.listdir")
     @patch("joblib.load")
     @patch("torch.load")
+    @patch("torch.device")
+    @patch("torch.cuda.is_available")
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_load_models_success(
         self,
         mock_logger,
+        mock_cuda_available,
+        mock_device,
         mock_torch_load,
         mock_joblib_load,
         mock_listdir,
@@ -150,13 +154,17 @@ class TestLoadModels:
         mock_listdir.return_value = [
             "RandomForest.joblib",
             "PyTorch.pt",
+            "PyTorch_calibrator.joblib",
             "preprocessor.joblib",
         ]
+        mock_cuda_available.return_value = False
+        mock_device.return_value = Mock()
 
         # Mock preprocessor loading
         mock_joblib_load.side_effect = [
             {"scaler": Mock(), "feature_cols": ["col1", "col2"]},  # preprocessor
             Mock(),  # RandomForest model
+            Mock(),  # PyTorch calibrator
         ]
 
         # Mock PyTorch loading
@@ -164,6 +172,8 @@ class TestLoadModels:
 
         with patch.object(RacingPredictor, "__init__", return_value=None), patch.object(
             RacingPredictor, "load_state_dict"
+        ), patch.object(RacingPredictor, "to", return_value=Mock()), patch.object(
+            RacingPredictor, "eval"
         ):
 
             result = await model_service.load_models()
@@ -229,23 +239,40 @@ class TestLoadModels:
     @patch("os.path.exists")
     @patch("os.listdir")
     @patch("joblib.load")
+    @patch("torch.device")
+    @patch("torch.cuda.is_available")
     @pytest.mark.asyncio
     async def test_load_models_pytorch_loading(
-        self, mock_joblib_load, mock_listdir, mock_exists, model_service
+        self,
+        mock_cuda_available,
+        mock_device,
+        mock_joblib_load,
+        mock_listdir,
+        mock_exists,
+        model_service,
     ):
         """Test PyTorch model loading specifically"""
         mock_exists.return_value = True
-        mock_listdir.return_value = ["PyTorch.pt", "preprocessor.joblib"]
+        mock_listdir.return_value = [
+            "PyTorch.pt",
+            "PyTorch_calibrator.joblib",
+            "preprocessor.joblib",
+        ]
+        mock_cuda_available.return_value = False
+        mock_device.return_value = Mock()
 
         # Mock preprocessor
-        mock_joblib_load.return_value = {
-            "scaler": Mock(),
-            "feature_cols": ["col1", "col2"],
-        }
+        mock_joblib_load.side_effect = [
+            {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
+            Mock(),  # calibrator
+        ]
 
-        with patch("torch.load") as mock_torch_load, patch.object(
-            RacingPredictor, "__init__", return_value=None
-        ), patch.object(RacingPredictor, "load_state_dict") as mock_load_state:
+        mock_model_instance = Mock(spec=RacingPredictor)
+        mock_model_instance.to.return_value = mock_model_instance
+
+        with patch("torch.load") as mock_torch_load, patch(
+            "app.services.model_service.RacingPredictor", return_value=mock_model_instance
+        ):
 
             mock_torch_load.return_value = {"param": "value"}
 
@@ -253,7 +280,11 @@ class TestLoadModels:
 
             assert result is True
             mock_torch_load.assert_called()
-            mock_load_state.assert_called_once_with({"param": "value"})
+            mock_model_instance.load_state_dict.assert_called_once_with(
+                {"param": "value"}
+            )
+            mock_model_instance.to.assert_called_once()
+            mock_model_instance.eval.assert_called_once()
 
 
 class TestTrainModels:
