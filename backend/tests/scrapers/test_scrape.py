@@ -10,16 +10,24 @@ class TestMapUrl:
     def test_map_url_f1(self):
         """Test F1 URL mapping."""
         assert (
-            map_url(1, 2020) == "https://en.wikipedia.org/wiki/2020_Formula_One_World_Championship"
-        )  # noqa: 501
+            map_url(1, 2020)
+            == "https://en.wikipedia.org/wiki/2020_Formula_One_World_Championship"
+        )
         assert (
-            map_url(1, 2010) == "https://en.wikipedia.org/wiki/2010_Formula_One_World_Championship"
-        )  # noqa: 501
+            map_url(1, 2010)
+            == "https://en.wikipedia.org/wiki/2010_Formula_One_World_Championship"
+        )
 
     def test_map_url_f2_after_2016(self):
         """Test F2 URL mapping for years after 2016."""
-        assert map_url(2, 2020) == "https://en.wikipedia.org/wiki/2020_Formula_2_Championship"
-        assert map_url(2, 2017) == "https://en.wikipedia.org/wiki/2017_Formula_2_Championship"
+        assert (
+            map_url(2, 2020)
+            == "https://en.wikipedia.org/wiki/2020_Formula_2_Championship"
+        )
+        assert (
+            map_url(2, 2017)
+            == "https://en.wikipedia.org/wiki/2017_Formula_2_Championship"
+        )
 
     def test_map_url_gp2_2016_and_before(self):
         """Test GP2 URL mapping for 2016 and earlier."""
@@ -28,8 +36,14 @@ class TestMapUrl:
 
     def test_map_url_f3_after_2018(self):
         """Test F3 URL mapping for years after 2018."""
-        assert map_url(3, 2020) == "https://en.wikipedia.org/wiki/2020_FIA_Formula_3_Championship"
-        assert map_url(3, 2019) == "https://en.wikipedia.org/wiki/2019_FIA_Formula_3_Championship"
+        assert (
+            map_url(3, 2020)
+            == "https://en.wikipedia.org/wiki/2020_FIA_Formula_3_Championship"
+        )
+        assert (
+            map_url(3, 2019)
+            == "https://en.wikipedia.org/wiki/2019_FIA_Formula_3_Championship"
+        )
 
     def test_map_url_gp3_2018_and_before(self):
         """Test GP3 URL mapping for 2018 and earlier."""
@@ -104,7 +118,12 @@ class TestScrapeWiki:
     @patch("app.scrapers.scrape.process_championship")
     @patch("app.scrapers.scrape.scrape_quali")
     def test_creates_session_when_none(
-        self, mock_quali, mock_championship, mock_entries, mock_request, mock_create_session
+        self,
+        mock_quali,
+        mock_championship,
+        mock_entries,
+        mock_request,
+        mock_create_session,
     ):
         """If no session is provided scrape_wiki should call create_session()."""
         mock_sess = Mock()
@@ -120,7 +139,7 @@ class TestScrapeWiki:
         # create_session must have been called once to create the session used internally
         mock_create_session.assert_called_once()
 
-        # safe_request should be called using that session (we at least ensure it was called)
+        # safe_request should be called using that session
         assert mock_request.call_count == 1
 
         # downstream processors should have been invoked once for the single year
@@ -153,7 +172,9 @@ class TestScrapeFunctions:
     @patch("app.scrapers.scrape.scrape_drivers")
     @patch("app.scrapers.scrape.scrape_schedules")
     @patch("app.scrapers.scrape.CURRENT_YEAR", 2024)
-    def test_scrape_current_year(self, mock_schedules, mock_drivers, mock_wiki, mock_session):
+    def test_scrape_current_year(
+        self, mock_schedules, mock_drivers, mock_wiki, mock_session
+    ):
         """Test scrape_current_year only scrapes current year."""
         mock_sess = Mock()
         mock_session.return_value = mock_sess

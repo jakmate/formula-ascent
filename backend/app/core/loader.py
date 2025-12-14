@@ -68,7 +68,9 @@ def load_year_data(year_dir, series, data_type):
         try:
             df = pd.read_csv(data_file)
         except FileNotFoundError as e:
-            LOGGER.warning(f"Skipping {data_type} data for {year_dir.name} ({series}): {e}")
+            LOGGER.warning(
+                f"Skipping {data_type} data for {year_dir.name} ({series}): {e}"
+            )
             return None
 
         # Case of Konstantin Tereshchenko
@@ -147,8 +149,10 @@ def load_driver_data(df):
                 with open(profile_file, "r", encoding="utf-8") as f:
                     profile_data = json.load(f)
                     profiles[driver] = (
-                        profile_data if profile_data.get("scraped", True) else default_profile
-                    )  # noqa: 501
+                        profile_data
+                        if profile_data.get("scraped", True)
+                        else default_profile
+                    )
             except (FileNotFoundError, Exception):
                 profiles[driver] = default_profile
 
@@ -156,7 +160,7 @@ def load_driver_data(df):
     df["dob"] = df["Driver"].map(lambda d: profiles.get(d, default_profile)["dob"])
     df["nationality"] = df["Driver"].map(
         lambda d: profiles.get(d, default_profile).get("nationality", "Unknown")
-    )  # noqa: 501
+    )
     return df
 
 
@@ -166,9 +170,9 @@ def merge_entries(driver_df, entries_df):
         return driver_df
 
     # Add team count and round count in one go
-    entries_df["team_count"] = entries_df.groupby(["Driver", "year", "series"])["Team"].transform(
-        "count"
-    )
+    entries_df["team_count"] = entries_df.groupby(["Driver", "year", "series"])[
+        "Team"
+    ].transform("count")
     entries_df["round_count"] = entries_df["Rounds"].apply(parse_round_count)
 
     # For multi-team drivers: pick team with max round_count

@@ -22,7 +22,7 @@ jobs:
     - name: Check formatting with Black
       run: |
         cd backend
-        black --check --line-length 100 .
+        black --check --line-length 90 .
 
   backend-test:
     runs-on: ubuntu-latest

@@ -103,13 +103,21 @@ def process_qualifying_data(race_url, round_info, session):
             return None
 
         # Check if this is Monte Carlo with Group A and Group B
-        group_a_head = soup.find("h4", {"id": "Group_A"}) or soup.find("dt", string="Group A")
-        group_b_head = soup.find("h4", {"id": "Group_B"}) or soup.find("dt", string="Group B")
+        group_a_head = soup.find("h4", {"id": "Group_A"}) or soup.find(
+            "dt", string="Group A"
+        )
+        group_b_head = soup.find("h4", {"id": "Group_B"}) or soup.find(
+            "dt", string="Group B"
+        )
 
         if group_a_head and group_b_head:
-            result = process_two_table_qualifying(group_a_head, group_b_head, round_info, race_url)
+            result = process_two_table_qualifying(
+                group_a_head, group_b_head, round_info, race_url
+            )
         else:
-            result = process_single_qualifying_table(qualifying_heading, round_info, race_url)
+            result = process_single_qualifying_table(
+                qualifying_heading, round_info, race_url
+            )
 
         return result
 
@@ -272,7 +280,9 @@ def extract_quali_table_data(table):
         # Drop unwanted columns for single row headers
         if not has_two_row_header:
             columns_to_drop = {"R1", "GridSR", "Gap", "Q1 Time", "Rank"}
-            indices_to_keep = [i for i, h in enumerate(headers) if h not in columns_to_drop]
+            indices_to_keep = [
+                i for i, h in enumerate(headers) if h not in columns_to_drop
+            ]
             headers = [headers[i] for i in indices_to_keep]
 
         # Get data rows

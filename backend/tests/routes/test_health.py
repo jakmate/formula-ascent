@@ -24,7 +24,10 @@ def test_health_check():
     client = TestClient(app)
 
     class MockAppState:
-        models = {"f3_to_f2": {"KNN": None, "SVM": None}, "f2_to_f1": {"Random Forest": None}}
+        models = {
+            "f3_to_f2": {"KNN": None, "SVM": None},
+            "f2_to_f1": {"Random Forest": None},
+        }
         system_status = {"last_training": "2023-01-01T12:00:00"}
 
     app.dependency_overrides[get_app_state] = lambda: MockAppState()

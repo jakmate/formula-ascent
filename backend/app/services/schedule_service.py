@@ -78,7 +78,9 @@ class ScheduleService:
                             next_session_date_str = next_session["date"]
 
                             if len(next_session_date_str) > 10:
-                                next_session_dt = datetime.fromisoformat(next_session_date_str)
+                                next_session_dt = datetime.fromisoformat(
+                                    next_session_date_str
+                                )
                             else:  # Date only
                                 next_session_dt = datetime.strptime(
                                     next_session_date_str, "%Y-%m-%d"
@@ -93,17 +95,22 @@ class ScheduleService:
                             next_session = candidate_session
 
                         # Track earliest session in this race for fallback
-                        if not race_earliest_session or session_dt < race_earliest_session:
+                        if (
+                            not race_earliest_session
+                            or session_dt < race_earliest_session
+                        ):
                             race_earliest_session = session_dt
 
                 except (ValueError, TypeError):
                     # Skip invalid datetime strings
                     continue
 
-            # If we found future sessions and this is our first next_race, or this race is sooner
+            # If found future sessions && this is first next_race, or race is sooner
             sessions = next_race.get("sessions", {}) if next_race else {}
             first_session_start = (
-                self._parse_datetime(list(sessions.values())[0]["start"]).replace(tzinfo=pytz.UTC)
+                self._parse_datetime(list(sessions.values())[0]["start"]).replace(
+                    tzinfo=pytz.UTC
+                )
                 if sessions
                 else None
             )
@@ -129,7 +136,9 @@ class ScheduleService:
                             # Handle date-only strings (TBC sessions)
                             session_date = self._parse_datetime(start_str)
                             if session_date > now:
-                                season_completed = False  # Found at least one future session
+                                season_completed = (
+                                    False  # Found at least one future session
+                                )
                                 if not earliest_date or session_date < earliest_date:
                                     earliest_date = session_date
                         except (ValueError, TypeError):

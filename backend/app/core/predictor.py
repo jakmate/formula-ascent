@@ -176,7 +176,9 @@ def calculate_teammate_performance(df):
                     h2h_rates[j, i] = wins_j / valid_count
 
         # Calculate overall H2H rate for each driver
-        for idx, (driver_idx, driver_name) in enumerate(zip(driver_indices, driver_names)):
+        for idx, (driver_idx, driver_name) in enumerate(
+            zip(driver_indices, driver_names)
+        ):
             # Get all valid comparisons for this driver
             other_rates = h2h_rates[idx]
             valid_others = ~np.isnan(other_rates)
@@ -254,7 +256,9 @@ def calculate_qualifying_features(df, qualifying_df):
         return np.nan
 
     # Extract positions for all rows at once
-    qualifying_df["_extracted_pos"] = qualifying_df.apply(extract_position_from_row, axis=1)
+    qualifying_df["_extracted_pos"] = qualifying_df.apply(
+        extract_position_from_row, axis=1
+    )
 
     # Group and aggregate in one operation
     qualifying_stats = (
@@ -273,7 +277,9 @@ def calculate_qualifying_features(df, qualifying_df):
         df = df.merge(qualifying_stats, on=["Driver", "year"], how="left")
 
     # Fill missing values
-    df[["avg_quali_pos", "std_quali_pos"]] = df.get(["avg_quali_pos", "std_quali_pos"], np.nan)
+    df[["avg_quali_pos", "std_quali_pos"]] = df.get(
+        ["avg_quali_pos", "std_quali_pos"], np.nan
+    )
 
     return df
 
@@ -316,7 +322,8 @@ def engineer_features(df):
         cache_key = (row["year"], row.get("series", "F3"))
         if cache_key not in cache_key_to_data:
             year_series_data = df[
-                (df["year"] == row["year"]) & (df.get("series", "F3") == row.get("series", "F3"))
+                (df["year"] == row["year"])
+                & (df.get("series", "F3") == row.get("series", "F3"))
             ]
             race_cols = get_race_columns(year_series_data)
             cache_key_to_data[cache_key] = race_cols
@@ -377,7 +384,9 @@ def engineer_features(df):
 
             # Get appropriate points system
             if row["year"] == 2021:
-                positions = points_system["race12_positions" if is_sprint else "race3_positions"]
+                positions = points_system[
+                    "race12_positions" if is_sprint else "race3_positions"
+                ]
             else:
                 positions = points_system.get(f"{race_type}_positions", [])
 
@@ -397,7 +406,9 @@ def engineer_features(df):
                 stats["sprint_podiums" if is_sprint else "feature_podiums"] += 1
 
         stats["races_completed"] = stats["feature_races"] + stats["sprint_races"]
-        stats["participation_rate"] = stats["races_completed"] / len(race_cols) if race_cols else 0
+        stats["participation_rate"] = (
+            stats["races_completed"] / len(race_cols) if race_cols else 0
+        )
 
         race_stats.append(stats)
 
@@ -438,7 +449,9 @@ def engineer_features(df):
     )
 
     features_df["wins"] = features_df["feature_wins"] + features_df["sprint_wins"]
-    features_df["podiums"] = features_df["feature_podiums"] + features_df["sprint_podiums"]
+    features_df["podiums"] = (
+        features_df["feature_podiums"] + features_df["sprint_podiums"]
+    )
 
     # Overall rates
     features_df["win_rate"] = features_df["wins"] / features_df["races_completed"]
@@ -451,14 +464,18 @@ def engineer_features(df):
     if "promoted" in df.columns:
         global_mean = df["promoted"].mean()
         nationality_stats = (
-            df.groupby("nationality").agg({"promoted": ["sum", "count"]}).droplevel(0, axis=1)
+            df.groupby("nationality")
+            .agg({"promoted": ["sum", "count"]})
+            .droplevel(0, axis=1)
         )
         alpha = 10
-        nationality_stats["smoothed_rate"] = (nationality_stats["sum"] + alpha * global_mean) / (
-            nationality_stats["count"] + alpha
-        )
+        nationality_stats["smoothed_rate"] = (
+            nationality_stats["sum"] + alpha * global_mean
+        ) / (nationality_stats["count"] + alpha)
         features_df["nationality_encoded"] = (
-            features_df["nationality"].map(nationality_stats["smoothed_rate"]).fillna(global_mean)
+            features_df["nationality"]
+            .map(nationality_stats["smoothed_rate"])
+            .fillna(global_mean)
         )
     else:
         features_df["nationality_encoded"] = 0.2
@@ -656,20 +673,28 @@ def train_models(df):
     print(
         f"Training subset: {len(X_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})"  # noqa: 501
     )
-    print(f"Validation: {len(X_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})")
+    print(
+        f"Validation: {len(X_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})"
+    )
     print(f"Test: {len(X_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})")
 
     # Traditional ML pipelines
     traditional_pipelines = {
         "KNN": Pipeline(
-            [("scaler", StandardScaler()), ("classifier", KNeighborsClassifier(n_jobs=-1))]
+            [
+                ("scaler", StandardScaler()),
+                ("classifier", KNeighborsClassifier(n_jobs=-1)),
+            ]
         ),
         "LightGBM": Pipeline(
             [
                 (
                     "classifier",
                     LGBMClassifier(
-                        random_state=SEED, class_weight="balanced", verbosity=-1, n_jobs=-1
+                        random_state=SEED,
+                        class_weight="balanced",
+                        verbosity=-1,
+                        n_jobs=-1,
                     ),
                 )
             ]
@@ -679,7 +704,9 @@ def train_models(df):
                 ("scaler", StandardScaler()),
                 (
                     "classifier",
-                    LogisticRegression(random_state=SEED, class_weight="balanced", max_iter=10000),
+                    LogisticRegression(
+                        random_state=SEED, class_weight="balanced", max_iter=10000
+                    ),
                 ),
             ]
         ),
@@ -687,14 +714,19 @@ def train_models(df):
         "SVM": Pipeline(
             [
                 ("scaler", StandardScaler()),
-                ("classifier", SVC(random_state=SEED, class_weight="balanced", probability=True)),
+                (
+                    "classifier",
+                    SVC(random_state=SEED, class_weight="balanced", probability=True),
+                ),
             ]
         ),
         "Random Forest": Pipeline(
             [
                 (
                     "classifier",
-                    RandomForestClassifier(random_state=SEED, class_weight="balanced_subsample"),
+                    RandomForestClassifier(
+                        random_state=SEED, class_weight="balanced_subsample"
+                    ),
                 )
             ]
         ),

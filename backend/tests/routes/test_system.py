@@ -42,7 +42,9 @@ class TestRefreshData:
             assert result.estimated_completion == fixed_time + timedelta(minutes=2)
 
     @pytest.mark.asyncio
-    async def test_refresh_data_response_model(self, mock_cronjob_service, background_tasks):
+    async def test_refresh_data_response_model(
+        self, mock_cronjob_service, background_tasks
+    ):
         """Test response follows RefreshResponse model."""
         result = await refresh_data(
             background_tasks=background_tasks, cronjob_service=mock_cronjob_service
@@ -55,7 +57,9 @@ class TestRefreshData:
         assert isinstance(result.estimated_completion, datetime)
 
     @pytest.mark.asyncio
-    async def test_estimated_completion_timing(self, mock_cronjob_service, background_tasks):
+    async def test_estimated_completion_timing(
+        self, mock_cronjob_service, background_tasks
+    ):
         """Test estimated completion is 2 minutes from now."""
         before_call = datetime.now()
 
@@ -84,7 +88,9 @@ class TestRefreshPredictions:
         return Mock(spec=BackgroundTasks)
 
     @pytest.mark.asyncio
-    async def test_refresh_predictions_schedules_task(self, mock_cronjob_service, background_tasks):
+    async def test_refresh_predictions_schedules_task(
+        self, mock_cronjob_service, background_tasks
+    ):
         fixed_time = datetime(2025, 1, 1, 12, 0, 0)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
@@ -100,7 +106,9 @@ class TestRefreshPredictions:
 
             # correct response shape and contents
             assert isinstance(result, RefreshResponse)
-            assert result.message == "Predictions refresh and training started in background"
+            assert (
+                result.message == "Predictions refresh and training started in background"
+            )
             assert result.estimated_completion == fixed_time + timedelta(minutes=1)
 
 
@@ -116,7 +124,9 @@ class TestRefreshSchedule:
         return Mock(spec=BackgroundTasks)
 
     @pytest.mark.asyncio
-    async def test_refresh_schedule_schedules_task(self, mock_cronjob_service, background_tasks):
+    async def test_refresh_schedule_schedules_task(
+        self, mock_cronjob_service, background_tasks
+    ):
         fixed_time = datetime(2025, 6, 1, 9, 30, 0)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
@@ -125,7 +135,9 @@ class TestRefreshSchedule:
                 background_tasks=background_tasks, cronjob_service=mock_cronjob_service
             )
 
-            background_tasks.add_task.assert_called_once_with(mock_cronjob_service.scrape_schedule)
+            background_tasks.add_task.assert_called_once_with(
+                mock_cronjob_service.scrape_schedule
+            )
 
             assert isinstance(result, RefreshResponse)
             assert result.message == "Schedule refresh started in background"

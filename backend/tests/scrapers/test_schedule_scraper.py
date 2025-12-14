@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timezone, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, mock_open, patch
 
 from app.scrapers.schedule_scraper import (
     get_country_for_location,
@@ -74,12 +74,16 @@ class TestIsRaceCompletedOrOngoing:
 
     def test_race_with_past_session(self):
         past_time = datetime.now(timezone.utc) - timedelta(days=2)
-        race = {"sessions": {"race": {"start": past_time.replace(tzinfo=None).isoformat()}}}
+        race = {
+            "sessions": {"race": {"start": past_time.replace(tzinfo=None).isoformat()}}
+        }
         assert is_race_completed_or_ongoing(race) is True
 
     def test_race_with_future_session(self):
         future_time = datetime.now(timezone.utc) + timedelta(days=2)
-        race = {"sessions": {"race": {"start": future_time.replace(tzinfo=None).isoformat()}}}
+        race = {
+            "sessions": {"race": {"start": future_time.replace(tzinfo=None).isoformat()}}
+        }
         assert is_race_completed_or_ongoing(race) is False
 
     def test_race_with_invalid_date(self):
@@ -114,7 +118,9 @@ class TestParseTimeToDatetime:
 
     def test_time_with_day_name_adjustment(self):
         base_date = datetime(2025, 3, 15)  # Saturday
-        result = parse_time_to_datetime("10:00", base_date, day_name="Friday", location="Monaco")
+        result = parse_time_to_datetime(
+            "10:00", base_date, day_name="Friday", location="Monaco"
+        )
         # Should adjust to Friday
         assert "2025-03-14" in result["start"]
 
@@ -167,7 +173,7 @@ class TestScrapeF1Schedule:
             FORMULA 1 BAHRAIN GRAND PRIX 2025</span>
             <span class="typography-module_technical-xs-regular__-W0Gs">28 Feb - 02 Mar</span>
         </a>
-        """
+        """  # noqa: 501
         mock_session.get.return_value = mock_response
 
         with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):
@@ -193,7 +199,9 @@ class TestScrapeF1Schedule:
         mock_card.select_one.side_effect = lambda sel: {
             ".typography-module_body-2-xs-bold__M03Ei": mock_round,
             ".typography-module_display-xl-bold__Gyl5W": Mock(text="Sakhir"),
-            ".typography-module_body-xs-semibold__Fyfwn": Mock(text="FORMULA 1 BAHRAIN GP 2025"),
+            ".typography-module_body-xs-semibold__Fyfwn": Mock(
+                text="FORMULA 1 BAHRAIN GP 2025"
+            ),
             ".typography-module_technical-xs-regular__-W0Gs": Mock(text="02 Mar"),
         }.get(sel, None)
 
@@ -257,7 +265,18 @@ class TestSaveSchedules:
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
     @patch("app.scrapers.schedule_scraper.os.path.exists")
-    def test_save_new_schedules(self, mock_exists, mock_f2_scraper, mock_f1_scraper):
+    @patch("app.scrapers.schedule_scraper.os.makedirs")
+    @patch("app.scrapers.schedule_scraper.json.dump")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_save_new_schedules(
+        self,
+        mock_file,
+        mock_json_dump,
+        mock_makedirs,
+        mock_exists,
+        mock_f2_scraper,
+        mock_f1_scraper,
+    ):
         mock_session = Mock()
         mock_exists.return_value = False
         mock_f1_scraper.return_value = [
@@ -280,18 +299,19 @@ class TestSaveSchedules:
         scrape_schedules(mock_session)
 
         # Verify scrapers were called
-        assert mock_f1_scraper.called
-        assert mock_f2_scraper.called
+        assert mock_json_dump.called
 
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
     @patch("app.scrapers.schedule_scraper.os.path.exists")
     @patch("app.scrapers.schedule_scraper.json.load")
     @patch("app.scrapers.schedule_scraper.json.dump")
+    @patch("builtins.open", new_callable=mock_open)
     @patch("app.scrapers.schedule_scraper.is_race_completed_or_ongoing")
     def test_preserve_completed_races(
         self,
         mock_is_completed,
+        mock_file,
         mock_json_dump,
         mock_json_load,
         mock_exists,

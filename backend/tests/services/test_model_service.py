@@ -94,7 +94,12 @@ class TestSaveModels:
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_save_models_without_series(
-        self, mock_logger, mock_joblib_dump, mock_torch_save, mock_makedirs, mock_app_state
+        self,
+        mock_logger,
+        mock_joblib_dump,
+        mock_torch_save,
+        mock_makedirs,
+        mock_app_state,
     ):
         """Test saving models without specific series"""
         service = ModelService(mock_app_state, series=None)
@@ -142,7 +147,11 @@ class TestLoadModels:
         """Test successful model loading"""
         # Setup mocks
         mock_exists.return_value = True
-        mock_listdir.return_value = ["RandomForest.joblib", "PyTorch.pt", "preprocessor.joblib"]
+        mock_listdir.return_value = [
+            "RandomForest.joblib",
+            "PyTorch.pt",
+            "preprocessor.joblib",
+        ]
 
         # Mock preprocessor loading
         mock_joblib_load.side_effect = [
@@ -229,7 +238,10 @@ class TestLoadModels:
         mock_listdir.return_value = ["PyTorch.pt", "preprocessor.joblib"]
 
         # Mock preprocessor
-        mock_joblib_load.return_value = {"scaler": Mock(), "feature_cols": ["col1", "col2"]}
+        mock_joblib_load.return_value = {
+            "scaler": Mock(),
+            "feature_cols": ["col1", "col2"],
+        }
 
         with patch("torch.load") as mock_torch_load, patch.object(
             RacingPredictor, "__init__", return_value=None
@@ -269,13 +281,20 @@ class TestTrainModels:
         assert model_service.app_state.scaler["f3_to_f2"] == mock_scaler
 
         # Verify system status updates
-        assert isinstance(model_service.app_state.system_status["last_training"], datetime)
+        assert isinstance(
+            model_service.app_state.system_status["last_training"], datetime
+        )
         assert model_service.app_state.system_status["last_trained_season"] == 2023
-        assert len(model_service.app_state.system_status["models_available"]["f3_to_f2"]) > 0
+        assert (
+            len(model_service.app_state.system_status["models_available"]["f3_to_f2"]) > 0
+        )
 
         # Verify data health update
         expected_health = {"historical_records": 100, "current_records": 0}
-        assert model_service.app_state.system_status["data_health"]["f3_to_f2"] == expected_health
+        assert (
+            model_service.app_state.system_status["data_health"]["f3_to_f2"]
+            == expected_health
+        )
 
         mock_logger.info.assert_called_with(
             "Training classification models for f3_to_f2 on 100 records"
@@ -287,7 +306,9 @@ class TestEdgeCases:
     @patch("os.makedirs")
     @patch("joblib.dump")
     @pytest.mark.asyncio
-    async def test_save_models_empty_models_dict(self, mock_dump, mock_makedirs, model_service):
+    async def test_save_models_empty_models_dict(
+        self, mock_dump, mock_makedirs, model_service
+    ):
         """Test saving when models dict is empty"""
         model_service.app_state.models["f3_to_f2"] = {}
 

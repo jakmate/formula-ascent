@@ -16,8 +16,8 @@ class TestCreateSession:
         assert "Mozilla/5.0" in headers["User-Agent"]
         assert (
             headers["Accept"]
-            == "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-        )  # noqa: 501
+            == "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # noqa: 501
+        )
         assert headers["Accept-Language"] == "en-US,en;q=0.5"
         assert headers["Accept-Encoding"] == "gzip, deflate"
         assert headers["Connection"] == "keep-alive"
@@ -118,7 +118,9 @@ class TestSafeRequest:
 
         assert result is None
         assert mock_session.get.call_count == 2
-        assert mock_sleep.call_count == 1  # Only sleeps between retries, not after final failure
+        assert (
+            mock_sleep.call_count == 1
+        )  # Only sleeps between retries, not after final failure
 
     @patch("time.sleep")
     def test_safe_request_generic_exception_retry(self, mock_sleep):
@@ -142,7 +144,9 @@ class TestSafeRequest:
     def test_safe_request_generic_exception_max_retries(self, mock_sleep):
         """Test generic exception exceeding max retries"""
         mock_session = Mock()
-        mock_session.get.side_effect = requests.exceptions.ConnectionError("Connection failed")
+        mock_session.get.side_effect = requests.exceptions.ConnectionError(
+            "Connection failed"
+        )
 
         result = safe_request(mock_session, "http://test.com", max_retries=2)
 

@@ -17,7 +17,9 @@ class DataService:
 
         # Return cached data if available
         if cache_key in self.data_cache:
-            LOGGER.info(f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s")
+            LOGGER.info(
+                f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s"
+            )
             return self.data_cache[cache_key]
 
         LOGGER.info(f"Cache MISS for {series} - processing data...")
@@ -31,7 +33,9 @@ class DataService:
         LOGGER.info(f"Data loading took {time.time() - load_start:.2f}s")
 
         if feeder_df.empty:
-            raise HTTPException(status_code=404, detail=f"No {feeder_series} data available")
+            raise HTTPException(
+                status_code=404, detail=f"No {feeder_series} data available"
+            )
 
         processing_start = time.time()
         from app.core.predictor import (

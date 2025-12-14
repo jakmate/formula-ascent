@@ -71,11 +71,11 @@ def build_headers(race_headers, round_headers, year, series, file_suffix):
         if (year > 2012 and series == 3) or (year > 2016 and series == 2):
             race_rounds = get_round_names(round_headers, col_index, i, colspan)
         else:
-            race_rounds = [f"R{r+1}" for r in range(colspan)]
+            race_rounds = [f"R{r + 1}" for r in range(colspan)]
 
         race_rounds.sort(
             key=lambda x: int(x.replace("R", "")) if x.replace("R", "").isdigit() else 999
-        )  # noqa:501
+        )
 
         for round_name in race_rounds:
             combined_headers.append(f"{race_name} {round_name}")
@@ -215,7 +215,9 @@ def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
 
         for row in data_rows:
             cells = row.find_all(["th", "td"])
-            row_data = process_table_row(cells, combined_headers, has_no_col, rowspan_tracker)
+            row_data = process_table_row(
+                cells, combined_headers, has_no_col, rowspan_tracker
+            )
             if row_data:
                 writer.writerow(row_data)
 

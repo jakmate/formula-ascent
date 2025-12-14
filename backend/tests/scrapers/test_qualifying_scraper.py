@@ -103,7 +103,14 @@ class TestExtractQualiTableData:
         assert result is not None
         assert result["headers"] == ["Pos.", "No.", "Driver", "Team", "Time", "Grid"]
         assert len(result["data"]) == 1
-        assert result["data"][0] == ["1", "1", "Max Verstappen", "Red Bull", "1:19.429", "1"]
+        assert result["data"][0] == [
+            "1",
+            "1",
+            "Max Verstappen",
+            "Red Bull",
+            "1:19.429",
+            "1",
+        ]
 
     def test_extract_two_row_header(self):
         html = """
@@ -129,7 +136,16 @@ class TestExtractQualiTableData:
         result = extract_quali_table_data(table)
 
         assert result is not None
-        assert result["headers"] == ["Pos.", "No.", "Driver", "Team", "Q1", "Q2", "Q3", "Grid"]
+        assert result["headers"] == [
+            "Pos.",
+            "No.",
+            "Driver",
+            "Team",
+            "Q1",
+            "Q2",
+            "Q3",
+            "Grid",
+        ]
         assert len(result["data"]) == 1
 
     def test_convert_time_gaps_to_actual_times(self):
@@ -145,7 +161,7 @@ class TestExtractQualiTableData:
                 <td>2</td><td>2</td><td>Driver 2</td><td>Team 2</td><td>+0.016</td><td>2</td>
             </tr>
         </table>
-        """
+        """  # noqa: 501
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
@@ -163,7 +179,7 @@ class TestExtractQualiTableData:
                 <td>1</td><td>1</td><td>Driver 1</td><td>Team 1</td><td>1.19.429</td><td>1</td>
             </tr>
         </table>
-        """
+        """  # noqa: 501
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
@@ -222,7 +238,9 @@ class TestProcessTwoTableQualifying:
         group_a_head.find_next.return_value = Mock()
         group_b_head.find_next.return_value = Mock()
 
-        result = process_two_table_qualifying(group_a_head, group_b_head, "Round 1", "url")
+        result = process_two_table_qualifying(
+            group_a_head, group_b_head, "Round 1", "url"
+        )
 
         assert result is not None
         assert len(result["data"]) == 4
@@ -325,8 +343,18 @@ class TestScrapeQuali:
     def test_scrape_quali_full_flow(self, mock_extract, mock_process, mock_save):
         mock_extract.return_value = ["http://race1.com", "http://race2.com"]
         mock_process.side_effect = [
-            {"headers": [], "data": [], "round_info": "Round 1", "url": "http://race1.com"},
-            {"headers": [], "data": [], "round_info": "Round 2", "url": "http://race2.com"},
+            {
+                "headers": [],
+                "data": [],
+                "round_info": "Round 1",
+                "url": "http://race1.com",
+            },
+            {
+                "headers": [],
+                "data": [],
+                "round_info": "Round 2",
+                "url": "http://race2.com",
+            },
         ]
 
         soup = Mock()

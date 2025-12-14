@@ -57,7 +57,9 @@ class TestDataService:
         mock_target.return_value = pd.DataFrame({"driver": ["A"], "promoted": [1]})
 
         # Features dataframe with no current year data but has historical data
-        features_df = pd.DataFrame({"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]})
+        features_df = pd.DataFrame(
+            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]}
+        )
         mock_engineer.return_value = features_df
 
         result = await data_service.load_current_data("f2_to_f1")
@@ -141,7 +143,9 @@ class TestDataService:
             {"driver": ["A", "B"], "promoted": [1, 0], "year": [2022, 2023]}
         )
 
-        features_df = pd.DataFrame({"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]})
+        features_df = pd.DataFrame(
+            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]}
+        )
         mock_engineer.return_value = features_df
 
         # Setup mock services
@@ -201,10 +205,16 @@ class TestDataService:
         mock_load_quali.return_value = pd.DataFrame({"driver": ["A"]})
         mock_quali_features.return_value = pd.DataFrame({"driver": ["A"]})
         mock_target.return_value = pd.DataFrame(
-            {"driver": ["A"], "promoted": [1], "year": [CURRENT_YEAR]}  # Only current year data
+            {
+                "driver": ["A"],
+                "promoted": [1],
+                "year": [CURRENT_YEAR],
+            }  # Only current year data
         )
 
-        features_df = pd.DataFrame({"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]})
+        features_df = pd.DataFrame(
+            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]}
+        )
         mock_engineer.return_value = features_df
 
         mock_prediction_service = AsyncMock()
@@ -215,8 +225,12 @@ class TestDataService:
         await data_service.initialize_system()
 
         # Verify warning was logged for no historical data
-        mock_logger.warning.assert_any_call("No historical data available for training f3_to_f2")
-        mock_logger.warning.assert_any_call("No historical data available for training f2_to_f1")
+        mock_logger.warning.assert_any_call(
+            "No historical data available for training f3_to_f2"
+        )
+        mock_logger.warning.assert_any_call(
+            "No historical data available for training f2_to_f1"
+        )
 
         # Verify ModelService was not called since no trainable data
         mock_model_service_class.assert_not_called()
@@ -245,7 +259,9 @@ class TestDataService:
     @patch("app.services.data_service.time.time")
     @patch("app.services.data_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_load_current_data_cache_hit(self, mock_logger, mock_time, data_service):
+    async def test_load_current_data_cache_hit(
+        self, mock_logger, mock_time, data_service
+    ):
         """Test cache hit scenario - covers lines 20-21"""
         # Setup cached data
         cache_key = "current_data_f2_to_f1"
@@ -258,7 +274,9 @@ class TestDataService:
         result = await data_service.load_current_data("f2_to_f1")
 
         # Verify cache hit was logged
-        mock_logger.info.assert_called_once_with("Cache HIT for f2_to_f1 - returned in 0.50s")
+        mock_logger.info.assert_called_once_with(
+            "Cache HIT for f2_to_f1 - returned in 0.50s"
+        )
 
         # Verify cached data was returned
         pd.testing.assert_frame_equal(result, cached_data)
@@ -296,7 +314,9 @@ class TestDataService:
         mock_target.return_value = pd.DataFrame({"driver": ["A"], "promoted": [1]})
 
         # Mock features with current year data
-        features_df = pd.DataFrame({"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]})
+        features_df = pd.DataFrame(
+            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]}
+        )
         mock_engineer.return_value = features_df
 
         # Use a counter to return incremental time values

@@ -20,7 +20,10 @@ def sample_state_data():
         "last_scrape_schedule": "2024-01-01T12:00:00",
         "last_training": "2024-01-01T13:00:00",
         "last_trained_season": "2024",
-        "models_available": {"f3_to_f2": ["f3_to_f2_model1"], "f2_to_f1": ["f2_to_f1_model2"]},
+        "models_available": {
+            "f3_to_f2": ["f3_to_f2_model1"],
+            "f2_to_f1": ["f2_to_f1_model2"],
+        },
     }
 
 
@@ -55,7 +58,10 @@ class TestSaveState:
         state.system_status["last_scrape_schedule"] = test_time
         state.system_status["last_training"] = test_time
         state.system_status["last_trained_season"] = "2024"
-        state.system_status["models_available"] = {"f3_to_f2": ["f3_to_f2_model1"], "f2_to_f1": []}
+        state.system_status["models_available"] = {
+            "f3_to_f2": ["f3_to_f2_model1"],
+            "f2_to_f1": [],
+        }
 
         with patch("builtins.open", mock_open()) as mock_file:
             state.save_state()
@@ -106,7 +112,9 @@ class TestLoadState:
             result = state.load_state()
 
             assert result is True
-            assert state.system_status["last_scrape_full"] == datetime(2024, 1, 1, 12, 0, 0)
+            assert state.system_status["last_scrape_full"] == datetime(
+                2024, 1, 1, 12, 0, 0
+            )
             assert state.system_status["last_training"] == datetime(2024, 1, 1, 13, 0, 0)
             assert state.system_status["last_trained_season"] == "2024"
             assert state.system_status["models_available"] == {
@@ -150,13 +158,17 @@ class TestLoadState:
 
         with patch("os.path.exists", return_value=True), patch(
             "builtins.open", mock_open(read_data="invalid json")
-        ), patch("app.core.state.LOGGER") as mock_logger, patch("os.rename") as mock_rename:
+        ), patch("app.core.state.LOGGER") as mock_logger, patch(
+            "os.rename"
+        ) as mock_rename:
 
             result = state.load_state()
 
             assert result is False
             mock_logger.error.assert_called()
-            mock_rename.assert_called_once_with(mock_state_file, f"{mock_state_file}.backup")
+            mock_rename.assert_called_once_with(
+                mock_state_file, f"{mock_state_file}.backup"
+            )
 
     def test_load_state_general_exception(self):
         state = AppState()
@@ -186,11 +198,15 @@ class TestLoadState:
             result = state.load_state()
 
             assert result is True
-            assert state.system_status["last_scrape_full"] == datetime(2024, 6, 15, 14, 30, 45)
-            assert state.system_status["last_training"] == datetime(2024, 6, 15, 15, 45, 30)
+            assert state.system_status["last_scrape_full"] == datetime(
+                2024, 6, 15, 14, 30, 45
+            )
+            assert state.system_status["last_training"] == datetime(
+                2024, 6, 15, 15, 45, 30
+            )
 
     def test_load_state_adds_missing_models_available_keys(self):
-        """If models_available is a dict but missing a key, it should be added as an empty list."""
+        """If models_available is dict but missing a key, added as an empty list."""
         state = AppState()
         # models_available dict missing "f2_to_f1"
         state_data = {

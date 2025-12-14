@@ -121,7 +121,9 @@ class TestProcessHeaders:
         soup = BeautifulSoup(html, "lxml")
         rows = soup.find_all("tr")
 
-        with patch("app.scrapers.entries_scraper.process_single_row_headers") as mock_single:
+        with patch(
+            "app.scrapers.entries_scraper.process_single_row_headers"
+        ) as mock_single:
             mock_single.return_value = (["Team", "Driver"], rows[1:])
             process_headers(rows, 1, 2015)
             mock_single.assert_called_once_with(rows)
@@ -390,8 +392,12 @@ class TestProcessStandardRow:
         writer.writerow.assert_any_call(
             ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"]
         )
-        writer.writerow.assert_any_call(["Team A", "Constructor", "Engine", "Car", "Driver 2", ""])
-        writer.writerow.assert_any_call(["Team A", "Constructor", "Engine", "Car", "Driver 3", ""])
+        writer.writerow.assert_any_call(
+            ["Team A", "Constructor", "Engine", "Car", "Driver 2", ""]
+        )
+        writer.writerow.assert_any_call(
+            ["Team A", "Constructor", "Engine", "Car", "Driver 3", ""]
+        )
 
     def test_empty_string_when_cells_exhausted(self):
         """When cell_index exceeds cells, append empty string to fill columns"""

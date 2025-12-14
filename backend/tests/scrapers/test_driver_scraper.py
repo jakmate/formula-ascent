@@ -31,7 +31,10 @@ class TestExtractNationalityFromResult:
         assert extract_nationality_from_result(result) == "United Kingdom"
 
     def test_with_citizenship_only(self):
-        result = {"nationalityLabel": {"value": ""}, "citizenshipLabel": {"value": "France"}}
+        result = {
+            "nationalityLabel": {"value": ""},
+            "citizenshipLabel": {"value": "France"},
+        }
         assert extract_nationality_from_result(result) == "France"
 
     def test_no_nationality_data(self):
@@ -52,7 +55,11 @@ class TestExtractDobFromResult:
 class TestSaveProfile:
     @patch("builtins.open", new_callable=mock_open)
     def test_save_profile(self, mock_file):
-        profile = {"name": "Lewis Hamilton", "dob": "1985-01-07", "nationality": "United Kingdom"}
+        profile = {
+            "name": "Lewis Hamilton",
+            "dob": "1985-01-07",
+            "nationality": "United Kingdom",
+        }
 
         save_profile("test.json", profile)
 
@@ -86,7 +93,10 @@ class TestSearchWikidataDrivers:
         results = search_wikidata_drivers(["Lewis Hamilton"], mock_session)
 
         assert "Lewis Hamilton" in results
-        assert results["Lewis Hamilton"]["person"]["value"] == "http://wikidata.org/entity/Q1"
+        assert (
+            results["Lewis Hamilton"]["person"]["value"]
+            == "http://wikidata.org/entity/Q1"
+        )
 
     @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "http://test.endpoint")
     def test_failed_query(self):
@@ -131,7 +141,9 @@ class TestGetAllDriversFromData:
     def test_extracts_drivers_from_files(self, mock_read_csv, mock_exists, mock_glob):
         mock_glob.return_value = ["data/F1/2023"]
         mock_exists.return_value = True
-        mock_df = pd.DataFrame({"Driver": ["Lewis Hamilton", "Max Verstappen", "Lewis Hamilton"]})
+        mock_df = pd.DataFrame(
+            {"Driver": ["Lewis Hamilton", "Max Verstappen", "Lewis Hamilton"]}
+        )
         mock_read_csv.return_value = mock_df
 
         drivers = get_all_drivers_from_data()
@@ -196,7 +208,13 @@ class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
     def test_no_drivers_found(
-        self, mock_save, mock_search, mock_exists, mock_makedirs, mock_get_drivers, mock_session
+        self,
+        mock_save,
+        mock_search,
+        mock_exists,
+        mock_makedirs,
+        mock_get_drivers,
+        mock_session,
     ):
         mock_get_drivers.return_value = []
         mock_session.return_value = Mock()
@@ -214,7 +232,13 @@ class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.save_profile")
     @patch("app.scrapers.driver_scraper.PROFILES_DIR", "/profiles")
     def test_new_driver_no_results(
-        self, mock_save, mock_search, mock_exists, mock_makedirs, mock_get_drivers, mock_session
+        self,
+        mock_save,
+        mock_search,
+        mock_exists,
+        mock_makedirs,
+        mock_get_drivers,
+        mock_session,
     ):
         mock_get_drivers.return_value = ["New Driver"]
         mock_exists.return_value = False
@@ -238,7 +262,13 @@ class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.save_profile")
     @patch("app.scrapers.driver_scraper.PROFILES_DIR", "/profiles")
     def test_new_driver_with_results(
-        self, mock_save, mock_search, mock_exists, mock_makedirs, mock_get_drivers, mock_session
+        self,
+        mock_save,
+        mock_search,
+        mock_exists,
+        mock_makedirs,
+        mock_get_drivers,
+        mock_session,
     ):
         mock_get_drivers.return_value = ["Lewis Hamilton"]
         mock_exists.return_value = False
@@ -280,7 +310,9 @@ class TestScrapeDrivers:
         mock_get_drivers.return_value = ["Lewis Hamilton"]
         mock_exists.return_value = True
 
-        existing_profile = json.dumps({"scraped": True, "dob": "1985-01-07", "nationality": "UK"})
+        existing_profile = json.dumps(
+            {"scraped": True, "dob": "1985-01-07", "nationality": "UK"}
+        )
         mock_file.return_value.read.return_value = existing_profile
 
         mock_search.return_value = {
@@ -312,9 +344,18 @@ class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.os.makedirs")
     @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
-    @patch("app.scrapers.driver_scraper.DRIVER_ALIASES", {"Test Driver": "Aliased Driver"})
+    @patch("app.scrapers.driver_scraper.save_profile")
+    @patch(
+        "app.scrapers.driver_scraper.DRIVER_ALIASES", {"Test Driver": "Aliased Driver"}
+    )
     def test_driver_alias_mapping(
-        self, mock_search, mock_exists, mock_makedirs, mock_get_drivers, mock_session
+        self,
+        mock_save,
+        mock_search,
+        mock_exists,
+        mock_makedirs,
+        mock_get_drivers,
+        mock_session,
     ):
         mock_get_drivers.return_value = ["Test Driver"]
         mock_exists.return_value = False

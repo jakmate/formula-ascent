@@ -16,7 +16,9 @@ def mock_services():
     """Mock all service classes"""
     with patch("app.dependencies.AppState") as mock_app_state, patch(
         "app.dependencies.ModelService"
-    ) as mock_model_service, patch("app.dependencies.DataService") as mock_data_service, patch(
+    ) as mock_model_service, patch(
+        "app.dependencies.DataService"
+    ) as mock_data_service, patch(
         "app.dependencies.CronjobService"
     ) as mock_cronjob_service:
 

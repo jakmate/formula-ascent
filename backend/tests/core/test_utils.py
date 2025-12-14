@@ -32,7 +32,9 @@ class TestGetRaceColumns:
 
     def test_no_race_columns(self):
         """Test DataFrame with no valid race columns."""
-        df = pd.DataFrame({"Driver": ["Alice", "Bob"], "Age": [25, 30], "Team": ["TeamA", "TeamB"]})
+        df = pd.DataFrame(
+            {"Driver": ["Alice", "Bob"], "Age": [25, 30], "Team": ["TeamA", "TeamB"]}
+        )
 
         result = get_race_columns(df)
         assert result == []
@@ -96,7 +98,10 @@ class TestCalculateAge:
     def test_invalid_dob_format(self):
         """Test invalid date of birth formats."""
         df = pd.DataFrame(
-            {"dob": ["invalid", "1990-13-40", "90-05-15", None], "year": [2020, 2020, 2020, 2020]}
+            {
+                "dob": ["invalid", "1990-13-40", "90-05-15", None],
+                "year": [2020, 2020, 2020, 2020],
+            }
         )
 
         result = calculate_age(df)
@@ -111,7 +116,10 @@ class TestCalculateAge:
     def test_mixed_valid_invalid_data(self):
         """Test DataFrame with mix of valid and invalid data."""
         df = pd.DataFrame(
-            {"dob": ["1990-05-15", "invalid", "1985-12-01", None], "year": [2020, 2020, 2020, 2020]}
+            {
+                "dob": ["1990-05-15", "invalid", "1985-12-01", None],
+                "year": [2020, 2020, 2020, 2020],
+            }
         )
 
         result = calculate_age(df)

@@ -81,7 +81,9 @@ class TestLoadAllEntriesData:
         mock_dir_2022.name = "2022"
         mock_get_dirs.return_value = [mock_dir_2023, mock_dir_2022]
 
-        mock_read_csv.return_value = pd.DataFrame({"Driver": ["Driver1"], "Team": ["Team1"]})
+        mock_read_csv.return_value = pd.DataFrame(
+            {"Driver": ["Driver1"], "Team": ["Team1"]}
+        )
 
         result = load_all_entries_data("F3")
         assert not result.empty
@@ -291,7 +293,9 @@ class TestLoadDriverData:
         mock_exists.return_value = True
 
         # Make json.load raise; raise when file read attempted
-        mock_file.return_value.__enter__.return_value.read.side_effect = ValueError("bad json")
+        mock_file.return_value.__enter__.return_value.read.side_effect = ValueError(
+            "bad json"
+        )
 
         # to ensure json.load actually runs and raises, patch json.load explicitly
         with patch("json.load", side_effect=ValueError("bad json")):
@@ -304,7 +308,9 @@ class TestLoadDriverData:
 
 class TestMergeEntries:
     def test_merges_entries_with_drivers(self):
-        driver_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2023], "series": ["F3"]})
+        driver_df = pd.DataFrame(
+            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]}
+        )
         entries_df = pd.DataFrame(
             {
                 "Driver": ["Driver1"],
@@ -327,7 +333,9 @@ class TestMergeEntries:
         assert result.equals(driver_df)
 
     def test_multi_team_driver_selection(self):
-        driver_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2023], "series": ["F3"]})
+        driver_df = pd.DataFrame(
+            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]}
+        )
         entries_df = pd.DataFrame(
             {
                 "Driver": ["Driver1", "Driver1"],
@@ -364,8 +372,12 @@ class TestParseRoundCount:
 
 class TestMergeTeamData:
     def test_merges_team_standings(self):
-        driver_df = pd.DataFrame({"Driver": ["Driver1"], "Team": ["Team1"], "year": [2023]})
-        team_df = pd.DataFrame({"Team": ["Team1"], "Pos": [1], "Points": [100], "year": [2023]})
+        driver_df = pd.DataFrame(
+            {"Driver": ["Driver1"], "Team": ["Team1"], "year": [2023]}
+        )
+        team_df = pd.DataFrame(
+            {"Team": ["Team1"], "Pos": [1], "Points": [100], "year": [2023]}
+        )
 
         result = merge_team_data(driver_df, team_df)
         assert "team_pos" in result.columns

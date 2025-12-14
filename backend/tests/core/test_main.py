@@ -8,7 +8,9 @@ from app.main import create_app, lifespan
 
 @pytest.fixture
 def mock_dependencies():
-    with patch("app.main.initialize_app_state", new_callable=AsyncMock) as mock_init, patch(
+    with patch(
+        "app.main.initialize_app_state", new_callable=AsyncMock
+    ) as mock_init, patch(
         "app.main.cleanup_app_state", new_callable=AsyncMock
     ) as mock_cleanup:
         yield mock_init, mock_cleanup
@@ -37,7 +39,9 @@ class TestCreateApp:
 
 class TestLifespan:
     @pytest.mark.asyncio
-    async def test_lifespan_successful_startup_shutdown(self, mock_dependencies, mock_logger):
+    async def test_lifespan_successful_startup_shutdown(
+        self, mock_dependencies, mock_logger
+    ):
         mock_init, mock_cleanup = mock_dependencies
 
         app = FastAPI()

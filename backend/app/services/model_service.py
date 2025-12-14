@@ -17,12 +17,16 @@ class ModelService:
         """Save models to disk"""
         try:
             # Create series-specific directory
-            series_dir = os.path.join(MODELS_DIR, self.series) if self.series else MODELS_DIR
+            series_dir = (
+                os.path.join(MODELS_DIR, self.series) if self.series else MODELS_DIR
+            )
             os.makedirs(series_dir, exist_ok=True)
 
             models_to_save = (
-                self.app_state.models[self.series] if self.series else self.app_state.models
-            )  # noqa: 501
+                self.app_state.models[self.series]
+                if self.series
+                else self.app_state.models
+            )
 
             for name, model in models_to_save.items():
                 if name == "PyTorch":
@@ -37,15 +41,19 @@ class ModelService:
             # Save preprocessor
             preprocessor_data = {
                 "scaler": (
-                    self.app_state.scaler[self.series] if self.series else self.app_state.scaler
-                ),  # noqa: 501
+                    self.app_state.scaler[self.series]
+                    if self.series
+                    else self.app_state.scaler
+                ),
                 "feature_cols": (
                     self.app_state.feature_cols[self.series]
                     if self.series
                     else self.app_state.feature_cols
-                ),  # noqa: 501
+                ),
             }
-            joblib.dump(preprocessor_data, os.path.join(series_dir, "preprocessor.joblib"))
+            joblib.dump(
+                preprocessor_data, os.path.join(series_dir, "preprocessor.joblib")
+            )
 
             LOGGER.info(f"Models saved successfully for {self.series or 'all series'}")
 
@@ -87,7 +95,9 @@ class ModelService:
                     elif model_file.endswith(".pt"):
                         model = RacingPredictor(len(self.app_state.feature_cols[series]))
                         state_dict = torch.load(
-                            model_path, map_location=torch.device("cpu"), weights_only=False
+                            model_path,
+                            map_location=torch.device("cpu"),
+                            weights_only=False,
                         )
                         model.load_state_dict(state_dict)
                         self.app_state.models[series][name] = model
@@ -100,7 +110,9 @@ class ModelService:
                     )
 
             if models_loaded:
-                LOGGER.info(f"Loaded models for series: {list(self.app_state.models.keys())}")
+                LOGGER.info(
+                    f"Loaded models for series: {list(self.app_state.models.keys())}"
+                )
 
             return models_loaded
 
@@ -110,9 +122,7 @@ class ModelService:
 
     async def train_models(self, trainable_df):
         """Train models on provided data"""
-        LOGGER.info(
-            f"Training classification models for {self.series} on {len(trainable_df)} records"
-        )  # noqa: 501
+        LOGGER.info(f"Training models for {self.series} on {len(trainable_df)} records")
         from app.core.predictor import train_models
 
         (models, feature_cols, scaler) = train_models(trainable_df)
@@ -126,7 +136,9 @@ class ModelService:
         self.app_state.system_status["last_trained_season"] = trainable_df["year"].max()
 
         # Update available models for this series
-        self.app_state.system_status["models_available"][self.series] = list(models.keys())
+        self.app_state.system_status["models_available"][self.series] = list(
+            models.keys()
+        )
 
         self.app_state.system_status["data_health"][self.series] = {
             "historical_records": len(trainable_df),

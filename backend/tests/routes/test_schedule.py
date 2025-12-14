@@ -30,7 +30,9 @@ class TestGetSeriesSchedule:
         expected_data = {"schedule": "test_data"}
         mock_schedule_service.get_series_schedule.return_value = expected_data
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             result = await get_series_schedule("f1", "UTC", "America/New_York")
 
             assert result == expected_data
@@ -63,7 +65,9 @@ class TestGetNextRace:
         expected_data = {"next_race": "test_data"}
         mock_schedule_service.get_next_race.return_value = expected_data
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             result = await get_next_race("f1", "UTC", "America/New_York")
 
             assert result == expected_data
@@ -78,7 +82,9 @@ class TestGetNextRace:
         expected_data = {"next_race": "test_data"}
         mock_schedule_service.get_next_race.return_value = expected_data
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             result = await get_next_race("f3", None, None)
 
             assert result == expected_data
@@ -108,7 +114,9 @@ class TestRouterIntegration:
     def test_get_series_schedule_endpoint(self, test_app, mock_schedule_service):
         mock_schedule_service.get_series_schedule.return_value = {"schedule": "data"}
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             client = TestClient(test_app)
             response = client.get("/f1?timezone=UTC")
 
@@ -118,7 +126,9 @@ class TestRouterIntegration:
     def test_get_next_race_endpoint(self, test_app, mock_schedule_service):
         mock_schedule_service.get_next_race.return_value = {"next_race": "data"}
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             client = TestClient(test_app)
             response = client.get("/f1/next?timezone=UTC")
 
@@ -128,7 +138,9 @@ class TestRouterIntegration:
     def test_error_response_format(self, test_app, mock_schedule_service):
         mock_schedule_service.get_series_schedule.side_effect = Exception("Test error")
 
-        with patch("app.routes.schedule.ScheduleService", return_value=mock_schedule_service):
+        with patch(
+            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+        ):
             client = TestClient(test_app)
             response = client.get("/f1")
 

@@ -79,7 +79,7 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
                 print(response.status_code)
 
         except Exception as e:
-            print(f"Batch query error for batch {i//batch_size + 1}: {e}")
+            print(f"Batch query error for batch {i // batch_size + 1}: {e}")
 
     return results
 
@@ -213,7 +213,12 @@ def scrape_drivers(session=None):
 
                 if not result:
                     print(f"NO RESULTS FOR {driver}")
-                    profile = {"name": driver, "dob": None, "nationality": None, "scraped": False}
+                    profile = {
+                        "name": driver,
+                        "dob": None,
+                        "nationality": None,
+                        "scraped": False,
+                    }
                 else:
                     profile = {
                         "name": driver,

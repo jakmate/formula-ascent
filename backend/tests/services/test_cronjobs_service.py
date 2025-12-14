@@ -43,7 +43,9 @@ class TestCronjobsService:
     @patch("app.services.cronjobs_service.LOGGER")
     async def test_start(self, mock_logger, cronjobs_service):
         """Test scheduler start"""
-        with patch.object(cronjobs_service.scheduler, "add_job") as mock_add_job, patch.object(
+        with patch.object(
+            cronjobs_service.scheduler, "add_job"
+        ) as mock_add_job, patch.object(
             cronjobs_service.scheduler, "start"
         ) as mock_start:
 
@@ -83,12 +85,16 @@ class TestCronjobsService:
     @pytest.mark.asyncio
     @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.CURRENT_YEAR", 2024)
-    async def test_scrape_and_train_task_with_training(self, mock_scrape, cronjobs_service):
+    async def test_scrape_and_train_task_with_training(
+        self, mock_scrape, cronjobs_service
+    ):
         """Test scrape and train task when training needed"""
         # Mock season complete and new season available
-        with patch.object(cronjobs_service, "_is_season_complete", return_value=True), patch.object(
+        with patch.object(
+            cronjobs_service, "_is_season_complete", return_value=True
+        ), patch.object(
             cronjobs_service, "_train_models_task", new_callable=AsyncMock
-        ) as mock_train:  # noqa: 501
+        ) as mock_train:
 
             await cronjobs_service.scrape_and_train_task()
 
@@ -142,7 +148,9 @@ class TestCronjobsService:
     @patch("app.services.cronjobs_service.LOGGER")
     async def test_train_models_task_exception(self, mock_logger, cronjobs_service):
         """Test model training task with exception"""
-        cronjobs_service.data_service.initialize_system.side_effect = Exception("Training failed")
+        cronjobs_service.data_service.initialize_system.side_effect = Exception(
+            "Training failed"
+        )
 
         await cronjobs_service._train_models_task()
 
@@ -197,7 +205,10 @@ class TestCronjobsService:
             await cronjobs_service.scrape_predictions()
 
         mock_scrape_wiki.assert_called_once_with(start_year=2024)
-        assert cronjobs_service.app_state.system_status["last_scrape_predictions"] == mock_now
+        assert (
+            cronjobs_service.app_state.system_status["last_scrape_predictions"]
+            == mock_now
+        )
         assert mock_ps_class.call_count == 2
         assert mock_ps.update_predictions.call_count == 2
         cronjobs_service.app_state.save_state.assert_called_once()
@@ -213,7 +224,9 @@ class TestCronjobsService:
 
         await cronjobs_service.scrape_predictions()
 
-        mock_logger.error.assert_called_with("Predictions scrape task failed: Scrape failed")
+        mock_logger.error.assert_called_with(
+            "Predictions scrape task failed: Scrape failed"
+        )
         cronjobs_service.app_state.save_state.assert_called_once()
 
     @pytest.mark.asyncio
@@ -229,7 +242,9 @@ class TestCronjobsService:
         await cronjobs_service.scrape_schedule()
 
         mock_scrape_schedules.assert_called_once()
-        assert cronjobs_service.app_state.system_status["last_scrape_schedule"] == mock_now
+        assert (
+            cronjobs_service.app_state.system_status["last_scrape_schedule"] == mock_now
+        )
         cronjobs_service.app_state.save_state.assert_called_once()
 
     @pytest.mark.asyncio
@@ -243,5 +258,7 @@ class TestCronjobsService:
 
         await cronjobs_service.scrape_schedule()
 
-        mock_logger.error.assert_called_with("Schedule scrape task failed: Schedule scrape failed")
+        mock_logger.error.assert_called_with(
+            "Schedule scrape task failed: Schedule scrape failed"
+        )
         cronjobs_service.app_state.save_state.assert_called_once()

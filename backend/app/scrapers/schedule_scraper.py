@@ -13,7 +13,7 @@ from app.scrapers.scraping_utils import create_session
 
 F1_MAIN_STRAINER = SoupStrainer(
     "a", class_="group", href=re.compile(r"/en/racing/\d{4}/")
-)  # noqa: 501
+)
 F1_SESSION_STRAINER = SoupStrainer("ul", class_=re.compile(r"grid"))
 FIA_MAIN_STRAINER = SoupStrainer(
     ["div"], class_=re.compile(r"col-12.*col-sm-6.*col-lg-4.*col-xl-3")
@@ -224,22 +224,30 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                 name_tag = card.select_one(".typography-module_display-xl-bold__Gyl5W")
                 location = name_tag.text.strip() if name_tag else "Unknown"
 
-                full_name_tag = card.select_one(".typography-module_body-xs-semibold__Fyfwn")
+                full_name_tag = card.select_one(
+                    ".typography-module_body-xs-semibold__Fyfwn"
+                )
                 race_name = full_name_tag.text.strip() if full_name_tag else "Unknown"
 
                 # Clean race name
                 clean_name = re.sub(r"FORMULA 1 |GRAND PRIX|\d{4}", "", race_name).strip()
 
                 # Extract date
-                date_span = card.select_one(".typography-module_technical-xs-regular__-W0Gs")
+                date_span = card.select_one(
+                    ".typography-module_technical-xs-regular__-W0Gs"
+                )
                 if not date_span:
-                    date_span = card.select_one(".typography-module_technical-m-bold__JDsxP")
+                    date_span = card.select_one(
+                        ".typography-module_technical-m-bold__JDsxP"
+                    )
                 date_str = date_span.text.strip() if date_span else ""
 
                 # Parse date range
                 if "-" in date_str:
                     last_date = date_str.split("-")[-1].strip()
-                    date_obj = datetime.strptime(f"{last_date} {CURRENT_YEAR}", "%d %b %Y")
+                    date_obj = datetime.strptime(
+                        f"{last_date} {CURRENT_YEAR}", "%d %b %Y"
+                    )
                 else:
                     date_obj = datetime.strptime(f"{date_str} {CURRENT_YEAR}", "%d %b %Y")
 
@@ -253,7 +261,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                         race_response = session.get(full_url, timeout=10)
                         race_soup = BeautifulSoup(
                             race_response.content, "lxml", parse_only=F1_SESSION_STRAINER
-                        )  # noqa: 501
+                        )
 
                         session_elements = race_soup.select('ul > li[role="listitem"]')
                         if not session_elements:
@@ -265,35 +273,39 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                             if date_container:
                                 day = date_container.select_one(
                                     ".typography-module_technical-l-bold__AKrZb"
-                                ).text.strip()  # noqa: 501
+                                ).text.strip()
                                 month = date_container.select_one(
                                     ".typography-module_technical-s-regular__6LvKq"
-                                ).text.strip()  # noqa: 501
+                                ).text.strip()
                                 session_date = datetime.strptime(
                                     f"{day} {month} {CURRENT_YEAR}", "%d %b %Y"
-                                )  # noqa: 501
+                                )
                             else:
-                                # Fallback to the race's main date if session date isn't found
+                                # Fallback to race's main date if not session date
                                 session_date = date_obj
 
                             # Extract session name
                             session_name_el = session_el.select_one(
                                 ".typography-module_display-m-bold__qgZFB"
-                            )  # noqa: 501
+                            )
                             session_name = (
-                                session_name_el.text.strip().lower() if session_name_el else ""
-                            )  # noqa: 501
+                                session_name_el.text.strip().lower()
+                                if session_name_el
+                                else ""
+                            )
 
                             # Extract time
                             time_span = session_el.select_one(
-                                ".typography-module_technical-s-regular__6LvKq.text-text-5"
-                            )  # noqa: 501
+                                ".typography-module_technical-s-regular__6LvKq.text-text-5"  # noqa: 501
+                            )
                             time_str = ""
                             if time_span:
                                 # Get the raw text and clean it
                                 time_text = time_span.get_text(strip=True)
                                 # Remove any <time> tags if they are still present as text
-                                time_str = re.sub(r"<time[^>]*>|</time>", "", time_text).strip()
+                                time_str = re.sub(
+                                    r"<time[^>]*>|</time>", "", time_text
+                                ).strip()
 
                             session_info = None
                             if time_str and "-" in time_str:
@@ -302,11 +314,17 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 try:
                                     start_time = datetime.strptime(
                                         start_str.strip(), "%H:%M"
-                                    ).time()  # noqa: 501
-                                    end_time = datetime.strptime(end_str.strip(), "%H:%M").time()
+                                    ).time()
+                                    end_time = datetime.strptime(
+                                        end_str.strip(), "%H:%M"
+                                    ).time()
 
-                                    start_dt = datetime.combine(session_date.date(), start_time)
-                                    end_dt = datetime.combine(session_date.date(), end_time)
+                                    start_dt = datetime.combine(
+                                        session_date.date(), start_time
+                                    )
+                                    end_dt = datetime.combine(
+                                        session_date.date(), end_time
+                                    )
 
                                     session_info = {
                                         "start": start_dt.isoformat(),
@@ -317,12 +335,16 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                     session_info = {
                                         "start": session_date.isoformat(),
                                         "time": "TBC",
-                                    }  # noqa: 501
+                                    }
                             elif time_str:
                                 # Handle single time (e.g., Race start time "12:00")
                                 try:
-                                    start_time = datetime.strptime(time_str.strip(), "%H:%M").time()
-                                    start_dt = datetime.combine(session_date.date(), start_time)
+                                    start_time = datetime.strptime(
+                                        time_str.strip(), "%H:%M"
+                                    ).time()
+                                    start_dt = datetime.combine(
+                                        session_date.date(), start_time
+                                    )
 
                                     # Estimate end time based on session type
                                     if "race" in session_name:
@@ -338,10 +360,13 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                     session_info = {
                                         "start": session_date.isoformat(),
                                         "time": "TBC",
-                                    }  # noqa: 501
+                                    }
                             else:
                                 # No time found
-                                session_info = {"start": session_date.isoformat(), "time": "TBC"}
+                                session_info = {
+                                    "start": session_date.isoformat(),
+                                    "time": "TBC",
+                                }
 
                             # Map session name to key
                             session_key = None
@@ -354,13 +379,18 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 sessions[session_key] = session_info
 
                     except Exception as e:
-                        print(f"Error scraping F1 race details for round {round_num}: {e}")
+                        print(
+                            f"Error scraping F1 race details for round {round_num}: {e}"
+                        )
 
                 # Add fallback sessions if missing
                 if "race" not in sessions:
                     sessions["race"] = {"start": date_obj.isoformat(), "time": "TBC"}
                 if "qualifying" not in sessions and "sprint_qualifying" not in sessions:
-                    sessions["qualifying"] = {"start": date_obj.isoformat(), "time": "TBC"}
+                    sessions["qualifying"] = {
+                        "start": date_obj.isoformat(),
+                        "time": "TBC",
+                    }
 
                 races.append(
                     {
@@ -442,8 +472,10 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                         detail_response = session.get(detail_url, timeout=10)
                         detail_soup = BeautifulSoup(
-                            detail_response.content, "lxml", parse_only=FIA_SESSION_STRAINER
-                        )  # noqa: 501
+                            detail_response.content,
+                            "lxml",
+                            parse_only=FIA_SESSION_STRAINER,
+                        )
 
                         # Look for session schedule
                         session_pins = detail_soup.find_all("div", class_="pin")
@@ -519,8 +551,12 @@ def scrape_schedules(session=None):
 
     series_scrapers = {
         "f1": lambda existing, session: scrape_f1_schedule(session, existing),
-        "f2": lambda existing, session: scrape_fia_formula_schedule(session, "f2", existing),
-        "f3": lambda existing, session: scrape_fia_formula_schedule(session, "f3", existing),
+        "f2": lambda existing, session: scrape_fia_formula_schedule(
+            session, "f2", existing
+        ),
+        "f3": lambda existing, session: scrape_fia_formula_schedule(
+            session, "f3", existing
+        ),
     }
 
     for name, scraper in series_scrapers.items():

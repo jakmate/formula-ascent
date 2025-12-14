@@ -18,7 +18,11 @@ class CronjobService:
     async def start(self):
         """Start scheduler"""
         self.scheduler.add_job(
-            self.scrape_and_train_task, "cron", day_of_week="mon", hour=3, id="weekly_scrape_train"
+            self.scrape_and_train_task,
+            "cron",
+            day_of_week="mon",
+            hour=3,
+            id="weekly_scrape_train",
         )
         self.scheduler.start()
         LOGGER.info("Scheduler started")
@@ -44,7 +48,9 @@ class CronjobService:
                 LOGGER.info(f"New season {CURRENT_YEAR} complete. Starting training...")
                 await self._train_models_task()
             else:
-                LOGGER.info("No new complete season available. Updating predictions only.")
+                LOGGER.info(
+                    "No new complete season available. Updating predictions only."
+                )
                 from app.services.prediction_service import PredictionService
 
                 for series in ["f3_to_f2", "f2_to_f1"]:
@@ -83,7 +89,9 @@ class CronjobService:
             from app.services.prediction_service import PredictionService
 
             for series in ["f3_to_f2", "f2_to_f1"]:
-                prediction_service = PredictionService(self.app_state, series, self.data_service)
+                prediction_service = PredictionService(
+                    self.app_state, series, self.data_service
+                )
                 await prediction_service.update_predictions()
         except Exception as e:
             LOGGER.error(f"Predictions scrape task failed: {e}")

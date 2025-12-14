@@ -45,7 +45,9 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     @patch("app.core.predictor.CURRENT_YEAR", 2025)
-    def test_participation_lookup_current_year_threshold(self, mock_get_race_cols, mock_calc_stats):
+    def test_participation_lookup_current_year_threshold(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test threshold is 0 for current year"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2024]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2025]})
@@ -59,7 +61,9 @@ class TestCreateTargetVariable:
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
-    def test_participation_lookup_past_year_threshold(self, mock_get_race_cols, mock_calc_stats):
+    def test_participation_lookup_past_year_threshold(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test threshold is 40% of races for past years"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
@@ -123,10 +127,14 @@ class TestCreateTargetVariable:
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
-    def test_future_beyond_max_parent_year_returns_nan(self, mock_get_race_cols, mock_calc_stats):
+    def test_future_beyond_max_parent_year_returns_nan(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test returns NaN when future years cannot be observed"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2023]})
-        parent_df = pd.DataFrame({"Driver": ["Driver2"], "year": [2023]})  # max_year = 2023
+        parent_df = pd.DataFrame(
+            {"Driver": ["Driver2"], "year": [2023]}
+        )  # max_year = 2023
 
         mock_get_race_cols.return_value = ["R1"]
         mock_calc_stats.return_value = []
@@ -138,7 +146,9 @@ class TestCreateTargetVariable:
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
-    def test_no_promotion_when_not_in_parent_series(self, mock_get_race_cols, mock_calc_stats):
+    def test_no_promotion_when_not_in_parent_series(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test returns 0 when driver doesn't appear in parent series"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver2", "Driver2"], "year": [2021, 2022]})
@@ -198,7 +208,9 @@ class TestCreateTargetVariable:
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
-    def test_multiple_drivers_different_outcomes(self, mock_get_race_cols, mock_calc_stats):
+    def test_multiple_drivers_different_outcomes(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test handles multiple drivers with different promotion outcomes"""
         feeder_df = pd.DataFrame(
             {"Driver": ["Driver1", "Driver2", "Driver3"], "year": [2020, 2020, 2020]}
@@ -221,10 +233,12 @@ class TestCreateTargetVariable:
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
-    def test_f1_series_breaks_when_year_exceeds_max(self, mock_get_race_cols, mock_calc_stats):
+    def test_f1_series_breaks_when_year_exceeds_max(
+        self, mock_get_race_cols, mock_calc_stats
+    ):
         """Test F1 series breaks loop when checking year exceeds max_parent_year"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
-        # max_parent_year = 2021, so checking offset=2 (2022) and offset=3 (2023) should break
+        # max_parent_year = 2021, so checking offset=2 and offset=3 should break
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
         mock_get_race_cols.return_value = ["R1", "R2"]

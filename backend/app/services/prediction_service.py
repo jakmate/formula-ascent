@@ -143,8 +143,9 @@ class PredictionService:
                 current_df = await self.data_service.load_current_data(self.series)
             else:
                 current_df = features_df[
-                    features_df["year"] >= self.app_state.system_status.get("current_year", 2024)
-                ].copy()  # noqa: 501
+                    features_df["year"]
+                    >= self.app_state.system_status.get("current_year", 2024)
+                ].copy()
 
             if current_df.empty:
                 LOGGER.warning(f"No current data for {self.series} predictions")
@@ -164,7 +165,9 @@ class PredictionService:
                         }
                     )
                 except Exception as e:
-                    LOGGER.error(f"Prediction failed for {model_name} in {self.series}: {e}")
+                    LOGGER.error(
+                        f"Prediction failed for {model_name} in {self.series}: {e}"
+                    )
 
             # Store predictions with series key
             if not hasattr(self.app_state, "current_predictions"):

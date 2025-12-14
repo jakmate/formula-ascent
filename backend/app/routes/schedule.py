@@ -9,7 +9,9 @@ router = APIRouter()
 
 @router.get("/{series}")
 async def get_series_schedule(
-    series: str, timezone: Optional[str] = Query(None), x_timezone: Optional[str] = Header(None)
+    series: str,
+    timezone: Optional[str] = Query(None),
+    x_timezone: Optional[str] = Header(None),
 ):
     """Get schedule for a specific racing series with timezone conversion"""
     try:
@@ -23,7 +25,9 @@ async def get_series_schedule(
 
 @router.get("/{series}/next")
 async def get_next_race(
-    series: str, timezone: Optional[str] = Query(None), x_timezone: Optional[str] = Header(None)
+    series: str,
+    timezone: Optional[str] = Query(None),
+    x_timezone: Optional[str] = Header(None),
 ):
     """Get the next upcoming race for a series with timezone conversion"""
     try:

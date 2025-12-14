@@ -99,7 +99,9 @@ def clean_headers(headers):
     """Apply header mapping and return unwanted column indices."""
     mapped_headers = [HEADER_MAPPING.get(h, h) for h in headers]
     unwanted_indices = [
-        idx for idx, header in enumerate(mapped_headers) if header.strip() in UNWANTED_COLUMNS
+        idx
+        for idx, header in enumerate(mapped_headers)
+        if header.strip() in UNWANTED_COLUMNS
     ]
 
     # Remove unwanted columns
@@ -268,7 +270,9 @@ def process_entries(soup, year, series):
             cells = row.find_all(["td", "th"])
 
             # Process rowspan columns
-            row_data, cell_index = process_rowspan_columns(trackers, cells, rowspan_columns)
+            row_data, cell_index = process_rowspan_columns(
+                trackers, cells, rowspan_columns
+            )
 
             remaining_cells = cells[cell_index:]
 
@@ -276,7 +280,9 @@ def process_entries(soup, year, series):
                 # F1 2014+ multi-driver structure
                 processed_cells = process_f1_modern_drivers(remaining_cells)
                 row_data.extend(processed_cells)
-                write_f1_modern_rows(writer, row_data, processed_cells, sorted_unwanted_indices)
+                write_f1_modern_rows(
+                    writer, row_data, processed_cells, sorted_unwanted_indices
+                )
             else:
                 # Standard structure
                 final_row = process_standard_row(

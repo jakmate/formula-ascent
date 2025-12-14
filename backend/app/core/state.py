@@ -72,7 +72,9 @@ class AppState:
                 self.system_status["last_trained_season"] = state["last_trained_season"]
                 loaded_models_avail = state.get("models_available", {})
                 if not isinstance(loaded_models_avail, dict):
-                    LOGGER.warning("models_available is not a dict. Resetting to default.")
+                    LOGGER.warning(
+                        "models_available is not a dict. Resetting to default."
+                    )
                     loaded_models_avail = {"f3_to_f2": [], "f2_to_f1": []}
                 else:
                     # Ensure both keys exist
