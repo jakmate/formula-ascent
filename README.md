@@ -31,8 +31,11 @@ The application is containerized and deployed on:
 
 ```bash
 cd backend
-pip install -r requirements.txt
-python main.py
+# no gpu
+uv sync --extra cpu
+# with gpu
+uv sync --extra cu128
+fastapi run
 ```
 
 ### Frontend Setup
@@ -50,7 +53,7 @@ npm run dev
 ```bash
 # Backend
 cd backend
-pytest --cov=. --cov-report=html
+pytest --cov=. --cov-report=html --cov-report=term-missing -n auto
 
 # Frontend
 cd frontend
@@ -61,8 +64,8 @@ npm run test:coverage
 
 ```bash
 # Backend linting
-flake8 --max-line-length=100 .
-black --line-length 100 .
+flake8 .
+black --line-length 90 .
 
 # Frontend linting
 npx eslint . --ext .js,.jsx,.ts,.tsx
