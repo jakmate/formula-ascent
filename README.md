@@ -24,7 +24,7 @@ The application is containerized and deployed on:
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.12+
 - Node.js 20+
 
 ### Backend Setup

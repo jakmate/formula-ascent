@@ -296,9 +296,7 @@ class TestTrainModels:
             == expected_health
         )
 
-        mock_logger.info.assert_called_with(
-            "Training classification models for f3_to_f2 on 100 records"
-        )
+        mock_logger.info.assert_called_with("Training models for f3_to_f2 on 100 records")
 
 
 class TestEdgeCases:

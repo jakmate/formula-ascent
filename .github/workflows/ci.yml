@@ -5,42 +5,58 @@ jobs:
   backend-lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
     - name: Install dependencies
+      working-directory: backend
       run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install flake8 black
+        uv sync --only-group lint
+
     - name: Lint with flake8
+      working-directory: backend
       run: |
-        cd backend
-        flake8 .
+        uv run --no-sync flake8 .
+
     - name: Check formatting with Black
+      working-directory: backend
       run: |
-        cd backend
-        black --check --line-length 90 .
+        uv run --no-sync black --check --line-length 90 .
 
   backend-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
     - name: Install dependencies
+      working-directory: backend
       run: |
-        cd backend
-        pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        uv sync --group test
+
     - name: Run tests with coverage
+      working-directory: backend
       run: |
-        cd backend
-        pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
+        uv run pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
@@ -51,40 +67,48 @@ jobs:
   frontend-lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+
     - name: Install dependencies
+      working-directory: frontend
       run: |
-        cd frontend
         npm ci
+
     - name: Run ESLint
+      working-directory: frontend
       run: |
-        cd frontend
         npx eslint .
+
     - name: Check Prettier formatting
+      working-directory: frontend
       run: |
-        cd frontend
         npx prettier --check "src/**/*.{ts,tsx}"
 
   frontend-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+
     - name: Install dependencies
+      working-directory: frontend
       run: |
-        cd frontend
         npm ci
+
     - name: Run tests with coverage
+      working-directory: frontend
       run: |
-        cd frontend
         npm run test:coverage
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
