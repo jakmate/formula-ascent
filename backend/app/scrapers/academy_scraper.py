@@ -125,22 +125,24 @@ def extract_table_data(table, table_type):
     header_row = all_rows[0]
     headers = []
     for th in header_row.find_all("th"):
-        rowspan = int(th.get("rowspan", 1))
         colspan = int(th.get("colspan", 1))
-
-        if rowspan == 1 and colspan == 1:
-            headers.append(remove_superscripts(th, False))
+        if colspan > 1:
+            headers.extend([None] * colspan)
+        else:
+            headers.append(remove_superscripts(th))
 
     # Check if there's a second header row
-    if len(all_rows) > 1:
-        second_row = all_rows[1]
-        if second_row.find_all("th") and not second_row.find_all("td"):
-            # Two-row header, merge them
-            for th in second_row.find_all("th"):
-                headers.append(remove_superscripts(th, False))
-            data_start = 2
-        else:
-            data_start = 1
+    if table_type == "f1_graduates":
+        second_row = all_rows[1].find_all("th")
+        h2_iter = iter(second_row)
+        for i, header in enumerate(headers):
+            if header is None:
+                try:
+                    th = next(h2_iter)
+                    headers[i] = remove_superscripts(th)
+                except StopIteration:
+                    break
+        data_start = 2
     else:
         data_start = 1
 
@@ -156,7 +158,7 @@ def extract_table_data(table, table_type):
             data_rows.append(row_data)
 
     # Expand years and filter to only driver and year columns
-    headers, data_rows = expand_years_in_data(headers, data_rows, table_type)
+    headers, data_rows = expand_years_in_data(headers, data_rows)
 
     return {"headers": headers, "data": data_rows}
 
@@ -203,6 +205,15 @@ def scrape_academy_page(academy_url, academy_name, session):
                     table_data = extract_table_data(table, key)
                     if table_data:
                         results[key].append(table_data)
+
+        if not any([results["current_drivers"], results["former_drivers"], results["f1_graduates"]]):
+            generic_heading = soup.find("h2", {"id": "Driver_development_program"})
+            if generic_heading:
+                table = generic_heading.find_next("table", {"class": "wikitable"})
+                if table:
+                    table_data = extract_table_data(table, "current_drivers")
+                    if table_data:
+                        results["current_drivers"].append(table_data)
 
         return results
 

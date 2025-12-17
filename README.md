@@ -9,8 +9,6 @@ A machine learning application that predicts drivers' likelihood of advancing to
 ## To Do
 
 ### Academies scraper
-- Fix double header for graduate tables
-- Haas table (no former, current, graudate header)
 - Integrate into the workflow
 
 ## Deployment
