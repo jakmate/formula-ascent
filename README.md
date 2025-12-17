@@ -6,6 +6,13 @@
 
 A machine learning application that predicts drivers' likelihood of advancing to parent series using historical performance data.
 
+## To Do
+
+### Academies scraper
+- Fix double header for graduate tables
+- Haas table (no former, current, graudate header)
+- Integrate into the workflow
+
 ## Deployment
 
 The application is containerized and deployed on:

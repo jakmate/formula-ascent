@@ -15,6 +15,7 @@ STATE_FILE = BASE_DIR / "system_state.json"
 DATA_DIR = BASE_DIR / "data"
 SCHEDULE_DIR = DATA_DIR / "schedules" / str(CURRENT_YEAR)
 PROFILES_DIR = DATA_DIR / "driver_profiles"
+ACADEMIES_DIR = DATA_DIR / "academies"
 
 PORT = int(os.environ.get("PORT", 8000))
 
