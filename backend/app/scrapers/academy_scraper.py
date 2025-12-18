@@ -8,7 +8,6 @@ from app.scrapers.scraping_utils import create_session, remove_superscripts, saf
 def extract_team_links(soup):
     """Extract team links from the Formula One driver development programs table"""
     f1_heading = soup.find("h3", {"id": "Formula_One"})
-
     if not f1_heading:
         print("No Formula One section found")
         return []
@@ -19,22 +18,22 @@ def extract_team_links(soup):
         return []
 
     team_links = []
-    for row in table.find_all("tr")[1:]:
+    rows = table.find_all("tr")
+    for row in rows[1:]:
         cells = row.find_all("td")
         if len(cells) < 2:
             continue
 
-        program_cell = cells[0]
-        link = program_cell.find("a")
+        link = cells[0].find("a")
+        if not link:
+            continue
 
-        if link and link.get("href"):
-            href = link.get("href")
-            program_name = remove_superscripts(link, False)
-
-            if href.startswith("/wiki/"):
-                team_links.append(
-                    {"name": program_name, "url": "https://en.wikipedia.org" + href}
-                )
+        href = link.get("href")
+        if href and href.startswith("/wiki/"):
+            team_links.append({
+                "name": remove_superscripts(link, False),
+                "url": "https://en.wikipedia.org" + href
+            })
 
     return team_links
 
@@ -42,16 +41,11 @@ def extract_team_links(soup):
 def parse_year_range(year_str):
     """Parse year range string and return list of years"""
     year_str = year_str.strip()
-
-    # Normalize dash types
-    year_str = year_str.replace("—", "–")
-
     years = []
 
-    # Split on commas (multiple ranges)
-    segments = [seg.strip() for seg in year_str.split(",")]
-
-    for segment in segments:
+    # Split on commas
+    for segment in year_str.split(","):
+        segment = segment.strip()
         if "–" in segment:
             start, end = segment.split("–", 1)
             start = start.strip()
@@ -74,13 +68,11 @@ def expand_years_in_data(headers, data_rows):
     if not data_rows or not headers:
         return ["Driver", "Year"], []
 
-    # Find driver column (typically first column) and year column
-    driver_col_idx = 0
-
     # Find year column index
     year_col_idx = None
+    year_keywords = {"years", "year", "began", "since"}
     for i, h in enumerate(headers):
-        if h.lower() in ["years", "year", "began", "since"]:
+        if h.lower() in year_keywords:
             year_col_idx = i
             break
 
@@ -88,28 +80,24 @@ def expand_years_in_data(headers, data_rows):
     if year_col_idx is None:
         return ["Driver", "Year"], []
 
-    # Create filtered headers
-    filtered_headers = ["Driver", "Year"]
-
     # Expand rows based on year ranges
+    driver_col_idx = 0
     expanded_rows = []
     for row in data_rows:
         if driver_col_idx >= len(row) or year_col_idx >= len(row):
             continue
 
         driver_name = row[driver_col_idx].strip()
-        year_value = row[year_col_idx].strip()
-
-        # Skip empty driver names
         if not driver_name:
             continue
 
+        year_value = row[year_col_idx].strip()
         years = parse_year_range(year_value)
 
         for year in years:
             expanded_rows.append([driver_name, year])
 
-    return filtered_headers, expanded_rows
+    return ["Driver", "Year"], expanded_rows
 
 
 def extract_table_data(table, table_type):
@@ -138,8 +126,7 @@ def extract_table_data(table, table_type):
         for i, header in enumerate(headers):
             if header is None:
                 try:
-                    th = next(h2_iter)
-                    headers[i] = remove_superscripts(th)
+                    headers[i] = remove_superscripts(next(h2_iter))
                 except StopIteration:
                     break
         data_start = 2
@@ -150,12 +137,8 @@ def extract_table_data(table, table_type):
     data_rows = []
     for row in all_rows[data_start:]:
         cells = row.find_all(["td", "th"])
-        if not cells:
-            continue
-
-        row_data = [remove_superscripts(cell, False) for cell in cells]
-        if row_data:
-            data_rows.append(row_data)
+        if cells:
+            data_rows.append([remove_superscripts(cell, False) for cell in cells])
 
     # Expand years and filter to only driver and year columns
     headers, data_rows = expand_years_in_data(headers, data_rows)
@@ -173,6 +156,9 @@ def scrape_academy_page(academy_url, academy_name, session):
 
         parse_only = SoupStrainer(["h2", "h3", "table"])
         soup = BeautifulSoup(response.text, "lxml", parse_only=parse_only)
+
+        response.close()
+        del response
 
         results = {
             "name": academy_name,
@@ -193,20 +179,54 @@ def scrape_academy_page(academy_url, academy_name, session):
             ("Driver_development_programme", None),  # Skip this one
         ]
 
+        team_keywords = {"alpine", "renault", "lotus"}
+
         for heading_id, key in headings_to_check:
-            heading = soup.find("h3", {"id": heading_id}) or soup.find(
-                "h2", {"id": heading_id}
-            )
+            heading = soup.find("h3", {"id": heading_id}) or soup.find("h2", {"id": heading_id})
 
             if heading and key:
-                # Find next table
-                table = heading.find_next("table", {"class": "wikitable"})
-                if table:
-                    table_data = extract_table_data(table, key)
-                    if table_data:
-                        results[key].append(table_data)
+                # Special handling for Former_drivers with team subheadings
+                if key == "former_drivers":
+                    # Collect team-specific h3 tables in single pass
+                    team_tables = []
+                    current = heading.find_next_sibling()
 
-        if not any([results["current_drivers"], results["former_drivers"], results["f1_graduates"]]):
+                    # Look ahead to see if there are team-specific h3 headings
+                    while current and current.name != "h2":
+                        if current.name == "h3":
+                            heading_text = current.get_text().lower()
+                            if any(kw in heading_text for kw in team_keywords):
+                                table = current.find_next_sibling("table", {"class": "wikitable"})
+                                if table:
+                                    table_data = extract_table_data(table, key)
+                                    if table_data:
+                                        team_tables.append(table_data)
+                        current = current.find_next_sibling()
+
+                    if team_tables:
+                        results[key].extend(team_tables)
+                    else:
+                        # Standard behavior
+                        table = heading.find_next("table", {"class": "wikitable"})
+                        if table:
+                            table_data = extract_table_data(table, key)
+                            if table_data:
+                                results[key].append(table_data)
+                else:
+                    # Standard behavior - just get the next table
+                    table = heading.find_next("table", {"class": "wikitable"})
+                    if table:
+                        table_data = extract_table_data(table, key)
+                        if table_data:
+                            results[key].append(table_data)
+
+        if not any(
+            [
+                results["current_drivers"],
+                results["former_drivers"],
+                results["f1_graduates"],
+            ]
+        ):
             generic_heading = soup.find("h2", {"id": "Driver_development_program"})
             if generic_heading:
                 table = generic_heading.find_next("table", {"class": "wikitable"})
@@ -214,6 +234,8 @@ def scrape_academy_page(academy_url, academy_name, session):
                     table_data = extract_table_data(table, "current_drivers")
                     if table_data:
                         results["current_drivers"].append(table_data)
+
+        soup.decompose()
 
         return results
 
@@ -231,14 +253,13 @@ def save_academy_data(academy_data, academies_dir):
 
     # Clean name for filename
     safe_name = academy_data["name"].replace(" ", "_").replace("/", "_")
-    filename = f"{safe_name}_drivers.csv"
-    filepath = os.path.join(academies_dir, filename)
+    filepath = os.path.join(academies_dir, f"{safe_name}_drivers.csv")
 
     with open(filepath, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
+        writer.writerow(["Driver", "Year"])
         # Save current drivers
         for table_data in academy_data["current_drivers"]:
-            writer.writerow(table_data["headers"])
             writer.writerows(table_data["data"])
 
         # Save former drivers
@@ -250,13 +271,12 @@ def save_academy_data(academy_data, academies_dir):
             writer.writerows(table_data["data"])
 
 
-def scrape_ddp(academies_dir=None, session=None):
+def scrape_academies(session=None):
     """Scrape driver development program data"""
     if session is None:
         session = create_session()
 
-    if academies_dir is None:
-        academies_dir = os.path.join(DATA_DIR, "academies")
+    academies_dir = os.path.join(DATA_DIR, "academies")
 
     url = "https://en.wikipedia.org/wiki/Driver_development_program"
 
@@ -269,15 +289,18 @@ def scrape_ddp(academies_dir=None, session=None):
     soup = BeautifulSoup(response.text, "lxml", parse_only=parse_only)
 
     team_links = extract_team_links(soup)
-
     if not team_links:
         print("No team links found")
         return None
-
+    
     print(f"Found {len(team_links)} driver development programs")
 
+    response.close()
+    del response
+    soup.decompose()
+
     # Skip Marussia
-    skip_programs = ["Marussia F1 Team Young Driver Program"]
+    skip_programs = {"Marussia F1 Team Young Driver Program"}
 
     for team in team_links:
         if team["name"] in skip_programs:
@@ -289,8 +312,7 @@ def scrape_ddp(academies_dir=None, session=None):
 
         if academy_data:
             save_academy_data(academy_data, academies_dir)
-            print(f"  Saved data for {team['name']}")
 
 
-if __name__ == "__main__":
-    scrape_ddp()
+if __name__ == "__main__":  # pragma: no cover
+    scrape_academies()
