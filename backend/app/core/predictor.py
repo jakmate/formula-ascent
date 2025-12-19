@@ -311,6 +311,7 @@ def engineer_features(df):
             "teammate_h2h_rate": df.get("teammate_h2h_rate", 0.5),
             "avg_quali_pos": df.get("avg_quali_pos", 0),
             "std_quali_pos": df.get("std_quali_pos", 0),
+            "academy": df.get("academy", None),
         }
     )
 
@@ -477,8 +478,22 @@ def engineer_features(df):
             .map(nationality_stats["smoothed_rate"])
             .fillna(global_mean)
         )
+
+        academy_stats = (
+            df.groupby("academy").agg({"promoted": ["sum", "count"]}).droplevel(0, axis=1)
+        )
+        academy_stats["smoothed_rate"] = (academy_stats["sum"] + alpha * global_mean) / (
+            academy_stats["count"] + alpha
+        )
+        features_df["academy_encoded"] = (
+            features_df["academy"].map(academy_stats["smoothed_rate"]).fillna(global_mean)
+        )
+
+        features_df["has_academy"] = features_df["academy"].notna().astype(int)
     else:
         features_df["nationality_encoded"] = 0.2
+        features_df["academy_encoded"] = 0.2
+        features_df["has_academy"] = 0
 
     return features_df
 
@@ -618,7 +633,6 @@ def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_
     pytorch_model.feature_cols = feature_cols
     pytorch_model.device = device
 
-    print("PyTorch model training completed successfully")
     return pytorch_model, scaler, test_probas
 
 
@@ -827,6 +841,8 @@ def predict_drivers(models, df, feature_cols, scaler=None):
                     "Driver": current_df["Driver"],
                     "Nat.": current_df["nationality"],
                     "Nat_encoded": current_df["nationality_encoded"],
+                    "Academy": current_df["academy"],
+                    "Academy_encoded": current_df["academy_encoded"],
                     "Pos": current_df["pos"],
                     "Points": current_df["points"],
                     "Wins": current_df["wins"],

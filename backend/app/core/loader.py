@@ -213,13 +213,79 @@ def merge_team_data(driver_df, team_df):
     return driver_df.merge(team_df, on=["Team", "year"], how="left")
 
 
+def load_academies_data():
+    """Load all driver academy/development program data."""
+    academies_dir = Path(DATA_DIR) / "academies"
+
+    if not academies_dir.exists():
+        LOGGER.warning(f"Academies directory not found: {academies_dir}")
+        return pd.DataFrame()
+
+    all_academy_data = []
+
+    for csv_file in academies_dir.glob("*_drivers.csv"):
+        try:
+            df = pd.read_csv(csv_file)
+
+            # Extract academy name from filename
+            academy_name = csv_file.stem.replace("_drivers", "").replace("_", " ")
+            df["academy"] = academy_name
+
+            all_academy_data.append(df)
+
+        except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+            LOGGER.warning(f"Error loading academy file {csv_file}: {e}")
+            continue
+
+    if not all_academy_data:
+        return pd.DataFrame()
+
+    academy_df = pd.concat(all_academy_data, ignore_index=True)
+
+    # Convert Year to int, handling any non-numeric values
+    academy_df["Year"] = pd.to_numeric(academy_df["Year"], errors="coerce")
+    academy_df = academy_df.dropna(subset=["Year"])
+    academy_df["Year"] = academy_df["Year"].astype(int)
+
+    return academy_df
+
+
+def merge_academy_data(driver_df, academy_df):
+    """Merge academy data with driver standings."""
+    if academy_df.empty:
+        driver_df["academy"] = None
+        return driver_df
+
+    # Rename Year column to match driver_df's 'year' column
+    academy_merge = academy_df.rename(columns={"Year": "year"})
+
+    # Concatenate multiple academies for same driver-year
+    academy_merge = (
+        academy_merge.groupby(["Driver", "year"])["academy"]
+        .apply(lambda x: " | ".join(x.dropna().unique()))
+        .reset_index()
+    )
+
+    # Replace empty strings with None
+    academy_merge["academy"] = academy_merge["academy"].replace("", None)
+
+    # Left join on Driver and year
+    merged_df = driver_df.merge(
+        academy_merge[["Driver", "year", "academy"]], on=["Driver", "year"], how="left"
+    )
+
+    return merged_df
+
+
 def load_data(series):
     driver_df = load_standings_data(series, "drivers")
     team_df = load_standings_data(series, "teams")
     entries_df = load_all_entries_data(series)
+    academy_df = load_academies_data()
     df = merge_entries(driver_df, entries_df)
     df = merge_team_data(df, team_df)
     df = load_driver_data(df)
+    df = merge_academy_data(df, academy_df)
     return df
 
 

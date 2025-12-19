@@ -30,10 +30,12 @@ def extract_team_links(soup):
 
         href = link.get("href")
         if href and href.startswith("/wiki/"):
-            team_links.append({
-                "name": remove_superscripts(link, False),
-                "url": "https://en.wikipedia.org" + href
-            })
+            team_links.append(
+                {
+                    "name": remove_superscripts(link, False),
+                    "url": "https://en.wikipedia.org" + href,
+                }
+            )
 
     return team_links
 
@@ -182,7 +184,9 @@ def scrape_academy_page(academy_url, academy_name, session):
         team_keywords = {"alpine", "renault", "lotus"}
 
         for heading_id, key in headings_to_check:
-            heading = soup.find("h3", {"id": heading_id}) or soup.find("h2", {"id": heading_id})
+            heading = soup.find("h3", {"id": heading_id}) or soup.find(
+                "h2", {"id": heading_id}
+            )
 
             if heading and key:
                 # Special handling for Former_drivers with team subheadings
@@ -196,7 +200,9 @@ def scrape_academy_page(academy_url, academy_name, session):
                         if current.name == "h3":
                             heading_text = current.get_text().lower()
                             if any(kw in heading_text for kw in team_keywords):
-                                table = current.find_next_sibling("table", {"class": "wikitable"})
+                                table = current.find_next_sibling(
+                                    "table", {"class": "wikitable"}
+                                )
                                 if table:
                                     table_data = extract_table_data(table, key)
                                     if table_data:
@@ -292,7 +298,7 @@ def scrape_academies(session=None):
     if not team_links:
         print("No team links found")
         return None
-    
+
     print(f"Found {len(team_links)} driver development programs")
 
     response.close()
