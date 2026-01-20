@@ -53,7 +53,11 @@ class TestGetSeriesDirectories:
         mock_file = MagicMock()
         mock_file.is_dir.return_value = False
 
-        mock_series_path.iterdir.return_value = [mock_dir_2023, mock_dir_2022, mock_file]
+        mock_series_path.iterdir.return_value = [
+            mock_dir_2023,
+            mock_dir_2022,
+            mock_file,
+        ]
         mock_path.return_value.__truediv__.return_value = mock_series_path
 
         result = get_series_directories("F3")
@@ -386,6 +390,7 @@ class TestMergeTeamData:
 
 
 class TestLoadData:
+    @patch("app.core.loader.load_academies_data")
     @patch("app.core.loader.load_standings_data")
     @patch("app.core.loader.load_all_entries_data")
     @patch("app.core.loader.merge_entries")
@@ -398,13 +403,22 @@ class TestLoadData:
         mock_merge_entries,
         mock_load_entries,
         mock_load_standings,
+        mock_load_academies,
     ):
-        mock_df = pd.DataFrame({"Driver": ["Driver1"]})
+        mock_df = pd.DataFrame(
+            {
+                "Driver": ["Driver1"],
+                "year": [2023],
+                "series": ["F3"],
+                "academy": ["test_academy"],
+            }
+        )
         mock_load_standings.return_value = mock_df
         mock_load_entries.return_value = mock_df
         mock_merge_entries.return_value = mock_df
         mock_merge_team.return_value = mock_df
         mock_load_driver.return_value = mock_df
+        mock_load_academies.return_value = mock_df
 
         result = load_data("F3")
         assert not result.empty
