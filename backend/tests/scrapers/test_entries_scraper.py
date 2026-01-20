@@ -158,7 +158,7 @@ class TestProcessMultirowHeaders:
 
         with patch("app.scrapers.scraping_utils.remove_superscripts") as mock_remove:
             mock_remove.side_effect = ["Team", "Name", "Constructor", "Driver"]
-            headers, data_rows = process_multirow_headers(rows)
+            headers, _ = process_multirow_headers(rows)
 
             # Should have placeholders filled until StopIteration, rest stay None
             assert len(headers) == 4

@@ -153,7 +153,7 @@ def load_driver_data(df):
                         if profile_data.get("scraped", True)
                         else default_profile
                     )
-            except (FileNotFoundError, Exception):
+            except Exception:
                 profiles[driver] = default_profile
 
     # Map profiles to dataframe

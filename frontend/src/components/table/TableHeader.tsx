@@ -14,14 +14,20 @@ export const TableHeader = ({
   onSort,
   children,
 }: TableHeaderProps) => {
+  const getSortIcon = () => {
+    if (isActive) {
+      if (sortConfig.direction === 'asc') {
+        return <ChevronUp className="w-4 h-4 inline ml-1" />;
+      } else {
+        return <ChevronDown className="w-4 h-4 inline ml-1" />;
+      }
+    } else {
+      return null;
+    }
+  };
+
   const isActive = sortConfig.field === field;
-  const SortIcon = isActive ? (
-    sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-4 h-4 inline ml-1" />
-    ) : (
-      <ChevronDown className="w-4 h-4 inline ml-1" />
-    )
-  ) : null;
+  const SortIcon = getSortIcon();
 
   return (
     <th

@@ -138,7 +138,7 @@ def calculate_teammate_performance(df):
         )
 
     # Add positions to df temporarily
-    df["_positions_matrix"] = [row for row in position_matrix]
+    df["_positions_matrix"] = list(position_matrix)
 
     team_performance = []
 
@@ -357,9 +357,8 @@ def engineer_features(df):
 
             race_type = identify_race_type(col, row["year"])
 
-            if any(x in result for x in RETIREMENT_CODES):
-                if result != "NC":
-                    stats["dnfs"] += 1
+            if any(x in result for x in RETIREMENT_CODES) and result != "NC":
+                stats["dnfs"] += 1
 
             # Determine race type category
             is_sprint = (row["year"] == 2021 and race_type == "race12") or (
@@ -587,7 +586,7 @@ def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_
     patience_counter = 0
     best_state = None
 
-    for epoch in range(30):
+    for _ in range(30):
         pytorch_model.train()
         optimizer.zero_grad()
 

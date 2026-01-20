@@ -67,6 +67,16 @@ export const DriverHoverCard = ({ driver, children }: DriverHoverCardProps) => {
       .join('')}&background=1e40af&color=fff`,
   };
 
+  const getExperienceDisplay = () => {
+    if (driver.experience === 0) {
+      return 'Rookie';
+    } else if (driver.experience === 1) {
+      return '1 year';
+    } else {
+      return `${driver.experience} years`;
+    }
+  };
+
   return (
     <div
       className="relative inline-block"
@@ -119,13 +129,7 @@ export const DriverHoverCard = ({ driver, children }: DriverHoverCardProps) => {
 
                 <div className="flex justify-between">
                   <span className="text-white/70">Experience:</span>
-                  <span className="text-white">
-                    {driver.experience === 0
-                      ? 'Rookie'
-                      : driver.experience === 1
-                        ? '1 year'
-                        : `${driver.experience} years`}
-                  </span>
+                  <span className="text-white">{getExperienceDisplay()}</span>
                 </div>
               </div>
 

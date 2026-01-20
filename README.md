@@ -3,6 +3,10 @@
 [![codecov](https://codecov.io/gh/jakmate/formula-ascent/branch/main/graph/badge.svg)](https://codecov.io/gh/jakmate/formula-ascent)
 [![CI/CD](https://github.com/jakmate/formula-ascent/workflows/CI%2FCD/badge.svg)](https://github.com/jakmate/formula-ascent/actions/workflows/ci.yml)
 ![Lighthouse](https://raw.githubusercontent.com/jakmate/formula-ascent/main/badges/lighthouse-badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jakmate_formula-ascent&metric=alert_status)](https://sonarcloud.io/summary/overall?id=jakmate_formula-ascent&branch=main)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jakmate_formula-ascent&metric=security_rating)](https://sonarcloud.io/summary/overall?id=jakmate_formula-ascent&branch=main)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jakmate_formula-ascent&metric=reliability_rating)](https://sonarcloud.io/summary/overall?id=jakmate_formula-ascent&branch=main)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jakmate_formula-ascent&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=jakmate_formula-ascent&branch=main)
 
 A machine learning application that predicts drivers' likelihood of advancing to parent series using historical performance data.
 

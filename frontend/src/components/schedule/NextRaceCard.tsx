@@ -63,9 +63,9 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
           // Date-only format (YYYY-MM-DD) - create date at start of day
           const [year, month, day] = sessionDateStr.split('-');
           sessionTime = new Date(
-            parseInt(year),
-            parseInt(month) - 1,
-            parseInt(day)
+            Number.parseInt(year),
+            Number.parseInt(month) - 1,
+            Number.parseInt(day)
           );
         } else {
           // Full datetime string
@@ -111,12 +111,16 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
 
     if (dateString.length === 10) {
       const [year, month, day] = dateString.split('-');
-      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      date = new Date(
+        Number.parseInt(year),
+        Number.parseInt(month) - 1,
+        Number.parseInt(day)
+      );
     } else {
       date = new Date(dateString);
     }
 
-    if (isNaN(date.getTime())) return 'Date TBC';
+    if (Number.isNaN(date.getTime())) return 'Date TBC';
 
     const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' });
     const day = date.getDate();
@@ -144,12 +148,16 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
 
     if (dateString.length === 10) {
       const [year, month, day] = dateString.split('-');
-      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      date = new Date(
+        Number.parseInt(year),
+        Number.parseInt(month) - 1,
+        Number.parseInt(day)
+      );
     } else {
       date = new Date(dateString);
     }
 
-    if (isNaN(date.getTime())) return 'TBC';
+    if (Number.isNaN(date.getTime())) return 'TBC';
 
     const weekday = date.toLocaleDateString('en-GB', { weekday: 'short' });
     const day = date.getDate();
@@ -174,7 +182,7 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
     }
   };
 
-  const displayTimezone = userTimezone?.replace(/_/g, ' ') || 'Local Time';
+  const displayTimezone = userTimezone?.replaceAll(/_/g, ' ') || 'Local Time';
 
   return (
     <div

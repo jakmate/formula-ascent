@@ -6,7 +6,7 @@ from app.models.predictions import PredictionsResponse, ModelResults, Prediction
 from app.models.system import SystemStatus
 from app.core.state import AppState
 from app.services.data_service import DataService
-from app.config import LOGGER
+from app.config import CURRENT_YEAR, LOGGER
 
 
 class PredictionService:
@@ -144,7 +144,7 @@ class PredictionService:
             else:
                 current_df = features_df[
                     features_df["year"]
-                    >= self.app_state.system_status.get("current_year", 2024)
+                    >= self.app_state.system_status.get("current_year", CURRENT_YEAR - 1)
                 ].copy()
 
             if current_df.empty:
