@@ -16,7 +16,7 @@ F1_MAIN_STRAINER = SoupStrainer(
 )
 F1_SESSION_STRAINER = SoupStrainer("ul", class_=re.compile(r"grid"))
 FIA_MAIN_STRAINER = SoupStrainer(
-    ["div"], class_=re.compile(r"col-12.*col-sm-6.*col-lg-4.*col-xl-3")
+    ["div"], class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b")
 )
 FIA_SESSION_STRAINER = SoupStrainer("div", class_="pin")
 
@@ -430,7 +430,7 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
         races = []
         race_containers = soup.find_all(
-            "div", class_=re.compile(r"col-12.*col-sm-6.*col-lg-4.*col-xl-3")
+            "div", class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b")
         )
 
         for container in race_containers:

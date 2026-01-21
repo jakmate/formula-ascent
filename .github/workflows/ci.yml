@@ -13,7 +13,7 @@ jobs:
         python-version: '3.12'
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c #v7
       with:
         enable-cache: true
 
@@ -43,7 +43,7 @@ jobs:
         python-version: '3.12'
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c #v7
       with:
         enable-cache: true
 
@@ -58,7 +58,7 @@ jobs:
         uv run pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@f30e4959ba63075080d4f7f90cacc18d9f3fafd7 #v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: backend/coverage.xml
@@ -110,7 +110,7 @@ jobs:
         npm run test:coverage
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@f30e4959ba63075080d4f7f90cacc18d9f3fafd7 #v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: frontend/coverage/lcov.info

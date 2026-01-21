@@ -105,7 +105,7 @@ class ModelService:
                         state_dict = torch.load(
                             model_path,
                             map_location=device,  # Load directly to target device
-                            weights_only=False,
+                            weights_only=True,
                         )
                         model.load_state_dict(state_dict)
                         model = model.to(device)  # Ensure model is on correct device

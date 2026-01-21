@@ -71,7 +71,7 @@ class TestSaveProfile:
 
 
 class TestSearchWikidataDrivers:
-    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "http://test.endpoint")
+    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "https://test.endpoint")
     def test_successful_batch_query(self):
         mock_session = Mock()
         mock_response = Mock()
@@ -81,7 +81,7 @@ class TestSearchWikidataDrivers:
                 "bindings": [
                     {
                         "nameMatch": {"value": "Lewis Hamilton"},
-                        "person": {"value": "http://wikidata.org/entity/Q1"},
+                        "person": {"value": "https://wikidata.org/entity/Q1"},
                         "dob": {"value": "1985-01-07T00:00:00Z"},
                         "nationalityLabel": {"value": "United Kingdom"},
                     }
@@ -95,10 +95,10 @@ class TestSearchWikidataDrivers:
         assert "Lewis Hamilton" in results
         assert (
             results["Lewis Hamilton"]["person"]["value"]
-            == "http://wikidata.org/entity/Q1"
+            == "https://wikidata.org/entity/Q1"
         )
 
-    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "http://test.endpoint")
+    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "https://test.endpoint")
     def test_failed_query(self):
         mock_session = Mock()
         mock_response = Mock()
@@ -109,7 +109,7 @@ class TestSearchWikidataDrivers:
 
         assert results == {}
 
-    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "http://test.endpoint")
+    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "https://test.endpoint")
     def test_query_exception(self):
         mock_session = Mock()
         mock_session.get.side_effect = Exception("Connection error")
@@ -118,7 +118,7 @@ class TestSearchWikidataDrivers:
 
         assert results == {}
 
-    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "http://test.endpoint")
+    @patch("app.scrapers.driver_scraper.SPARQL_ENDPOINT", "https://test.endpoint")
     def test_batch_processing(self):
         mock_session = Mock()
         mock_response = Mock()
@@ -274,7 +274,7 @@ class TestScrapeDrivers:
         mock_exists.return_value = False
         mock_search.return_value = {
             "Lewis Hamilton": {
-                "person": {"value": "http://wikidata.org/entity/Q1"},
+                "person": {"value": "https://wikidata.org/entity/Q1"},
                 "dob": {"value": "1985-01-07T00:00:00Z"},
                 "nationalityLabel": {"value": "United Kingdom"},
             }
@@ -317,7 +317,7 @@ class TestScrapeDrivers:
 
         mock_search.return_value = {
             "Lewis Hamilton": {
-                "person": {"value": "http://wikidata.org/entity/Q1"},
+                "person": {"value": "https://wikidata.org/entity/Q1"},
                 "dob": {"value": "1985-01-07T00:00:00Z"},
                 "nationalityLabel": {"value": "United Kingdom"},
             }

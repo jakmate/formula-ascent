@@ -7,10 +7,10 @@ from app.core.state import AppState
 
 
 @pytest.fixture
-def mock_state_file():
-    with patch("app.core.state.STATE_FILE", "/tmp/test_state.json"):
-        yield "/tmp/test_state.json"
-
+def mock_state_file(tmp_path):
+    state_file = tmp_path / "test_state.json"
+    with patch("app.core.state.STATE_FILE", str(state_file)):
+        yield str(state_file)
 
 @pytest.fixture
 def sample_state_data():
