@@ -12,6 +12,7 @@ def mock_state_file(tmp_path):
     with patch("app.core.state.STATE_FILE", str(state_file)):
         yield str(state_file)
 
+
 @pytest.fixture
 def sample_state_data():
     return {

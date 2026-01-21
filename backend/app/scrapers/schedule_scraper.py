@@ -430,7 +430,8 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
         races = []
         race_containers = soup.find_all(
-            "div", class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b")
+            "div",
+            class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b"),
         )
 
         for container in race_containers:
