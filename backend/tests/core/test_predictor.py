@@ -132,9 +132,7 @@ class TestCreateTargetVariable:
     ):
         """Test returns NaN when future years cannot be observed"""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2023]})
-        parent_df = pd.DataFrame(
-            {"Driver": ["Driver2"], "year": [2023]}
-        )  # max_year = 2023
+        parent_df = pd.DataFrame({"Driver": ["Driver2"], "year": [2023]})
 
         mock_get_race_cols.return_value = ["R1"]
         mock_calc_stats.return_value = []

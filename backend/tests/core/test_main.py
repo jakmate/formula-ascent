@@ -86,7 +86,7 @@ class TestLifespan:
 class TestAppIntegration:
     def test_app_startup_with_test_client(self, mock_dependencies):
         """Test that the app can start successfully with TestClient"""
-        mock_init, mock_cleanup = mock_dependencies
+        _, _ = mock_dependencies
 
         app = create_app()
 

@@ -69,7 +69,7 @@ def test_find_championship_table_2013_series2_drivers():
     <table class="wikitable" id="target"></table>
     """
     soup = make_soup(html)
-    table, error = find_championship_table(soup, "Drivers'", 2, 2013)
+    table, _ = find_championship_table(soup, "Drivers'", 2, 2013)
     assert table is not None
     assert table.get("id") == "target"
 
@@ -360,7 +360,7 @@ def test_process_championship_full(mock_write):
 
     assert mock_write.called
     args, _ = mock_write.call_args
-    file_path, headers, data_rows, has_no_col = args
+    file_path, headers, data_rows, _ = args
     assert "f1_2020_drivers.csv" in file_path
     assert headers == ["Pos", "Driver", "Race1 R1", "Points"]
     assert len(data_rows) == 2

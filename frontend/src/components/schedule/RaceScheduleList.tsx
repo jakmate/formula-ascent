@@ -67,6 +67,16 @@ export const RaceScheduleList = ({
     return series === 'f1' ? 'GRAND PRIX' : 'Grand Prix';
   };
 
+  const getRaceCardClasses = (past: boolean, isUpcoming: boolean) => {
+    if (past) {
+      return 'bg-gray-900/60 border-gray-700 opacity-70';
+    } else if (isUpcoming) {
+      return 'bg-gradient-to-br from-cyan-900/30 to-purple-900/30 border-cyan-500/50 shadow-lg shadow-cyan-500/20';
+    } else {
+      return 'bg-gray-800/60 border-cyan-500/30';
+    }
+  };
+
   let nextUpcomingFound = false;
 
   if (!races || races.length === 0) {
@@ -99,13 +109,7 @@ export const RaceScheduleList = ({
               key={race.slug || index}
               className={`
                 backdrop-blur-lg rounded-xl border p-4 transition-all duration-200
-                ${
-                  past
-                    ? 'bg-gray-900/60 border-gray-700 opacity-70'
-                    : isUpcoming
-                      ? 'bg-gradient-to-br from-cyan-900/30 to-purple-900/30 border-cyan-500/50 shadow-lg shadow-cyan-500/20'
-                      : 'bg-gray-800/60 border-cyan-500/30'
-                } hover:shadow-cyan-500/20 hover:border-cyan-400/50
+                ${getRaceCardClasses(past, isUpcoming)} hover:shadow-cyan-500/20 hover:border-cyan-400/50
               `}
             >
               <div className="flex flex-col h-full">

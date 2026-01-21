@@ -47,7 +47,7 @@ describe('Header', () => {
     const { container } = render(<Header title="Title" />);
 
     const rightContentDiv = container.querySelector(
-      '.flex.flex-col.sm\\:flex-row'
+      String.raw`.flex.flex-col.sm\:flex-row`
     );
     expect(rightContentDiv).not.toBeInTheDocument();
   });

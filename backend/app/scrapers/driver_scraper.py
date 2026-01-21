@@ -153,7 +153,7 @@ def get_all_drivers_from_data():
                 except Exception as e:
                     print(f"Error reading {entries_file}: {e}")
 
-    return sorted(list(all_drivers))
+    return sorted(all_drivers)
 
 
 def scrape_drivers(session=None):

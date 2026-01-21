@@ -138,7 +138,7 @@ class TestSafeRequest:
 
         assert result == mock_response
         assert mock_session.get.call_count == 2
-        mock_sleep.assert_called_once_with(1)  # base_delay * (attempt + 1) = 1 * 1
+        mock_sleep.assert_called_once_with(1)  # so base_delay * (attempt + 1) = 1 * 1
 
     @patch("time.sleep")
     def test_safe_request_generic_exception_max_retries(self, mock_sleep):

@@ -12,7 +12,6 @@ vi.mock('../TableHeader', () => ({
   }: {
     children: React.ReactNode;
     field: string;
-    sortConfig: { field: string | null; direction: 'asc' | 'desc' };
     onSort: (field: string) => void;
   }) => (
     <th data-testid={`header-${field}`} onClick={() => onSort(field)}>
@@ -38,7 +37,7 @@ const mockDrivers: Driver[] = [
     points: 575,
     win_rate: 0.65,
     dnf_rate: 0.05,
-    participation_rate: 1.0,
+    participation_rate: 1,
     experience: 9,
     empirical_percentage: 0.85,
     wins: 0,

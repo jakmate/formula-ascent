@@ -29,9 +29,8 @@ export const BasePredictionsTable = ({
   getTitle,
   getDescription,
 }: BasePredictionsTableProps) => {
-  const [selectedSeries, setSelectedSeries] = useState<SeriesType>(
-    defaultSeries as SeriesType
-  );
+  const [selectedSeries, setSelectedSeries] =
+    useState<SeriesType>(defaultSeries);
   const {
     predictions,
     selectedModel,
@@ -43,6 +42,25 @@ export const BasePredictionsTable = ({
     refreshPredictions,
     currentPredictions,
   } = usePredictions(selectedSeries);
+
+  const getPredictionsDisplay = () => {
+    if (loading && currentPredictions.length === 0) {
+      return (
+        <div className="p-12 text-center text-white">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-400" />
+          <p>Loading predictions...</p>
+        </div>
+      );
+    } else if (currentPredictions.length === 0) {
+      return (
+        <div className="p-12 text-center text-white">
+          <p>No predictions available. Select a model and refresh data.</p>
+        </div>
+      );
+    } else {
+      return <TableContent predictions={currentPredictions} />;
+    }
+  };
 
   return (
     <div className="w-full">
@@ -139,18 +157,7 @@ export const BasePredictionsTable = ({
       {error && <ErrorDisplay error={error} />}
 
       <div className="bg-gray-800/40 backdrop-blur-lg rounded-xl border border-cyan-500/30 overflow-hidden shadow-lg shadow-cyan-500/10">
-        {loading && currentPredictions.length === 0 ? (
-          <div className="p-12 text-center text-white">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-400" />
-            <p>Loading predictions...</p>
-          </div>
-        ) : currentPredictions.length === 0 ? (
-          <div className="p-12 text-center text-white">
-            <p>No predictions available. Select a model and refresh data.</p>
-          </div>
-        ) : (
-          <TableContent predictions={currentPredictions} />
-        )}
+        {getPredictionsDisplay()}
       </div>
     </div>
   );

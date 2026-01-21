@@ -172,9 +172,9 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
 
         # Get faster group
         time_idx = headers.index("Time")
-        tA = parse_time_to_seconds(group_a_rows[0][time_idx])
-        tB = parse_time_to_seconds(group_b_rows[0][time_idx])
-        start_with_a = tA <= tB
+        t_a = parse_time_to_seconds(group_a_rows[0][time_idx])
+        t_b = parse_time_to_seconds(group_b_rows[0][time_idx])
+        start_with_a = t_a <= t_b
 
         # Create alternating grid pattern
         combined_data = []
