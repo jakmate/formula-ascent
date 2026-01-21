@@ -275,11 +275,11 @@ class TestProcessQualifyingData:
         mock_request.return_value = mock_response
 
         session = Mock()
-        result = process_qualifying_data("http://test.com", "Round 1", session)
+        result = process_qualifying_data("https://test.com", "Round 1", session)
 
         assert result is not None
         assert result["round_info"] == "Round 1"
-        assert result["url"] == "http://test.com"
+        assert result["url"] == "https://test.com"
         assert len(result["data"]) == 1
 
     @patch("app.scrapers.qualifying_scraper.safe_request")
@@ -290,7 +290,7 @@ class TestProcessQualifyingData:
         mock_request.return_value = mock_response
 
         session = Mock()
-        result = process_qualifying_data("http://test.com", "Round 1", session)
+        result = process_qualifying_data("https://test.com", "Round 1", session)
 
         assert result is None
 
@@ -299,7 +299,7 @@ class TestProcessQualifyingData:
         mock_request.return_value = None
 
         session = Mock()
-        result = process_qualifying_data("http://test.com", "Round 1", session)
+        result = process_qualifying_data("https://test.com", "Round 1", session)
 
         assert result is None
 
@@ -316,7 +316,7 @@ class TestSaveQualifyingData:
                 "headers": ["Pos.", "No.", "Driver", "Team", "Time", "Grid"],
                 "data": [["1", "1", "Driver", "Team", "1:19.429", "1"]],
                 "round_info": "Round 1",
-                "url": "http://test.com",
+                "url": "https://test.com",
             }
         ]
 
@@ -341,19 +341,19 @@ class TestScrapeQuali:
     @patch("app.scrapers.qualifying_scraper.process_qualifying_data")
     @patch("app.scrapers.qualifying_scraper.extract_race_report_links")
     def test_scrape_quali_full_flow(self, mock_extract, mock_process, mock_save):
-        mock_extract.return_value = ["http://race1.com", "http://race2.com"]
+        mock_extract.return_value = ["https://race1.com", "https://race2.com"]
         mock_process.side_effect = [
             {
                 "headers": [],
                 "data": [],
                 "round_info": "Round 1",
-                "url": "http://race1.com",
+                "url": "https://race1.com",
             },
             {
                 "headers": [],
                 "data": [],
                 "round_info": "Round 2",
-                "url": "http://race2.com",
+                "url": "https://race2.com",
             },
         ]
 

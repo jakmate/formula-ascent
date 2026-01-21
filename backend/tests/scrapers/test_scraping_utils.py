@@ -61,10 +61,10 @@ class TestSafeRequest:
         mock_response.raise_for_status.return_value = None
         mock_session.get.return_value = mock_response
 
-        result = safe_request(mock_session, "http://test.com")
+        result = safe_request(mock_session, "https://test.com")
 
         assert result == mock_response
-        mock_session.get.assert_called_once_with("http://test.com", timeout=15)
+        mock_session.get.assert_called_once_with("https://test.com", timeout=15)
         mock_response.raise_for_status.assert_called_once()
 
     def test_safe_request_http_error_non_403(self):
@@ -78,7 +78,7 @@ class TestSafeRequest:
         mock_response.raise_for_status.side_effect = http_error
 
         with pytest.raises(requests.exceptions.HTTPError):
-            safe_request(mock_session, "http://test.com")
+            safe_request(mock_session, "https://test.com")
 
     @patch("time.sleep")
     def test_safe_request_403_error_retry_success(self, mock_sleep):
@@ -96,7 +96,7 @@ class TestSafeRequest:
 
         mock_session.get.side_effect = [mock_response_fail, mock_response_success]
 
-        result = safe_request(mock_session, "http://test.com")
+        result = safe_request(mock_session, "https://test.com")
 
         assert result == mock_response_success
         assert mock_session.get.call_count == 2
@@ -114,7 +114,7 @@ class TestSafeRequest:
         mock_response.raise_for_status.side_effect = http_error
         mock_session.get.return_value = mock_response
 
-        result = safe_request(mock_session, "http://test.com", max_retries=2)
+        result = safe_request(mock_session, "https://test.com", max_retries=2)
 
         assert result is None
         assert mock_session.get.call_count == 2
@@ -134,7 +134,7 @@ class TestSafeRequest:
         ]
         mock_response.raise_for_status.return_value = None
 
-        result = safe_request(mock_session, "http://test.com")
+        result = safe_request(mock_session, "https://test.com")
 
         assert result == mock_response
         assert mock_session.get.call_count == 2
@@ -148,7 +148,7 @@ class TestSafeRequest:
             "Connection failed"
         )
 
-        result = safe_request(mock_session, "http://test.com", max_retries=2)
+        result = safe_request(mock_session, "https://test.com", max_retries=2)
 
         assert result is None
         assert mock_session.get.call_count == 2
