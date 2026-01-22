@@ -43,12 +43,10 @@ class TestCronjobsService:
     @patch("app.services.cronjobs_service.LOGGER")
     async def test_start(self, mock_logger, cronjobs_service):
         """Test scheduler start"""
-        with patch.object(
-            cronjobs_service.scheduler, "add_job"
-        ) as mock_add_job, patch.object(
-            cronjobs_service.scheduler, "start"
-        ) as mock_start:
-
+        with (
+            patch.object(cronjobs_service.scheduler, "add_job") as mock_add_job,
+            patch.object(cronjobs_service.scheduler, "start") as mock_start,
+        ):
             await cronjobs_service.start()
 
             mock_add_job.assert_called_once()
@@ -90,12 +88,12 @@ class TestCronjobsService:
     ):
         """Test scrape and train task when training needed"""
         # Mock season complete and new season available
-        with patch.object(
-            cronjobs_service, "_is_season_complete", return_value=True
-        ), patch.object(
-            cronjobs_service, "_train_models_task", new_callable=AsyncMock
-        ) as mock_train:
-
+        with (
+            patch.object(cronjobs_service, "_is_season_complete", return_value=True),
+            patch.object(
+                cronjobs_service, "_train_models_task", new_callable=AsyncMock
+            ) as mock_train,
+        ):
             await cronjobs_service.scrape_and_train_task()
 
         mock_scrape.assert_called_once()
@@ -197,7 +195,9 @@ class TestCronjobsService:
         mock_now = datetime(2024, 6, 15)
         mock_datetime.now.return_value = mock_now
 
-        with patch("app.services.prediction_service.PredictionService") as mock_ps_class:
+        with patch(
+            "app.services.prediction_service.PredictionService"
+        ) as mock_ps_class:
             mock_ps = Mock()
             mock_ps.update_predictions = AsyncMock()
             mock_ps_class.return_value = mock_ps

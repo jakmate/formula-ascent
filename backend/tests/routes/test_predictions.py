@@ -28,7 +28,9 @@ class TestGetPredictions:
         ]
 
         for exception in exceptions_to_test:
-            with patch("app.routes.predictions.PredictionService") as mock_service_class:
+            with patch(
+                "app.routes.predictions.PredictionService"
+            ) as mock_service_class:
                 mock_service = Mock()
                 mock_service.get_predictions = AsyncMock(side_effect=exception)
                 mock_service_class.return_value = mock_service

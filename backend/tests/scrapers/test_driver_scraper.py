@@ -393,7 +393,11 @@ class TestNeedsRescrape:
         assert needs_rescrape(existing, new_data) is True
 
     def test_no_changes(self):
-        existing = {"scraped": True, "dob": "1985-01-07", "nationality": "United Kingdom"}
+        existing = {
+            "scraped": True,
+            "dob": "1985-01-07",
+            "nationality": "United Kingdom",
+        }
         new_data = {
             "dob": {"value": "1985-01-07T00:00:00Z"},
             "nationalityLabel": {"value": "United Kingdom"},

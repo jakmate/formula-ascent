@@ -15,7 +15,9 @@ async def get_series_schedule(
 ):
     """Get schedule for a specific racing series with timezone conversion"""
     try:
-        request = ScheduleRequest(series=series, timezone=timezone, x_timezone=x_timezone)
+        request = ScheduleRequest(
+            series=series, timezone=timezone, x_timezone=x_timezone
+        )
         schedule_service = ScheduleService()
         return await schedule_service.get_series_schedule(request)
     except Exception as e:
@@ -31,7 +33,9 @@ async def get_next_race(
 ):
     """Get the next upcoming race for a series with timezone conversion"""
     try:
-        request = ScheduleRequest(series=series, timezone=timezone, x_timezone=x_timezone)
+        request = ScheduleRequest(
+            series=series, timezone=timezone, x_timezone=x_timezone
+        )
         schedule_service = ScheduleService()
         return await schedule_service.get_next_race(request)
     except Exception as e:

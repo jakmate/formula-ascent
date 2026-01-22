@@ -107,7 +107,8 @@ class TestRefreshPredictions:
             # correct response shape and contents
             assert isinstance(result, RefreshResponse)
             assert (
-                result.message == "Predictions refresh and training started in background"
+                result.message
+                == "Predictions refresh and training started in background"
             )
             assert result.estimated_completion == fixed_time + timedelta(minutes=1)
 

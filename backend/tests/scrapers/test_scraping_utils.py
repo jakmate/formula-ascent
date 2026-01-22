@@ -2,7 +2,11 @@ import pytest
 import requests
 from unittest.mock import Mock, patch
 from bs4 import BeautifulSoup
-from app.scrapers.scraping_utils import create_session, remove_superscripts, safe_request
+from app.scrapers.scraping_utils import (
+    create_session,
+    remove_superscripts,
+    safe_request,
+)
 
 
 class TestCreateSession:
@@ -16,7 +20,7 @@ class TestCreateSession:
         assert "Mozilla/5.0" in headers["User-Agent"]
         assert (
             headers["Accept"]
-            == "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # noqa: 501
+            == "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # noqa: F501
         )
         assert headers["Accept-Language"] == "en-US,en;q=0.5"
         assert headers["Accept-Encoding"] == "gzip, deflate"

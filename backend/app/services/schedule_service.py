@@ -9,7 +9,6 @@ from app.models.schedule import ScheduleRequest
 
 
 class ScheduleService:
-
     async def get_series_schedule(self, request: ScheduleRequest):
         """Get schedule for a specific racing series with timezone conversion"""
         file_path = os.path.join(SCHEDULE_DIR, f"{request.series}.json")
@@ -118,7 +117,10 @@ class ScheduleService:
             if has_future_session and (
                 not next_race
                 or not sessions
-                or (race_earliest_session and race_earliest_session < first_session_start)
+                or (
+                    race_earliest_session
+                    and race_earliest_session < first_session_start
+                )
             ):
                 next_race = race.copy()
                 next_race["totalRounds"] = total_rounds

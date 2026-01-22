@@ -71,15 +71,16 @@ def identify_race_type(col_name, year):
     """Identify if column is sprint or feature race."""
     col_lower = col_name.lower()
 
-    if year == 2021:
-        # Triple header year - need different logic
-        return "race3" if "r3" in col_lower else "race12"
-    elif year >= 2022:
-        return "sprint" if "sr" in col_lower else "feature"
-    elif year <= 2020:
-        # R1/FR = Feature, R2/SR = Sprint for 2010-2020
-        return "feature" if "r1" in col_lower or "fr" in col_lower else "sprint"
-    else:
+    try:
+        if year == 2021:
+            # Triple header year - need different logic
+            return "race3" if "r3" in col_lower else "race12"
+        elif year >= 2022:
+            return "sprint" if "sr" in col_lower else "feature"
+        elif year <= 2020:
+            # R1/FR = Feature, R2/SR = Sprint for 2010-2020
+            return "feature" if "r1" in col_lower or "fr" in col_lower else "sprint"
+    except Exception:
         print(f"{col_name}, {year}")
         return None
 
@@ -133,7 +134,9 @@ def calculate_teammate_performance(df):
     for i, col in enumerate(race_cols):
         position_matrix[:, i] = (
             df[col]
-            .apply(lambda x: extract_position(str(x).strip()) if pd.notna(x) else np.nan)
+            .apply(
+                lambda x: extract_position(str(x).strip()) if pd.notna(x) else np.nan
+            )
             .values
         )
 
@@ -193,7 +196,9 @@ def calculate_teammate_performance(df):
                         # Count valid races against teammate j
                         pos_self = team_positions[idx]
                         pos_other = team_positions[j]
-                        valid_races = (~(np.isnan(pos_self) | np.isnan(pos_other))).sum()
+                        valid_races = (
+                            ~(np.isnan(pos_self) | np.isnan(pos_other))
+                        ).sum()
 
                         total_races += valid_races
                         total_wins += other_rates[j] * valid_races
@@ -479,13 +484,17 @@ def engineer_features(df):
         )
 
         academy_stats = (
-            df.groupby("academy").agg({"promoted": ["sum", "count"]}).droplevel(0, axis=1)
+            df.groupby("academy")
+            .agg({"promoted": ["sum", "count"]})
+            .droplevel(0, axis=1)
         )
-        academy_stats["smoothed_rate"] = (academy_stats["sum"] + alpha * global_mean) / (
-            academy_stats["count"] + alpha
-        )
+        academy_stats["smoothed_rate"] = (
+            academy_stats["sum"] + alpha * global_mean
+        ) / (academy_stats["count"] + alpha)
         features_df["academy_encoded"] = (
-            features_df["academy"].map(academy_stats["smoothed_rate"]).fillna(global_mean)
+            features_df["academy"]
+            .map(academy_stats["smoothed_rate"])
+            .fillna(global_mean)
         )
 
         features_df["has_academy"] = features_df["academy"].notna().astype(int)
@@ -552,24 +561,24 @@ def create_target_variable(feeder_df, parent_df, series):
     return feeder_df
 
 
-def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols):
+def train_pytorch_model(x_train_sub, y_train_sub, x_val, y_val, x_test, feature_cols):
     """Train a PyTorch neural network model for binary classification."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Scale features
     scaler = RobustScaler()
-    X_train_sub_scaled = scaler.fit_transform(X_train_sub)
-    X_val_scaled = scaler.transform(X_val)
-    X_test_scaled = scaler.transform(X_test)
+    x_train_sub_scaled = scaler.fit_transform(x_train_sub)
+    x_val_scaled = scaler.transform(x_val)
+    x_test_scaled = scaler.transform(x_test)
 
     # Convert to PyTorch tensors
-    X_train_torch = torch.FloatTensor(X_train_sub_scaled).to(device)
+    x_train_torch = torch.FloatTensor(x_train_sub_scaled).to(device)
     y_train_torch = torch.FloatTensor(y_train_sub.values).to(device)
-    X_val_torch = torch.FloatTensor(X_val_scaled).to(device)
+    x_val_torch = torch.FloatTensor(x_val_scaled).to(device)
     y_val_torch = torch.FloatTensor(y_val.values).to(device)
-    X_test_torch = torch.FloatTensor(X_test_scaled).to(device)
+    x_test_torch = torch.FloatTensor(x_test_scaled).to(device)
 
-    pytorch_model = RacingPredictor(X_train_sub_scaled.shape[1]).to(device)
+    pytorch_model = RacingPredictor(x_train_sub_scaled.shape[1]).to(device)
 
     # Calculate class weights for imbalanced data
     n_neg = (y_train_sub == 0).sum()
@@ -590,7 +599,7 @@ def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_
         pytorch_model.train()
         optimizer.zero_grad()
 
-        outputs = pytorch_model(X_train_torch).squeeze()
+        outputs = pytorch_model(x_train_torch).squeeze()
         loss = criterion(outputs, y_train_torch)
         loss.backward()
         optimizer.step()
@@ -598,7 +607,7 @@ def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_
         # Validation
         pytorch_model.eval()
         with torch.no_grad():
-            val_outputs = pytorch_model(X_val_torch).squeeze()
+            val_outputs = pytorch_model(x_val_torch).squeeze()
             val_loss = criterion(val_outputs, y_val_torch)
 
         scheduler.step(val_loss)
@@ -619,8 +628,8 @@ def train_pytorch_model(X_train_sub, y_train_sub, X_val, y_val, X_test, feature_
 
     # Validation and Test evaluation
     with torch.no_grad():
-        val_probas = torch.sigmoid(pytorch_model(X_val_torch)).cpu().numpy().flatten()
-        test_probas = torch.sigmoid(pytorch_model(X_test_torch)).cpu().numpy().flatten()
+        val_probas = torch.sigmoid(pytorch_model(x_val_torch)).cpu().numpy().flatten()
+        test_probas = torch.sigmoid(pytorch_model(x_test_torch)).cpu().numpy().flatten()
 
     # Calibrate PyTorch model using validation set
     iso_reg = IsotonicRegression(out_of_bounds="clip")
@@ -674,22 +683,24 @@ def train_models(df):
     train_years = unique_years[:n_train_years]
 
     train_mask = years.isin(train_years)
-    X_train, X_test = X[train_mask], X[~train_mask]
+    x_train, x_test = X[train_mask], X[~train_mask]
     y_train, y_test = y[train_mask], y[~train_mask]
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
-    train_idx, val_idx = next(skf.split(X_train, y_train))
+    train_idx, val_idx = next(skf.split(x_train, y_train))
 
-    X_train_sub, X_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
+    x_train_sub, x_val = x_train.iloc[train_idx], x_train.iloc[val_idx]
     y_train_sub, y_val = y_train.iloc[train_idx], y_train.iloc[val_idx]
 
     print(
-        f"Training subset: {len(X_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})"  # noqa: 501
+        f"Training subset: {len(x_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})"  # noqa: F501
     )
     print(
-        f"Validation: {len(X_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})"
+        f"Validation: {len(x_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})"
     )
-    print(f"Test: {len(X_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})")
+    print(
+        f"Test: {len(x_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})"
+    )
 
     # Traditional ML pipelines
     traditional_pipelines = {
@@ -756,14 +767,14 @@ def train_models(df):
         print("-" * 40)
 
         # Fit on training subset
-        pipeline.fit(X_train_sub, y_train_sub)
+        pipeline.fit(x_train_sub, y_train_sub)
 
         # Evaluate on validation set
-        probas_val = pipeline.predict_proba(X_val)[:, 1]
+        probas_val = pipeline.predict_proba(x_val)[:, 1]
 
         # Evaluate on test set
-        y_pred = pipeline.predict(X_test)
-        probas_test = pipeline.predict_proba(X_test)[:, 1]
+        y_pred = pipeline.predict(x_test)
+        probas_test = pipeline.predict_proba(x_test)[:, 1]
 
         # Calibration using validation set
         iso_reg = IsotonicRegression(out_of_bounds="clip")
@@ -781,7 +792,7 @@ def train_models(df):
     # Train PyTorch Model
     print("\nTraining PyTorch Model...")
     pytorch_model, scaler, test_probas = train_pytorch_model(
-        X_train_sub, y_train_sub, X_val, y_val, X_test, feature_cols
+        x_train_sub, y_train_sub, x_val, y_val, x_test, feature_cols
     )
 
     calibrated_probas = pytorch_model.calibrator.transform(test_probas)
@@ -805,7 +816,7 @@ def predict_drivers(models, df, feature_cols, scaler=None):
         print("No current data found for predictions")
         return pd.DataFrame()
 
-    X_current = current_df[feature_cols].fillna(0)
+    x_current = current_df[feature_cols].fillna(0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     results = None
 
@@ -814,17 +825,17 @@ def predict_drivers(models, df, feature_cols, scaler=None):
             # Get raw probabilities based on model type
             if name == "PyTorch":
                 if scaler is not None:
-                    X_processed = scaler.transform(X_current)
+                    x_processed = scaler.transform(x_current)
                 else:
-                    X_processed = X_current
+                    x_processed = x_current
                 model.eval()
                 with torch.no_grad():
-                    X_torch = torch.FloatTensor(X_processed).to(device)
-                    logits = model(X_torch)
+                    x_torch = torch.FloatTensor(x_processed).to(device)
+                    logits = model(x_torch)
                     raw_probas = torch.sigmoid(logits).cpu().numpy().flatten()
             else:  # Traditional models
-                X_processed = X_current
-                raw_probas = model.predict_proba(X_processed)[:, 1]
+                x_processed = x_current
+                raw_probas = model.predict_proba(x_processed)[:, 1]
 
             # Apply calibration if available
             if hasattr(model, "calibrator") and model.calibrator is not None:

@@ -13,7 +13,7 @@ jobs:
         python-version: '3.12'
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c #v7
+      uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3 #v7.1.3
       with:
         enable-cache: true
 
@@ -22,15 +22,11 @@ jobs:
       run: |
         uv sync --only-group lint
 
-    - name: Lint with flake8
+    - name: Run ruff
       working-directory: backend
       run: |
-        uv run --no-sync flake8 .
-
-    - name: Check formatting with Black
-      working-directory: backend
-      run: |
-        uv run --no-sync black --check --line-length 90 .
+        uv run --no-sync ruff check
+        uv run --no-sync ruff format
 
   backend-test:
     runs-on: ubuntu-latest
@@ -43,7 +39,7 @@ jobs:
         python-version: '3.12'
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c #v7
+      uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3 #v7.1.3
       with:
         enable-cache: true
 

@@ -87,7 +87,10 @@ class ModelService:
 
                 # Load models
                 for model_file in os.listdir(series_dir):
-                    if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
+                    if (
+                        model_file == "preprocessor.joblib"
+                        or "_calibrator" in model_file
+                    ):
                         continue
 
                     name = os.path.splitext(model_file)[0]
@@ -101,7 +104,9 @@ class ModelService:
                         device = torch.device(
                             "cuda" if torch.cuda.is_available() else "cpu"
                         )
-                        model = RacingPredictor(len(self.app_state.feature_cols[series]))
+                        model = RacingPredictor(
+                            len(self.app_state.feature_cols[series])
+                        )
                         state_dict = torch.load(
                             model_path,
                             map_location=device,  # Load directly to target device

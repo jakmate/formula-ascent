@@ -106,19 +106,20 @@ class TestGetPredictions:
         mock_pytorch_model.calibrator = None
 
         # Mock scaler
-        prediction_service.app_state.scaler["f3_to_f2"].transform.return_value = (
-            rng.random((3, 5))
-        )
+        prediction_service.app_state.scaler[
+            "f3_to_f2"
+        ].transform.return_value = rng.random((3, 5))
 
         # Mock PyTorch forward pass
-        with patch("torch.no_grad"), patch("torch.FloatTensor"), patch(
-            "torch.cuda.is_available", return_value=False
+        with (
+            patch("torch.no_grad"),
+            patch("torch.FloatTensor"),
+            patch("torch.cuda.is_available", return_value=False),
         ):
-
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: 501
+            )  # noqa: F501
             mock_pytorch_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -162,7 +163,9 @@ class TestGetPredictions:
         )
         mock_rf_model.calibrator = None
 
-        prediction_service.app_state.models["f3_to_f2"] = {"RandomForest": mock_rf_model}
+        prediction_service.app_state.models["f3_to_f2"] = {
+            "RandomForest": mock_rf_model
+        }
 
         await prediction_service.get_predictions()
         first_call_count = mock_data_service.load_current_data.call_count
@@ -214,18 +217,16 @@ class TestGetModelPredictions:
         mock_model.to = Mock(return_value=mock_model)
         mock_model.calibrator = None
 
-        prediction_service.app_state.scaler["f3_to_f2"].transform.return_value = (
-            rng.random((3, 5))
-        )
+        prediction_service.app_state.scaler[
+            "f3_to_f2"
+        ].transform.return_value = rng.random((3, 5))
 
-        with patch("torch.no_grad"), patch(
-            "torch.FloatTensor"
-        ) as mock_float_tensor, patch(
-            "torch.cuda.is_available", return_value=False
-        ), patch(
-            "torch.device"
+        with (
+            patch("torch.no_grad"),
+            patch("torch.FloatTensor") as mock_float_tensor,
+            patch("torch.cuda.is_available", return_value=False),
+            patch("torch.device"),
         ):
-
             mock_tensor = Mock()
             mock_float_tensor.return_value = mock_tensor
             mock_tensor.to.return_value = mock_tensor
@@ -233,7 +234,7 @@ class TestGetModelPredictions:
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: 501
+            )  # noqa: F501
             mock_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -272,9 +273,9 @@ class TestGetModelPredictions:
         mock_model.calibrator = None
 
         # scaler returns scaled array
-        prediction_service.app_state.scaler["f3_to_f2"].transform.return_value = (
-            rng.random((2, 5))
-        )
+        prediction_service.app_state.scaler[
+            "f3_to_f2"
+        ].transform.return_value = rng.random((2, 5))
 
         # Prepare a mock tensor we can assert was called
         mock_tensor = Mock()
@@ -291,14 +292,13 @@ class TestGetModelPredictions:
         mock_model.return_value = mock_logits
 
         # Patch tensor creation, cuda availability and sigmoid behaviour
-        with patch("torch.no_grad"), patch(
-            "torch.FloatTensor", return_value=mock_tensor
-        ), patch("torch.cuda.is_available", return_value=True), patch(
-            "torch.sigmoid", return_value=mock_sig_ret
-        ), patch(
-            "torch.device"
-        ) as mock_device:
-
+        with (
+            patch("torch.no_grad"),
+            patch("torch.FloatTensor", return_value=mock_tensor),
+            patch("torch.cuda.is_available", return_value=True),
+            patch("torch.sigmoid", return_value=mock_sig_ret),
+            patch("torch.device") as mock_device,
+        ):
             result = prediction_service._get_model_predictions("PyTorch", X_current)
 
         # Assert device was created with cuda
@@ -328,7 +328,9 @@ class TestCreatePredictionResponses:
         assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == 65.0
         assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == 55.0
 
-    def test_predictions_sorted_by_percentage(self, prediction_service, sample_dataframe):
+    def test_predictions_sorted_by_percentage(
+        self, prediction_service, sample_dataframe
+    ):
         calibrated_probas = np.array([0.55, 0.75, 0.65])  # Unsorted
 
         result = prediction_service._create_prediction_responses(
@@ -360,18 +362,19 @@ class TestUpdatePredictions:
         mock_pytorch_model = prediction_service.app_state.models["f3_to_f2"]["PyTorch"]
         mock_pytorch_model.eval = Mock()
         mock_pytorch_model.calibrator = None
-        prediction_service.app_state.scaler["f3_to_f2"].transform.return_value = (
-            rng.random((3, 5))
-        )
+        prediction_service.app_state.scaler[
+            "f3_to_f2"
+        ].transform.return_value = rng.random((3, 5))
 
-        with patch("torch.no_grad"), patch("torch.FloatTensor"), patch(
-            "torch.cuda.is_available", return_value=False
+        with (
+            patch("torch.no_grad"),
+            patch("torch.FloatTensor"),
+            patch("torch.cuda.is_available", return_value=False),
         ):
-
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: 501
+            )  # noqa: F501
             mock_pytorch_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -496,7 +499,9 @@ class TestIntegration:
         mock_rf_model.calibrator = None
 
         # Remove PyTorch model for simpler test
-        prediction_service.app_state.models["f3_to_f2"] = {"RandomForest": mock_rf_model}
+        prediction_service.app_state.models["f3_to_f2"] = {
+            "RandomForest": mock_rf_model
+        }
         # Also update system_status to reflect single model
         prediction_service.app_state.system_status["models_available"] = {
             "f3_to_f2": ["RandomForest"]

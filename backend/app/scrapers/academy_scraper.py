@@ -2,7 +2,11 @@ import csv
 import os
 from bs4 import BeautifulSoup, SoupStrainer
 from app.config import CURRENT_YEAR, DATA_DIR
-from app.scrapers.scraping_utils import create_session, remove_superscripts, safe_request
+from app.scrapers.scraping_utils import (
+    create_session,
+    remove_superscripts,
+    safe_request,
+)
 
 
 def extract_team_links(soup):

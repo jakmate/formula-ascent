@@ -2,7 +2,11 @@ import csv
 import os
 from bs4 import BeautifulSoup, SoupStrainer
 from app.config import DATA_DIR
-from app.scrapers.scraping_utils import create_session, remove_superscripts, safe_request
+from app.scrapers.scraping_utils import (
+    create_session,
+    remove_superscripts,
+    safe_request,
+)
 
 COLUMN_MAPPING = {
     "Name": "Driver",
@@ -154,11 +158,15 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
     try:
         # Process Group A
         group_a_table = group_a_head.find_next("table", {"class": "wikitable"})
-        group_a_data = extract_quali_table_data(group_a_table) if group_a_table else None
+        group_a_data = (
+            extract_quali_table_data(group_a_table) if group_a_table else None
+        )
 
         # Process Group B
         group_b_table = group_b_head.find_next("table", {"class": "wikitable"})
-        group_b_data = extract_quali_table_data(group_b_table) if group_b_table else None
+        group_b_data = (
+            extract_quali_table_data(group_b_table) if group_b_table else None
+        )
 
         if not group_a_data and not group_b_data:
             print(f"No qualifying data found in either group for {race_url}")
@@ -271,7 +279,9 @@ def extract_quali_table_data(table):
             data_start_index = 2
         else:
             # Single row header
-            headers = [remove_superscripts(th, False) for th in first_row.find_all("th")]
+            headers = [
+                remove_superscripts(th, False) for th in first_row.find_all("th")
+            ]
             data_start_index = 1  # Data starts from second row
 
         # Apply column mapping
@@ -297,7 +307,9 @@ def extract_quali_table_data(table):
             if row_data:
                 # Apply column filtering for single row headers
                 if not has_two_row_header:
-                    row_data = [row_data[i] for i in indices_to_keep if i < len(row_data)]
+                    row_data = [
+                        row_data[i] for i in indices_to_keep if i < len(row_data)
+                    ]
 
                 # Process grid column (last column) truncation
                 if row_data and row_data[-1].isdigit() and len(row_data[-1]) > 2:

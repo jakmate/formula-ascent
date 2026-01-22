@@ -160,7 +160,11 @@ def process_f1_modern_drivers(remaining_cells):
         merged = []
         i = 0
         while i < len(lines):
-            if i + 1 < len(lines) and lines[i].isdigit() and lines[i + 1].startswith("–"):
+            if (
+                i + 1 < len(lines)
+                and lines[i].isdigit()
+                and lines[i + 1].startswith("–")
+            ):
                 merged.append(lines[i] + lines[i + 1])
                 i += 2
             else:

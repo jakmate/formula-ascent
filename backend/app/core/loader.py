@@ -176,7 +176,9 @@ def merge_entries(driver_df, entries_df):
     entries_df["round_count"] = entries_df["Rounds"].apply(parse_round_count)
 
     # For multi-team drivers: pick team with max round_count
-    primary_idx = entries_df.groupby(["Driver", "year", "series"])["round_count"].idxmax()
+    primary_idx = entries_df.groupby(["Driver", "year", "series"])[
+        "round_count"
+    ].idxmax()
     primary_teams = entries_df.loc[primary_idx]
 
     return driver_df.merge(

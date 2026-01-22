@@ -62,7 +62,7 @@ class DataService:
         # Cache the processed data
         self.data_cache[cache_key] = current_df
         LOGGER.info(
-            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records"  # noqa: 501
+            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records"  # noqa: F501
         )
 
         return current_df
@@ -111,7 +111,9 @@ class DataService:
                     await model_service.train_models(trainable_df)
                     await model_service.save_models()
                 else:
-                    LOGGER.warning(f"No historical data available for training {series}")
+                    LOGGER.warning(
+                        f"No historical data available for training {series}"
+                    )
 
                 # Generate current predictions
                 from app.services.prediction_service import PredictionService

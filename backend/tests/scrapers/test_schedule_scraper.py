@@ -82,7 +82,9 @@ class TestIsRaceCompletedOrOngoing:
     def test_race_with_future_session(self):
         future_time = datetime.now(timezone.utc) + timedelta(days=2)
         race = {
-            "sessions": {"race": {"start": future_time.replace(tzinfo=None).isoformat()}}
+            "sessions": {
+                "race": {"start": future_time.replace(tzinfo=None).isoformat()}
+            }
         }
         assert is_race_completed_or_ongoing(race) is False
 
@@ -173,7 +175,7 @@ class TestScrapeF1Schedule:
             FORMULA 1 BAHRAIN GRAND PRIX 2025</span>
             <span class="typography-module_technical-xs-regular__-W0Gs">28 Feb - 02 Mar</span>
         </a>
-        """  # noqa: 501
+        """  # noqa: F501
         mock_session.get.return_value = mock_response
 
         with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):

@@ -161,7 +161,7 @@ class TestExtractQualiTableData:
                 <td>2</td><td>2</td><td>Driver 2</td><td>Team 2</td><td>+0.016</td><td>2</td>
             </tr>
         </table>
-        """  # noqa: 501
+        """  # noqa: F501
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 
@@ -179,7 +179,7 @@ class TestExtractQualiTableData:
                 <td>1</td><td>1</td><td>Driver 1</td><td>Team 1</td><td>1.19.429</td><td>1</td>
             </tr>
         </table>
-        """  # noqa: 501
+        """  # noqa: F501
         table = BeautifulSoup(html, "lxml").find("table")
         result = extract_quali_table_data(table)
 

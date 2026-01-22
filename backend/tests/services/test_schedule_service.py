@@ -10,7 +10,6 @@ from app.models.schedule import ScheduleRequest
 
 
 class TestScheduleService:
-
     @pytest.fixture
     def schedule_service(self):
         return ScheduleService()
@@ -156,13 +155,17 @@ class TestScheduleService:
 
         # All sessions in first race to past
         sample_schedule_data[0]["sessions"]["practice"]["start"] = "2020-01-01T11:30:00"
-        sample_schedule_data[0]["sessions"]["qualifying"]["start"] = "2020-01-01T11:30:00"
+        sample_schedule_data[0]["sessions"]["qualifying"]["start"] = (
+            "2020-01-01T11:30:00"
+        )
         sample_schedule_data[0]["sessions"]["sprint"]["start"] = "2020-01-01T11:30:00"
         sample_schedule_data[0]["sessions"]["race"]["start"] = "2020-01-01T11:30:00"
 
         # Only practice in second race to future
         sample_schedule_data[1]["sessions"]["practice"]["start"] = future_time
-        sample_schedule_data[1]["sessions"]["qualifying"]["start"] = "2020-01-01T11:30:00"
+        sample_schedule_data[1]["sessions"]["qualifying"]["start"] = (
+            "2020-01-01T11:30:00"
+        )
         sample_schedule_data[1]["sessions"]["sprint"]["start"] = "2020-01-01T11:30:00"
         sample_schedule_data[1]["sessions"]["race"]["start"] = "2020-01-01T11:30:00"
 
@@ -209,7 +212,9 @@ class TestScheduleService:
         empty_schedule = []
 
         with patch("os.path.exists", return_value=True):
-            with patch("builtins.open", mock_open(read_data=json.dumps(empty_schedule))):
+            with patch(
+                "builtins.open", mock_open(read_data=json.dumps(empty_schedule))
+            ):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -226,7 +231,8 @@ class TestScheduleService:
 
         with patch("os.path.exists", return_value=True):
             with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_with_tbc))
+                "builtins.open",
+                mock_open(read_data=json.dumps(sample_schedule_with_tbc)),
             ):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
@@ -525,14 +531,12 @@ class TestScheduleService:
         # Ensure "now" is before these future dates so they are considered future sessions
         fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(schedule))
-        ), patch.object(
-            ScheduleService, "_parse_datetime", side_effect=fake_parse
-        ), patch(
-            "app.services.schedule_service.datetime"
-        ) as mock_dt:
-
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(schedule))),
+            patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
+            patch("app.services.schedule_service.datetime") as mock_dt,
+        ):
             mock_dt.now.return_value = fake_now
 
             result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))
@@ -597,14 +601,12 @@ class TestScheduleService:
 
         fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(schedule))
-        ), patch.object(
-            ScheduleService, "_parse_datetime", side_effect=fake_parse
-        ), patch(
-            "app.services.schedule_service.datetime"
-        ) as mock_dt:
-
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(schedule))),
+            patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
+            patch("app.services.schedule_service.datetime") as mock_dt,
+        ):
             mock_dt.now.return_value = fake_now
 
             result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))

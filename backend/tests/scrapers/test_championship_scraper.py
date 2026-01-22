@@ -46,7 +46,7 @@ def test_map_url_2023_plus():
 
 # find_championship_table tests
 def test_find_championship_table_found():
-    html = '<h3 id="World_Drivers\'_Championship_standings"></h3><table class="wikitable"></table>'  # noqa: 501
+    html = '<h3 id="World_Drivers\'_Championship_standings"></h3><table class="wikitable"></table>'  # noqa: F501
     soup = make_soup(html)
     table, error = find_championship_table(soup, "Drivers'", 1, 2020)
     assert table is not None
@@ -178,7 +178,10 @@ def test_get_footer_rows_count_2020_series3_drivers():
 
 # process_table_row tests (too few cells, rowspan, missing points, no. column)
 def test_process_table_row_too_few_cells():
-    cells = [make_soup("<td>only</td>").find("td"), make_soup("<td>two</td>").find("td")]
+    cells = [
+        make_soup("<td>only</td>").find("td"),
+        make_soup("<td>two</td>").find("td"),
+    ]
     headers = ["Pos", "Driver", "Points"]
     tracker = {
         "pos_rowspan": 0,

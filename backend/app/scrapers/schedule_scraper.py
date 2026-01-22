@@ -230,7 +230,9 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                 race_name = full_name_tag.text.strip() if full_name_tag else "Unknown"
 
                 # Clean race name
-                clean_name = re.sub(r"FORMULA 1 |GRAND PRIX|\d{4}", "", race_name).strip()
+                clean_name = re.sub(
+                    r"FORMULA 1 |GRAND PRIX|\d{4}", "", race_name
+                ).strip()
 
                 # Extract date
                 date_span = card.select_one(
@@ -249,7 +251,9 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                         f"{last_date} {CURRENT_YEAR}", "%d %b %Y"
                     )
                 else:
-                    date_obj = datetime.strptime(f"{date_str} {CURRENT_YEAR}", "%d %b %Y")
+                    date_obj = datetime.strptime(
+                        f"{date_str} {CURRENT_YEAR}", "%d %b %Y"
+                    )
 
                 # Get race URL
                 race_url = card.get("href")
@@ -260,7 +264,9 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                         full_url = urljoin("https://www.formula1.com", race_url)
                         race_response = session.get(full_url, timeout=10)
                         race_soup = BeautifulSoup(
-                            race_response.content, "lxml", parse_only=F1_SESSION_STRAINER
+                            race_response.content,
+                            "lxml",
+                            parse_only=F1_SESSION_STRAINER,
                         )
 
                         session_elements = race_soup.select('ul > li[role="listitem"]')
@@ -296,7 +302,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                             # Extract time
                             time_span = session_el.select_one(
-                                ".typography-module_technical-s-regular__6LvKq.text-text-5"  # noqa: 501
+                                ".typography-module_technical-s-regular__6LvKq.text-text-5"  # noqa: F501
                             )
                             time_str = ""
                             if time_span:
@@ -522,7 +528,7 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                     except Exception as e:
                         print(
-                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}"  # noqa: 501
+                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}"  # noqa: F501
                         )
 
                 # Add fallback race session

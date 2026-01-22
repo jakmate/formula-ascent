@@ -108,7 +108,9 @@ class TestProcessHeaders:
         soup = BeautifulSoup(html, "lxml")
         rows = soup.find_all("tr")
 
-        with patch("app.scrapers.entries_scraper.process_multirow_headers") as mock_multi:
+        with patch(
+            "app.scrapers.entries_scraper.process_multirow_headers"
+        ) as mock_multi:
             mock_multi.return_value = (["Team", "Constructor", "Driver"], rows[2:])
             process_headers(rows, 1, 2016)
             mock_multi.assert_called_once_with(rows)

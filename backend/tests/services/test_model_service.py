@@ -14,7 +14,10 @@ def mock_app_state():
     app_state = Mock(spec=AppState)
     app_state.models = {"f3_to_f2": {}, "f2_to_f1": {}}
     app_state.scaler = {"f3_to_f2": Mock(), "f2_to_f1": Mock()}
-    app_state.feature_cols = {"f3_to_f2": ["col1", "col2"], "f2_to_f1": ["col1", "col2"]}
+    app_state.feature_cols = {
+        "f3_to_f2": ["col1", "col2"],
+        "f2_to_f1": ["col1", "col2"],
+    }
     app_state.system_status = {
         "models_available": {"f3_to_f2": [], "f2_to_f1": []},
         "last_training": None,
@@ -57,7 +60,12 @@ class TestSaveModels:
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_save_models_with_series(
-        self, mock_logger, mock_joblib_dump, mock_torch_save, mock_makedirs, model_service
+        self,
+        mock_logger,
+        mock_joblib_dump,
+        mock_torch_save,
+        mock_makedirs,
+        model_service,
     ):
         """Test saving models for specific series"""
         # Setup mock models
@@ -118,7 +126,9 @@ class TestSaveModels:
     @patch("os.makedirs")
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_save_models_exception(self, mock_logger, mock_makedirs, model_service):
+    async def test_save_models_exception(
+        self, mock_logger, mock_makedirs, model_service
+    ):
         """Test save models exception handling"""
         mock_makedirs.side_effect = Exception("Directory error")
 
@@ -170,12 +180,12 @@ class TestLoadModels:
         # Mock PyTorch loading
         mock_torch_load.return_value = {"param": "value"}
 
-        with patch.object(RacingPredictor, "__init__", return_value=None), patch.object(
-            RacingPredictor, "load_state_dict"
-        ), patch.object(RacingPredictor, "to", return_value=Mock()), patch.object(
-            RacingPredictor, "eval"
+        with (
+            patch.object(RacingPredictor, "__init__", return_value=None),
+            patch.object(RacingPredictor, "load_state_dict"),
+            patch.object(RacingPredictor, "to", return_value=Mock()),
+            patch.object(RacingPredictor, "eval"),
         ):
-
             result = await model_service.load_models()
 
             assert result is True
@@ -233,7 +243,9 @@ class TestLoadModels:
         result = await model_service.load_models()
 
         assert result is False
-        mock_logger.error.assert_called_with("Error loading models: Directory read error")
+        mock_logger.error.assert_called_with(
+            "Error loading models: Directory read error"
+        )
 
     @patch("app.services.model_service.MODELS_DIR", "/test/models")
     @patch("os.path.exists")
@@ -270,10 +282,13 @@ class TestLoadModels:
         mock_model_instance = Mock(spec=RacingPredictor)
         mock_model_instance.to.return_value = mock_model_instance
 
-        with patch("torch.load") as mock_torch_load, patch(
-            "app.services.model_service.RacingPredictor", return_value=mock_model_instance
+        with (
+            patch("torch.load") as mock_torch_load,
+            patch(
+                "app.services.model_service.RacingPredictor",
+                return_value=mock_model_instance,
+            ),
         ):
-
             mock_torch_load.return_value = {"param": "value"}
 
             result = await model_service.load_models()
@@ -317,7 +332,8 @@ class TestTrainModels:
         )
         assert model_service.app_state.system_status["last_trained_season"] == 2023
         assert (
-            len(model_service.app_state.system_status["models_available"]["f3_to_f2"]) > 0
+            len(model_service.app_state.system_status["models_available"]["f3_to_f2"])
+            > 0
         )
 
         # Verify data health update
@@ -327,7 +343,9 @@ class TestTrainModels:
             == expected_health
         )
 
-        mock_logger.info.assert_called_with("Training models for f3_to_f2 on 100 records")
+        mock_logger.info.assert_called_with(
+            "Training models for f3_to_f2 on 100 records"
+        )
 
 
 class TestEdgeCases:
@@ -382,4 +400,6 @@ class TestEdgeCases:
         # Verify it still processes even with 0 records
         health = model_service.app_state.system_status["data_health"]["f3_to_f2"]
         assert health["historical_records"] == 0
-        assert model_service.app_state.system_status["models_available"]["f3_to_f2"] == []
+        assert (
+            model_service.app_state.system_status["models_available"]["f3_to_f2"] == []
+        )

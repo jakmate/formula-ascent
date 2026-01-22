@@ -21,7 +21,9 @@ def data_service(mock_app_state):
 class TestDataService:
     @patch("app.services.data_service.load_data")
     @pytest.mark.asyncio
-    async def test_load_current_data_empty_feeder_df(self, mock_load_data, data_service):
+    async def test_load_current_data_empty_feeder_df(
+        self, mock_load_data, data_service
+    ):
         """Test HTTPException when feeder_df is empty"""
         mock_load_data.return_value = pd.DataFrame()  # Empty dataframe
 

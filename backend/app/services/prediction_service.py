@@ -32,21 +32,23 @@ class PredictionService:
             feature_cols = self.app_state.feature_cols[self.series]
 
             if not feature_cols:
-                raise ValueError(f"No feature columns available for series {self.series}")
+                raise ValueError(
+                    f"No feature columns available for series {self.series}"
+                )
 
-            X_current = current_df[feature_cols].fillna(0)
+            x_current = current_df[feature_cols].fillna(0)
 
             # Cache both the processed features and the original dataframe
             self.prediction_cache[cache_key] = {
                 "current_df": current_df,
-                "X_current": X_current,
+                "x_current": x_current,
                 "timestamp": datetime.now(),
             }
             LOGGER.info(f"Feature preparation took {time.time() - data_start:.2f}s")
         else:
             cached_data = self.prediction_cache[cache_key]
             current_df = cached_data["current_df"]
-            X_current = cached_data["X_current"]
+            x_current = cached_data["x_current"]
             LOGGER.info(f"Used cached features in {time.time() - data_start:.2f}s")
 
         prediction_start = time.time()
@@ -55,7 +57,7 @@ class PredictionService:
 
         for model_name in models:
             try:
-                raw_probas = self._get_model_predictions(model_name, X_current)
+                raw_probas = self._get_model_predictions(model_name, x_current)
                 predictions = self._create_prediction_responses(current_df, raw_probas)
                 all_predictions[model_name] = ModelResults(
                     model_name=model_name,
@@ -78,7 +80,7 @@ class PredictionService:
             system_status=SystemStatus(**self.app_state.system_status),
         )
 
-    def _get_model_predictions(self, model_name: str, X_current):
+    def _get_model_predictions(self, model_name: str, x_current):
         """Extract prediction logic for reusability"""
         if model_name not in self.app_state.models[self.series]:
             raise ValueError(f"Model {model_name} not found for series {self.series}")
@@ -88,14 +90,14 @@ class PredictionService:
         if "PyTorch" in model_name:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model = model.to(device)
-            X_current_scaled = self.app_state.scaler[self.series].transform(X_current)
+            x_current_scaled = self.app_state.scaler[self.series].transform(x_current)
             model.eval()
             with torch.no_grad():
-                X_torch = torch.FloatTensor(X_current_scaled).to(device)
-                logits = model(X_torch)
+                x_torch = torch.FloatTensor(x_current_scaled).to(device)
+                logits = model(x_torch)
                 raw_predictions = torch.sigmoid(logits).cpu().numpy().flatten()
         else:
-            raw_predictions = model.predict_proba(X_current)[:, 1]
+            raw_predictions = model.predict_proba(x_current)[:, 1]
 
         if hasattr(model, "calibrator") and model.calibrator is not None:
             return model.calibrator.transform(raw_predictions)
@@ -144,18 +146,20 @@ class PredictionService:
             else:
                 current_df = features_df[
                     features_df["year"]
-                    >= self.app_state.system_status.get("current_year", CURRENT_YEAR - 1)
+                    >= self.app_state.system_status.get(
+                        "current_year", CURRENT_YEAR - 1
+                    )
                 ].copy()
 
             if current_df.empty:
                 LOGGER.warning(f"No current data for {self.series} predictions")
                 return
 
-            X_current = current_df[self.app_state.feature_cols[self.series]].fillna(0)
+            x_current = current_df[self.app_state.feature_cols[self.series]].fillna(0)
             predictions = []
             for model_name in self.app_state.models[self.series].keys():
                 try:
-                    result = self._get_model_predictions(model_name, X_current)
+                    result = self._get_model_predictions(model_name, x_current)
                     predictions.append(
                         {
                             "model": model_name,
@@ -173,7 +177,9 @@ class PredictionService:
             if not hasattr(self.app_state, "current_predictions"):
                 self.app_state.current_predictions = {}
             self.app_state.current_predictions[self.series] = predictions
-            LOGGER.info(f"Generated {len(predictions)} prediction sets for {self.series}")
+            LOGGER.info(
+                f"Generated {len(predictions)} prediction sets for {self.series}"
+            )
 
         except Exception as e:
             LOGGER.error(f"Prediction update failed for {self.series}: {e}")

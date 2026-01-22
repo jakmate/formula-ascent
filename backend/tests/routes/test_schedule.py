@@ -45,12 +45,17 @@ class TestGetSeriesSchedule:
 
     @pytest.mark.asyncio
     async def test_get_series_schedule_exception(self, mock_schedule_service):
-        mock_schedule_service.get_series_schedule.side_effect = Exception("Service error")
+        mock_schedule_service.get_series_schedule.side_effect = Exception(
+            "Service error"
+        )
 
-        with patch(
-            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
-        ), patch("app.routes.schedule.LOGGER") as mock_logger:
-
+        with (
+            patch(
+                "app.routes.schedule.ScheduleService",
+                return_value=mock_schedule_service,
+            ),
+            patch("app.routes.schedule.LOGGER") as mock_logger,
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await get_series_schedule("f1", None, None)
 
@@ -98,10 +103,13 @@ class TestGetNextRace:
     async def test_get_next_race_exception(self, mock_schedule_service):
         mock_schedule_service.get_next_race.side_effect = Exception("Service error")
 
-        with patch(
-            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
-        ), patch("app.routes.schedule.LOGGER") as mock_logger:
-
+        with (
+            patch(
+                "app.routes.schedule.ScheduleService",
+                return_value=mock_schedule_service,
+            ),
+            patch("app.routes.schedule.LOGGER") as mock_logger,
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await get_next_race("f1", None, None)
 

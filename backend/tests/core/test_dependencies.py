@@ -14,14 +14,12 @@ from app.dependencies import (
 @pytest.fixture
 def mock_services():
     """Mock all service classes"""
-    with patch("app.dependencies.AppState") as mock_app_state, patch(
-        "app.dependencies.ModelService"
-    ) as mock_model_service, patch(
-        "app.dependencies.DataService"
-    ) as mock_data_service, patch(
-        "app.dependencies.CronjobService"
-    ) as mock_cronjob_service:
-
+    with (
+        patch("app.dependencies.AppState") as mock_app_state,
+        patch("app.dependencies.ModelService") as mock_model_service,
+        patch("app.dependencies.DataService") as mock_data_service,
+        patch("app.dependencies.CronjobService") as mock_cronjob_service,
+    ):
         # Configure mocks
         mock_app_state_instance = MagicMock()
         mock_app_state.return_value = mock_app_state_instance

@@ -98,7 +98,9 @@ class TestScrapeWiki:
     @patch("app.scrapers.scrape.create_session")
     @patch("app.scrapers.scrape.safe_request")
     @patch("app.scrapers.scrape.process_entries")
-    def test_scrape_wiki_processing_error(self, mock_entries, mock_request, mock_session):
+    def test_scrape_wiki_processing_error(
+        self, mock_entries, mock_request, mock_session
+    ):
         """Test handling of processing errors."""
         mock_sess = Mock()
         mock_session.return_value = mock_sess

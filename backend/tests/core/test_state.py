@@ -44,7 +44,10 @@ class TestAppStateInit:
         assert state.system_status["last_scrape_schedule"] is None
         assert state.system_status["last_training"] is None
         assert state.system_status["last_trained_season"] is None
-        assert state.system_status["models_available"] == {"f3_to_f2": [], "f2_to_f1": []}
+        assert state.system_status["models_available"] == {
+            "f3_to_f2": [],
+            "f2_to_f1": [],
+        }
         assert state.system_status["data_health"] == {}
         assert state.scheduler is not None
 
@@ -106,17 +109,19 @@ class TestLoadState:
     def test_load_state_success(self, sample_state_data):
         state = AppState()
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(sample_state_data))
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(sample_state_data))),
         ):
-
             result = state.load_state()
 
             assert result is True
             assert state.system_status["last_scrape_full"] == datetime(
                 2024, 1, 1, 12, 0, 0
             )
-            assert state.system_status["last_training"] == datetime(2024, 1, 1, 13, 0, 0)
+            assert state.system_status["last_training"] == datetime(
+                2024, 1, 1, 13, 0, 0
+            )
             assert state.system_status["last_trained_season"] == "2024"
             assert state.system_status["models_available"] == {
                 "f3_to_f2": ["f3_to_f2_model1"],
@@ -143,10 +148,10 @@ class TestLoadState:
             "models_available": ["f3_to_f2_model1"],
         }
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(state_data))),
         ):
-
             result = state.load_state()
 
             assert result is True
@@ -157,12 +162,12 @@ class TestLoadState:
     def test_load_state_json_decode_error(self, mock_state_file):
         state = AppState()
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data="invalid json")
-        ), patch("app.core.state.LOGGER") as mock_logger, patch(
-            "os.rename"
-        ) as mock_rename:
-
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data="invalid json")),
+            patch("app.core.state.LOGGER") as mock_logger,
+            patch("os.rename") as mock_rename,
+        ):
             result = state.load_state()
 
             assert result is False
@@ -174,10 +179,11 @@ class TestLoadState:
     def test_load_state_general_exception(self):
         state = AppState()
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", side_effect=IOError("File error")
-        ), patch("app.core.state.LOGGER") as mock_logger:
-
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", side_effect=IOError("File error")),
+            patch("app.core.state.LOGGER") as mock_logger,
+        ):
             result = state.load_state()
 
             assert result is False
@@ -192,10 +198,10 @@ class TestLoadState:
             "models_available": [],
         }
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(state_data))),
         ):
-
             result = state.load_state()
 
             assert result is True
@@ -220,10 +226,10 @@ class TestLoadState:
             },
         }
 
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=json.dumps(state_data))
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=json.dumps(state_data))),
         ):
-
             result = state.load_state()
 
             assert result is True
@@ -260,10 +266,10 @@ class TestStateIntegration:
 
         # Load into new state object
         state2 = AppState()
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=saved_data)
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=saved_data)),
         ):
-
             result = state2.load_state()
 
             assert result is True
@@ -305,10 +311,10 @@ class TestStateIntegration:
 
         # Load into new state object
         state2 = AppState()
-        with patch("os.path.exists", return_value=True), patch(
-            "builtins.open", mock_open(read_data=saved_data)
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("builtins.open", mock_open(read_data=saved_data)),
         ):
-
             result = state2.load_state()
 
             assert result is True
