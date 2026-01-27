@@ -26,7 +26,7 @@ jobs:
       working-directory: backend
       run: |
         uv run --no-sync ruff check
-        uv run --no-sync ruff format
+        uv run --no-sync ruff format --check
 
   backend-test:
     runs-on: ubuntu-latest

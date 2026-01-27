@@ -400,7 +400,7 @@ class TestUpdatePredictions:
         self, prediction_service, sample_dataframe
     ):
         prediction_service.app_state.system_status["current_year"] = 2024
-        
+
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
             [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
@@ -408,7 +408,7 @@ class TestUpdatePredictions:
         mock_rf_model.calibrator = None
 
         await prediction_service.update_predictions(features_df=sample_dataframe)
-        
+
         assert "f3_to_f2" in prediction_service.app_state.current_predictions
 
     @pytest.mark.asyncio

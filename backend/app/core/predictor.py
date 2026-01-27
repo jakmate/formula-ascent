@@ -289,6 +289,45 @@ def calculate_qualifying_features(df, qualifying_df):
     return df
 
 
+def encode_nationality_and_academy(df, features_df, alpha=10):
+    if "promoted" not in df.columns:
+        raise ValueError("'promoted' not in df")
+    global_mean = df["promoted"].mean()
+
+    # Safe missing value handling
+    train_nat = df["nationality"].fillna("NO_NATIONALITY")
+    train_acad = df["academy"].fillna("NO_ACADEMY")
+    feat_nat = features_df["nationality"].fillna("NO_NATIONALITY")
+    feat_acad = features_df["academy"].fillna("NO_ACADEMY")
+
+    if "promoted" in df.columns:
+        # Nationality encoding
+        nat_stats = df.groupby(train_nat)["promoted"].agg(["sum", "count"])
+        nat_stats["smoothed"] = (nat_stats["sum"] + alpha * global_mean) / (
+            nat_stats["count"] + alpha
+        )
+        features_df["nationality_encoded"] = feat_nat.map(nat_stats["smoothed"]).fillna(
+            global_mean
+        )
+
+        # Academy encoding
+        acad_stats = df.groupby(train_acad)["promoted"].agg(["sum", "count"])
+        acad_stats["smoothed"] = (acad_stats["sum"] + alpha * global_mean) / (
+            acad_stats["count"] + alpha
+        )
+        features_df["academy_encoded"] = feat_acad.map(acad_stats["smoothed"]).fillna(
+            global_mean
+        )
+
+        features_df["has_academy"] = (feat_acad != "NO_ACADEMY").astype(int)
+    else:
+        features_df["nationality_encoded"] = global_mean
+        features_df["academy_encoded"] = global_mean
+        features_df["has_academy"] = (feat_acad != "NO_ACADEMY").astype(int)
+
+    return features_df
+
+
 def engineer_features(df):
     """Create features for ML models with race type separation."""
     if df.empty:
@@ -332,9 +371,15 @@ def engineer_features(df):
                 & (df.get("series", "F3") == row.get("series", "F3"))
             ]
             race_cols = get_race_columns(year_series_data)
-            cache_key_to_data[cache_key] = race_cols
 
-        race_cols = cache_key_to_data[cache_key]
+            valid_race_cols = [
+                col
+                for col in race_cols
+                if not year_series_data[col].astype(str).str.strip().eq("C").any()
+            ]
+            cache_key_to_data[cache_key] = (race_cols, valid_race_cols)
+
+        race_cols, valid_race_cols = cache_key_to_data[cache_key]
         points_system = get_points_system(row["year"])
 
         stats = {
@@ -412,7 +457,7 @@ def engineer_features(df):
 
         stats["races_completed"] = stats["feature_races"] + stats["sprint_races"]
         stats["participation_rate"] = (
-            stats["races_completed"] / len(race_cols) if race_cols else 0
+            stats["races_completed"] / len(valid_race_cols) if valid_race_cols else 0
         )
 
         race_stats.append(stats)
@@ -465,43 +510,8 @@ def engineer_features(df):
     # Championship position percentile
     features_df["champ_pos_pct"] = features_df.groupby("year")["pos"].rank(pct=True)
 
-    # Target encode nationality
-    if "promoted" in df.columns:
-        global_mean = df["promoted"].mean()
-        nationality_stats = (
-            df.groupby("nationality")
-            .agg({"promoted": ["sum", "count"]})
-            .droplevel(0, axis=1)
-        )
-        alpha = 10
-        nationality_stats["smoothed_rate"] = (
-            nationality_stats["sum"] + alpha * global_mean
-        ) / (nationality_stats["count"] + alpha)
-        features_df["nationality_encoded"] = (
-            features_df["nationality"]
-            .map(nationality_stats["smoothed_rate"])
-            .fillna(global_mean)
-        )
-
-        academy_stats = (
-            df.groupby("academy")
-            .agg({"promoted": ["sum", "count"]})
-            .droplevel(0, axis=1)
-        )
-        academy_stats["smoothed_rate"] = (
-            academy_stats["sum"] + alpha * global_mean
-        ) / (academy_stats["count"] + alpha)
-        features_df["academy_encoded"] = (
-            features_df["academy"]
-            .map(academy_stats["smoothed_rate"])
-            .fillna(global_mean)
-        )
-
-        features_df["has_academy"] = features_df["academy"].notna().astype(int)
-    else:
-        features_df["nationality_encoded"] = 0.2
-        features_df["academy_encoded"] = 0.2
-        features_df["has_academy"] = 0
+    # Encode nationalities and academies
+    features_df = encode_nationality_and_academy(df, features_df)
 
     return features_df
 
