@@ -1,3 +1,4 @@
+import asyncio
 import os
 import joblib
 import torch
@@ -20,7 +21,7 @@ class ModelService:
             series_dir = (
                 os.path.join(MODELS_DIR, self.series) if self.series else MODELS_DIR
             )
-            os.makedirs(series_dir, exist_ok=True)
+            await asyncio.to_thread(os.makedirs, series_dir, exist_ok=True)
 
             models_to_save = (
                 self.app_state.models[self.series]
@@ -30,38 +31,38 @@ class ModelService:
 
             for name, model in models_to_save.items():
                 if name == "PyTorch":
-                    torch.save(
+                    await asyncio.to_thread(
+                        torch.save,
                         model.state_dict(),
                         os.path.join(series_dir, f"{name}.pt"),
                         _use_new_zipfile_serialization=True,
                     )
                     if hasattr(model, "calibrator") and model.calibrator is not None:
-                        joblib.dump(
+                        await asyncio.to_thread(
+                            joblib.dump,
                             model.calibrator,
                             os.path.join(series_dir, f"{name}_calibrator.joblib"),
                         )
                 else:
-                    joblib.dump(model, os.path.join(series_dir, f"{name}.joblib"))
+                    await asyncio.to_thread(
+                        joblib.dump, model, os.path.join(series_dir, f"{name}.joblib")
+                    )
 
-            # Save preprocessor
             preprocessor_data = {
-                "scaler": (
-                    self.app_state.scaler[self.series]
-                    if self.series
-                    else self.app_state.scaler
-                ),
-                "feature_cols": (
-                    self.app_state.feature_cols[self.series]
-                    if self.series
-                    else self.app_state.feature_cols
-                ),
+                "scaler": self.app_state.scaler[self.series]
+                if self.series
+                else self.app_state.scaler,
+                "feature_cols": self.app_state.feature_cols[self.series]
+                if self.series
+                else self.app_state.feature_cols,
             }
-            joblib.dump(
-                preprocessor_data, os.path.join(series_dir, "preprocessor.joblib")
+            await asyncio.to_thread(
+                joblib.dump,
+                preprocessor_data,
+                os.path.join(series_dir, "preprocessor.joblib"),
             )
 
             LOGGER.info(f"Models saved successfully for {self.series or 'all series'}")
-
         except Exception as e:
             LOGGER.error(f"Error saving models: {e}")
 
@@ -81,7 +82,9 @@ class ModelService:
                 # Load preprocessor
                 preprocessor_path = os.path.join(series_dir, "preprocessor.joblib")
                 if os.path.exists(preprocessor_path):
-                    preprocessor = joblib.load(preprocessor_path)
+                    preprocessor = await asyncio.to_thread(
+                        joblib.load, preprocessor_path
+                    )
                     self.app_state.scaler[series] = preprocessor["scaler"]
                     self.app_state.feature_cols[series] = preprocessor["feature_cols"]
 
@@ -97,7 +100,7 @@ class ModelService:
                     model_path = os.path.join(series_dir, model_file)
 
                     if model_file.endswith(".joblib"):
-                        model = joblib.load(model_path)
+                        model = await asyncio.to_thread(joblib.load, model_path)
                         self.app_state.models[series][name] = model
                         models_loaded = True
                     elif model_file.endswith(".pt"):
@@ -107,19 +110,22 @@ class ModelService:
                         model = RacingPredictor(
                             len(self.app_state.feature_cols[series])
                         )
-                        state_dict = torch.load(
+                        state_dict = await asyncio.to_thread(
+                            torch.load,
                             model_path,
-                            map_location=device,  # Load directly to target device
+                            map_location=device,
                             weights_only=True,
                         )
                         model.load_state_dict(state_dict)
-                        model = model.to(device)  # Ensure model is on correct device
-                        model.eval()  # Set to evaluation mode
+                        model = model.to(device)
+                        model.eval()
                         calibrator_path = os.path.join(
                             series_dir, f"{name}_calibrator.joblib"
                         )
                         if os.path.exists(calibrator_path):
-                            model.calibrator = joblib.load(calibrator_path)
+                            model.calibrator = await asyncio.to_thread(
+                                joblib.load, calibrator_path
+                            )
                         self.app_state.models[series][name] = model
                         models_loaded = True
 
@@ -135,7 +141,6 @@ class ModelService:
                 )
 
             return models_loaded
-
         except Exception as e:
             LOGGER.error(f"Error loading models: {e}")
             return False
@@ -145,7 +150,9 @@ class ModelService:
         LOGGER.info(f"Training models for {self.series} on {len(trainable_df)} records")
         from app.core.predictor import train_models
 
-        (models, feature_cols, scaler) = train_models(trainable_df)
+        (models, feature_cols, scaler) = await asyncio.to_thread(
+            train_models, trainable_df
+        )
 
         # Store in series-specific slots
         self.app_state.models[self.series] = models

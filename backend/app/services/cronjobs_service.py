@@ -25,10 +25,12 @@ class CronjobService:
             id="weekly_scrape_train",
         )
         self.scheduler.start()
+        await asyncio.sleep(0)
         LOGGER.info("Scheduler started")
 
     async def stop(self):
         """Stop scheduler"""
+        await asyncio.sleep(0)
         self.scheduler.shutdown()
 
     async def scrape_and_train_task(self):

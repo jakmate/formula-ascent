@@ -1,3 +1,4 @@
+import asyncio
 import time
 from fastapi import HTTPException
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
@@ -20,6 +21,7 @@ class DataService:
             LOGGER.info(
                 f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s"
             )
+            await asyncio.sleep(0)
             return self.data_cache[cache_key]
 
         LOGGER.info(f"Cache MISS for {series} - processing data...")

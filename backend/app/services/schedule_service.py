@@ -1,3 +1,4 @@
+import aiofiles
 import json
 import os
 from datetime import datetime
@@ -15,8 +16,8 @@ class ScheduleService:
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
-        with open(file_path, "r") as f:
-            schedule = json.load(f)
+        async with aiofiles.open(file_path, "r") as f:
+            schedule = json.loads(await f.read())
 
         user_timezone = request.get_timezone()
         if user_timezone != "UTC":
@@ -31,8 +32,8 @@ class ScheduleService:
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
-        with open(file_path, "r") as f:
-            schedule = json.load(f)
+        async with aiofiles.open(file_path, "r") as f:
+            schedule = json.loads(await f.read())
 
         total_rounds = len(schedule)
         now = datetime.now(pytz.UTC)
@@ -190,7 +191,7 @@ class ScheduleService:
         utc_tz = pytz.UTC
 
         for race in schedule:
-            for session_name, session_info in race["sessions"].items():
+            for _, session_info in race["sessions"].items():
                 if session_info.get("time") == "TBC":
                     continue
 
@@ -210,7 +211,7 @@ class ScheduleService:
         target_tz = pytz.timezone(target_timezone)
         utc_tz = pytz.UTC
 
-        for session_name, session_info in race["sessions"].items():
+        for _, session_info in race["sessions"].items():
             if session_info.get("time") == "TBC":
                 continue
 

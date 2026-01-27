@@ -707,7 +707,7 @@ def train_models(df):
         "KNN": Pipeline(
             [
                 ("scaler", StandardScaler()),
-                ("classifier", KNeighborsClassifier(n_jobs=-1)),
+                ("classifier", KNeighborsClassifier(n_neighbors=5, n_jobs=-1)),
             ]
         ),
         "LightGBM": Pipeline(
@@ -740,7 +740,14 @@ def train_models(df):
                 ("scaler", StandardScaler()),
                 (
                     "classifier",
-                    SVC(random_state=SEED, class_weight="balanced", probability=True),
+                    SVC(
+                        random_state=SEED,
+                        C=1,
+                        kernel="rbf",
+                        gamma="scale",
+                        class_weight="balanced",
+                        probability=True,
+                    ),
                 ),
             ]
         ),
@@ -749,7 +756,10 @@ def train_models(df):
                 (
                     "classifier",
                     RandomForestClassifier(
-                        random_state=SEED, class_weight="balanced_subsample"
+                        random_state=SEED,
+                        min_samples_leaf=1,
+                        max_features="sqrt",
+                        class_weight="balanced_subsample",
                     ),
                 )
             ]

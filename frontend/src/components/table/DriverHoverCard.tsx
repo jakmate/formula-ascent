@@ -78,11 +78,15 @@ export const DriverHoverCard = ({ driver, children }: DriverHoverCardProps) => {
   };
 
   return (
-    <div
+    <span
       className="relative inline-block"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleMouseEnter}
+      onBlur={handleMouseLeave}
       ref={triggerRef}
+      role="tooltip"
+      aria-label={`View details for ${driver.driver}`}
     >
       <div ref={triggerRef}>{children}</div>
 
@@ -158,6 +162,6 @@ export const DriverHoverCard = ({ driver, children }: DriverHoverCardProps) => {
           </div>
         </div>
       )}
-    </div>
+    </span>
   );
 };

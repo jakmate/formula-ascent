@@ -197,21 +197,21 @@ class TestGetModelPredictions:
     """Test _get_model_predictions method"""
 
     def test_sklearn_model_predictions(self, prediction_service):
-        X_current = pd.DataFrame(rng.random((3, 5)))
+        x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_model.predict_proba.return_value = np.array(
             [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
         )
         mock_model.calibrator = None
 
-        result = prediction_service._get_model_predictions("RandomForest", X_current)
+        result = prediction_service._get_model_predictions("RandomForest", x_current)
 
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
         np.testing.assert_array_equal(result, np.array([0.7, 0.6, 0.5]))
 
     def test_pytorch_model_predictions(self, prediction_service):
-        X_current = pd.DataFrame(rng.random((3, 5)))
+        x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["PyTorch"]
         mock_model.eval = Mock()
         mock_model.to = Mock(return_value=mock_model)
@@ -238,13 +238,13 @@ class TestGetModelPredictions:
             mock_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
-                result = prediction_service._get_model_predictions("PyTorch", X_current)
+                result = prediction_service._get_model_predictions("PyTorch", x_current)
 
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
     def test_model_with_calibrator(self, prediction_service):
-        X_current = pd.DataFrame(rng.random((3, 5)))
+        x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_model.predict_proba.return_value = np.array(
             [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
@@ -254,19 +254,19 @@ class TestGetModelPredictions:
         mock_calibrator.transform.return_value = np.array([0.75, 0.65, 0.55])
         mock_model.calibrator = mock_calibrator
 
-        result = prediction_service._get_model_predictions("RandomForest", X_current)
+        result = prediction_service._get_model_predictions("RandomForest", x_current)
 
         np.testing.assert_array_equal(result, np.array([0.75, 0.65, 0.55]))
         mock_calibrator.transform.assert_called_once()
 
     def test_model_not_found_raises_error(self, prediction_service):
-        X_current = pd.DataFrame(rng.random((3, 5)))
+        x_current = pd.DataFrame(rng.random((3, 5)))
 
         with pytest.raises(ValueError, match="Model InvalidModel not found"):
-            prediction_service._get_model_predictions("InvalidModel", X_current)
+            prediction_service._get_model_predictions("InvalidModel", x_current)
 
     def test_pytorch_model_uses_cuda(self, prediction_service):
-        X_current = pd.DataFrame(rng.random((2, 5)))
+        x_current = pd.DataFrame(rng.random((2, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["PyTorch"]
         mock_model.eval = Mock()
         mock_model.to = Mock(return_value=mock_model)
@@ -299,7 +299,7 @@ class TestGetModelPredictions:
             patch("torch.sigmoid", return_value=mock_sig_ret),
             patch("torch.device") as mock_device,
         ):
-            result = prediction_service._get_model_predictions("PyTorch", X_current)
+            result = prediction_service._get_model_predictions("PyTorch", x_current)
 
         # Assert device was created with cuda
         mock_device.assert_called_with("cuda")
@@ -324,9 +324,15 @@ class TestCreatePredictionResponses:
         assert len(result) == 3
         assert all(isinstance(pred, PredictionResponse) for pred in result)
         assert result[0].driver == "Hamilton"
-        assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == 75.0
-        assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == 65.0
-        assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == 55.0
+        assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == pytest.approx(
+            75.0
+        )
+        assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == pytest.approx(
+            65.0
+        )
+        assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == pytest.approx(
+            55.0
+        )
 
     def test_predictions_sorted_by_percentage(
         self, prediction_service, sample_dataframe
@@ -338,9 +344,15 @@ class TestCreatePredictionResponses:
         )
 
         # Should be sorted descending
-        assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == 75.0
-        assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == 65.0
-        assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == 55.0
+        assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == pytest.approx(
+            75.0
+        )
+        assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == pytest.approx(
+            65.0
+        )
+        assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == pytest.approx(
+            55.0
+        )
 
 
 class TestUpdatePredictions:

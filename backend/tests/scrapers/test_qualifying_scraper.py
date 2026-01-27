@@ -30,10 +30,10 @@ class TestAddTimeGap:
 
 class TestParseTimeToSeconds:
     def test_parse_time_with_colon(self):
-        assert parse_time_to_seconds("1:19.429") == 79.429
+        assert parse_time_to_seconds("1:19.429") == pytest.approx(79.429)
 
     def test_parse_time_with_dots(self):
-        assert parse_time_to_seconds("1.19.429") == 79.429
+        assert parse_time_to_seconds("1.19.429") == pytest.approx(79.429)
 
     def test_invalid_format_raises_error(self):
         with pytest.raises(ValueError):

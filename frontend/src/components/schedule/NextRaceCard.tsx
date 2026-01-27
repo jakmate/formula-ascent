@@ -182,7 +182,7 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
     }
   };
 
-  const displayTimezone = userTimezone?.replaceAll(/_/g, ' ') || 'Local Time';
+  const displayTimezone = userTimezone?.replaceAll('_', ' ') || 'Local Time';
 
   return (
     <div

@@ -1,7 +1,7 @@
 import pytest
 import json
 from datetime import datetime
-from unittest.mock import patch, mock_open
+from unittest.mock import AsyncMock, patch, mock_open
 from fastapi import HTTPException
 import pytz
 
@@ -84,6 +84,17 @@ class TestScheduleService:
             }
         ]
 
+    @pytest.fixture
+    def mock_aiofiles_open(self):
+        def _mock(data):
+            mock_file = AsyncMock()
+            mock_file.__aenter__.return_value.read = AsyncMock(
+                return_value=json.dumps(data)
+            )
+            return patch("aiofiles.open", return_value=mock_file)
+
+        return _mock
+
     # Tests for get_series_schedule
     @pytest.mark.asyncio
     async def test_get_series_schedule_file_not_found(self, schedule_service):
@@ -97,12 +108,10 @@ class TestScheduleService:
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
     async def test_get_series_schedule_success_utc(
-        self, schedule_service, sample_schedule_data
+        self, schedule_service, sample_schedule_data, mock_aiofiles_open
     ):
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_data))
-            ):
+            with mock_aiofiles_open(sample_schedule_data):
                 result = await schedule_service.get_series_schedule(
                     ScheduleRequest(series="f1")
                 )
@@ -112,13 +121,11 @@ class TestScheduleService:
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
     async def test_get_series_schedule_timezone_precedence(
-        self, schedule_service, sample_schedule_data
+        self, schedule_service, sample_schedule_data, mock_aiofiles_open
     ):
         """Test that timezone parameter takes precedence over x_timezone"""
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_data))
-            ):
+            with mock_aiofiles_open(sample_schedule_data):
                 with patch.object(
                     schedule_service, "_convert_schedule_timezone"
                 ) as mock_convert:
@@ -148,7 +155,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_success(self, schedule_service, sample_schedule_data):
+    async def test_get_next_race_success(
+        self, schedule_service, sample_schedule_data, mock_aiofiles_open
+    ):
         # Set all sessions in first race to past
         # Only first session of second race to future
         future_time = "2030-04-11T11:00:00"
@@ -170,9 +179,7 @@ class TestScheduleService:
         sample_schedule_data[1]["sessions"]["race"]["start"] = "2020-01-01T11:30:00"
 
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_data))
-            ):
+            with mock_aiofiles_open(sample_schedule_data):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -188,13 +195,11 @@ class TestScheduleService:
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
     async def test_get_next_race_returns_last_race(
-        self, schedule_service, sample_schedule_data
+        self, schedule_service, sample_schedule_data, mock_aiofiles_open
     ):
         # All sessions in the past
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_data))
-            ):
+            with mock_aiofiles_open(sample_schedule_data):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -208,13 +213,13 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_empty_schedule(self, schedule_service):
+    async def test_get_next_race_empty_schedule(
+        self, schedule_service, mock_aiofiles_open
+    ):
         empty_schedule = []
 
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(empty_schedule))
-            ):
+            with mock_aiofiles_open(empty_schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -224,16 +229,13 @@ class TestScheduleService:
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
     async def test_get_next_race_with_tbc_sessions(
-        self, schedule_service, sample_schedule_with_tbc
+        self, schedule_service, sample_schedule_with_tbc, mock_aiofiles_open
     ):
         future_time = "2030-08-03T15:00:00"
         sample_schedule_with_tbc[0]["sessions"]["race"]["start"] = future_time
 
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open",
-                mock_open(read_data=json.dumps(sample_schedule_with_tbc)),
-            ):
+            with mock_aiofiles_open(sample_schedule_with_tbc):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -245,7 +247,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_with_tbc_date_only_sessions(self, schedule_service):
+    async def test_get_next_race_with_tbc_date_only_sessions(
+        self, schedule_service, mock_aiofiles_open
+    ):
         # Test TBC sessions with date-only format
         tbc_schedule = [
             {
@@ -263,7 +267,7 @@ class TestScheduleService:
         ]
 
         with patch("os.path.exists", return_value=True):
-            with patch("builtins.open", mock_open(read_data=json.dumps(tbc_schedule))):
+            with mock_aiofiles_open(tbc_schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -298,7 +302,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_sessions_without_start(self, schedule_service):
+    async def test_get_next_race_sessions_without_start(
+        self, schedule_service, mock_aiofiles_open
+    ):
         schedule_without_start = [
             {
                 "round": 1,
@@ -309,9 +315,7 @@ class TestScheduleService:
         ]
 
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(schedule_without_start))
-            ):
+            with mock_aiofiles_open(schedule_without_start):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -323,7 +327,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_earliest_session_selection(self, schedule_service):
+    async def test_get_next_race_earliest_session_selection(
+        self, schedule_service, mock_aiofiles_open
+    ):
         # Test that earliest session is selected as next session
         test_schedule = [
             {
@@ -341,7 +347,7 @@ class TestScheduleService:
         ]
 
         with patch("os.path.exists", return_value=True):
-            with patch("builtins.open", mock_open(read_data=json.dumps(test_schedule))):
+            with mock_aiofiles_open(test_schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -352,7 +358,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_invalid_datetime_handling(self, schedule_service):
+    async def test_get_next_race_invalid_datetime_handling(
+        self, schedule_service, mock_aiofiles_open
+    ):
         # Test handling of invalid datetime strings
         invalid_schedule = [
             {
@@ -367,9 +375,7 @@ class TestScheduleService:
         ]
 
         with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(invalid_schedule))
-            ):
+            with mock_aiofiles_open(invalid_schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
@@ -488,7 +494,9 @@ class TestScheduleService:
 
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_fallback_skips_invalid_dates(self, schedule_service):
+    async def test_get_next_race_fallback_skips_invalid_dates(
+        self, schedule_service, mock_aiofiles_open
+    ):
         # Build a schedule with two races.
         # Use arbitrary start strings that map in _parse_datetime.
         schedule = [
@@ -533,7 +541,7 @@ class TestScheduleService:
 
         with (
             patch("os.path.exists", return_value=True),
-            patch("builtins.open", mock_open(read_data=json.dumps(schedule))),
+            mock_aiofiles_open(schedule),
             patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
             patch("app.services.schedule_service.datetime") as mock_dt,
         ):
@@ -551,7 +559,7 @@ class TestScheduleService:
     @pytest.mark.asyncio
     @patch("app.config.SCHEDULE_DIR", "/test/schedules")
     async def test_get_next_race_fallback_sorting_picks_earliest_race(
-        self, schedule_service
+        self, schedule_service, mock_aiofiles_open
     ):
         schedule = [
             {
@@ -603,7 +611,7 @@ class TestScheduleService:
 
         with (
             patch("os.path.exists", return_value=True),
-            patch("builtins.open", mock_open(read_data=json.dumps(schedule))),
+            mock_aiofiles_open(schedule),
             patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
             patch("app.services.schedule_service.datetime") as mock_dt,
         ):
