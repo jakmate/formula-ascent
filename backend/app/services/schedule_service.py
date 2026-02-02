@@ -12,7 +12,7 @@ from app.models.schedule import ScheduleRequest
 class ScheduleService:
     async def get_series_schedule(self, request: ScheduleRequest):
         """Get schedule for a specific racing series with timezone conversion"""
-        file_path = os.path.join(SCHEDULE_DIR, f"{request.series}.json")
+        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
@@ -28,7 +28,7 @@ class ScheduleService:
     async def get_next_race(self, request: ScheduleRequest):
         """Get the next upcoming race for a series with timezone conversion.
         If no upcoming races, return the last race of the season."""
-        file_path = os.path.join(SCHEDULE_DIR, f"{request.series}.json")
+        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
@@ -234,3 +234,26 @@ class ScheduleService:
                 race["nextSession"]["date"] = local_dt.isoformat()
 
         return race
+
+    def _get_schedule_dir(self):
+        """Get schedule directory, falling back to previous year if current year is empty"""
+        # Check if current year directory exists and has any JSON files
+        if SCHEDULE_DIR.exists():
+            json_files = list(SCHEDULE_DIR.glob("*.json"))
+            if json_files:
+                return SCHEDULE_DIR
+
+        # Fallback to previous year
+        year_str = SCHEDULE_DIR.name  # Get just the directory name
+        if year_str.isdigit():
+            prev_year_str = str(int(year_str) - 1)
+            previous_year_dir = SCHEDULE_DIR.parent / prev_year_str
+        else:
+            # fallback if format is unexpected
+            previous_year_dir = SCHEDULE_DIR
+
+        if previous_year_dir.exists():
+            return previous_year_dir
+
+        # Return current year dir as default
+        return SCHEDULE_DIR

@@ -1,0 +1,232 @@
+[
+  {
+    "round": 1,
+    "name": "Melbourne",
+    "location": "Australia",
+    "sessions": {
+      "practice": {
+        "start": "2026-03-06",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-03-06",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-03-07",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-03-08",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 2,
+    "name": "Sakhir",
+    "location": "Bahrain",
+    "sessions": {
+      "practice": {
+        "start": "2026-04-10",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-04-10",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-04-11",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-04-12",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 3,
+    "name": "Monaco",
+    "location": "Monaco",
+    "sessions": {
+      "practice": {
+        "start": "2026-06-07",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-06-05",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-06-06",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-06-07",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 4,
+    "name": "Barcelona",
+    "location": "Spain",
+    "sessions": {
+      "practice": {
+        "start": "2026-06-12",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-06-12",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-06-13",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-06-14",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 5,
+    "name": "Spielberg",
+    "location": "Austria",
+    "sessions": {
+      "practice": {
+        "start": "2026-06-26",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-06-26",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-06-27",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-06-28",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 6,
+    "name": "Silverstone",
+    "location": "United Kingdom",
+    "sessions": {
+      "practice": {
+        "start": "2026-07-03",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-07-03",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-07-04",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-07-05",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 7,
+    "name": "Spa-Francorchamps",
+    "location": "Belgium",
+    "sessions": {
+      "practice": {
+        "start": "2026-07-17",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-07-17",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-07-18",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-07-19",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 8,
+    "name": "Budapest",
+    "location": "Hungary",
+    "sessions": {
+      "practice": {
+        "start": "2026-07-24",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-07-24",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-07-25",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-07-26",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 9,
+    "name": "Monza",
+    "location": "Italy",
+    "sessions": {
+      "practice": {
+        "start": "2026-09-04",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-09-04",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-09-05",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-09-06",
+        "time": "TBC"
+      }
+    }
+  },
+  {
+    "round": 10,
+    "name": "Madrid",
+    "location": "Madrid",
+    "sessions": {
+      "practice": {
+        "start": "2026-09-11",
+        "time": "TBC"
+      },
+      "qualifying": {
+        "start": "2026-09-11",
+        "time": "TBC"
+      },
+      "sprint": {
+        "start": "2026-09-12",
+        "time": "TBC"
+      },
+      "race": {
+        "start": "2026-09-13",
+        "time": "TBC"
+      }
+    }
+  }
+]

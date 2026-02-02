@@ -73,8 +73,8 @@ npm run test:coverage
 
 ```bash
 # Backend linting
-flake8 .
-black --line-length 90 .
+uv run ruff check
+uv run ruff format --check
 
 # Frontend linting
 npx eslint . --ext .js,.jsx,.ts,.tsx
