@@ -10,9 +10,34 @@ interface PredictionsResponse {
   system_status: SystemStatus;
 }
 
-export const usePredictions = (series: SeriesType = 'f3_to_f2') => {
+// Parse fragment: #f3_to_f2/LightGBM
+const parseFragment = (): { series: SeriesType; model: string | null } => {
+  const hash = globalThis.location.hash.slice(1);
+  const [series, encodedModel] = hash.split('/');
+
+  const validSeries: SeriesType = ['f3_to_f2', 'f2_to_f1'].includes(series)
+    ? (series as SeriesType)
+    : 'f3_to_f2';
+
+  const model = encodedModel ? decodeURIComponent(encodedModel) : null;
+
+  return { series: validSeries, model };
+};
+
+// Set fragment: #series/model
+const setFragment = (series: SeriesType, model: string) => {
+  globalThis.location.hash = `${series}/${encodeURIComponent(model)}`;
+};
+
+export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
+  const { series: fragmentSeries, model: fragmentModel } = parseFragment();
+  const [series, setSeries] = useState<SeriesType>(
+    fragmentSeries || initialSeries
+  );
   const [allData, setAllData] = useState<PredictionsResponse | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>(
+    fragmentModel || ''
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const refreshStatusRef = useRef<SystemStatus | null>(null);
@@ -51,7 +76,10 @@ export const usePredictions = (series: SeriesType = 'f3_to_f2') => {
 
   // Set initial model when data loads
   useEffect(() => {
-    if (allData?.models?.length && !selectedModel) {
+    if (
+      allData?.models?.length &&
+      (!selectedModel || !allData.models.includes(selectedModel))
+    ) {
       setSelectedModel(allData.models[0]);
     }
   }, [allData?.models, selectedModel]);
@@ -115,7 +143,28 @@ export const usePredictions = (series: SeriesType = 'f3_to_f2') => {
     }
   };
 
-  // Initial load - only runs once
+  // Update fragment when series or model changes
+  useEffect(() => {
+    if (selectedModel) {
+      setFragment(series, selectedModel);
+    }
+  }, [series, selectedModel]);
+
+  // Listen for fragment changes (back/forward navigation)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const { series: newSeries, model: newModel } = parseFragment();
+      setSeries(newSeries);
+      if (newModel) {
+        setSelectedModel(newModel);
+      }
+    };
+
+    globalThis.addEventListener('hashchange', handleHashChange);
+    return () => globalThis.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Initial load
   useEffect(() => {
     fetchAllPredictions();
   }, [fetchAllPredictions]);
@@ -131,5 +180,7 @@ export const usePredictions = (series: SeriesType = 'f3_to_f2') => {
     refreshPredictions,
     currentPredictions:
       allData?.predictions?.[selectedModel]?.predictions || [],
+    series,
+    setSeries,
   };
 };

@@ -9,7 +9,6 @@ import { ErrorDisplay } from '../ErrorDisplay';
 import { TableContent } from './TableContent';
 import { usePredictions, type SeriesType } from '../../hooks/usePredictions';
 import { Header } from '../Header';
-import { useState } from 'react';
 
 interface SeriesOption {
   value: string;
@@ -29,8 +28,6 @@ export const BasePredictionsTable = ({
   getTitle,
   getDescription,
 }: BasePredictionsTableProps) => {
-  const [selectedSeries, setSelectedSeries] =
-    useState<SeriesType>(defaultSeries);
   const {
     predictions,
     selectedModel,
@@ -41,7 +38,9 @@ export const BasePredictionsTable = ({
     error,
     refreshPredictions,
     currentPredictions,
-  } = usePredictions(selectedSeries);
+    series,
+    setSeries,
+  } = usePredictions(defaultSeries);
 
   const getPredictionsDisplay = () => {
     if (loading && currentPredictions.length === 0) {
@@ -65,17 +64,15 @@ export const BasePredictionsTable = ({
   return (
     <div className="w-full">
       <Header
-        title={getTitle(selectedSeries)}
-        description={getDescription(selectedSeries)}
+        title={getTitle(series)}
+        description={getDescription(series)}
         rightContent={
           <div className="flex flex-col md:flex-row gap-3">
             <label className="flex flex-col gap-2">
               <span className="text-sm text-gray-300 sr-only">Series</span>
               <select
-                value={selectedSeries}
-                onChange={(e) =>
-                  setSelectedSeries(e.target.value as SeriesType)
-                }
+                value={series}
+                onChange={(e) => setSeries(e.target.value as SeriesType)}
                 disabled={loading}
                 className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
               >
@@ -143,7 +140,7 @@ export const BasePredictionsTable = ({
               )}
               <div className="flex items-center gap-1">
                 <Target className="w-4 h-4" />
-                Models: {status.models_available?.[selectedSeries]?.length || 0}
+                Models: {status.models_available?.[series]?.length || 0}
               </div>
               <div className="flex items-center gap-1">
                 <UserRound className="w-4 h-4" />

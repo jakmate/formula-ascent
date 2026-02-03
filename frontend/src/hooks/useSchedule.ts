@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export const useSchedule = () => {
+  // Initialize from URL fragment or default to 'f1'
+  const getInitialSeries = () => {
+    const hash = globalThis.location.hash.slice(1); // Remove '#'
+    return ['f1', 'f2', 'f3'].includes(hash) ? hash : 'f1';
+  };
+
   const [races, setRaces] = useState([]);
   const [nextRace, setNextRace] = useState(null);
-  const [selectedSeries, setSelectedSeries] = useState('f1');
+  const [selectedSeries, setSelectedSeries] = useState(getInitialSeries);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +109,24 @@ export const useSchedule = () => {
   useEffect(() => {
     fetchSchedule(selectedSeries);
   }, [selectedSeries, fetchSchedule]);
+
+  // Update URL fragment when series changes
+  useEffect(() => {
+    globalThis.location.hash = selectedSeries;
+  }, [selectedSeries]);
+
+  // Listen for hash changes (browser back/forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = globalThis.location.hash.slice(1);
+      if (['f1', 'f2', 'f3'].includes(hash)) {
+        setSelectedSeries(hash);
+      }
+    };
+
+    globalThis.addEventListener('hashchange', handleHashChange);
+    return () => globalThis.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   return {
     races,

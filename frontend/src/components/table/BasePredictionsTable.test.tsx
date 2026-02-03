@@ -73,6 +73,8 @@ describe('BasePredictionsTable', () => {
     error: null,
     refreshPredictions: vi.fn(),
     currentPredictions: [{ id: 1 }, { id: 2 }],
+    series: 'f3_to_f2' as SeriesType,
+    setSeries: vi.fn(),
   };
 
   beforeEach(() => {
@@ -138,8 +140,7 @@ describe('BasePredictionsTable', () => {
     const seriesSelect = screen.getByDisplayValue('F3 → F2');
     fireEvent.change(seriesSelect, { target: { value: 'f2_to_f1' } });
 
-    // Should trigger re-render with new title/description
-    expect(screen.getByTestId('title')).toHaveTextContent('Title for f2_to_f1');
+    expect(mockHookReturn.setSeries).toHaveBeenCalledWith('f2_to_f1');
   });
 
   it('handles model selection change', () => {
