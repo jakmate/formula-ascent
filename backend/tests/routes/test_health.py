@@ -49,7 +49,7 @@ def test_health_head():
     client = TestClient(app)
 
     head_path = str(app.url_path_for("health_head"))
-    response = client.request("HEAD", head_path)
+    response = client.head(head_path)
 
     assert response.status_code == 200
     assert response.content == b""
