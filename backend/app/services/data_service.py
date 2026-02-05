@@ -1,9 +1,11 @@
 import asyncio
 import time
+
 from fastapi import HTTPException
+
+from app.config import CURRENT_YEAR, LOGGER
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
 from app.core.state import AppState
-from app.config import CURRENT_YEAR, LOGGER
 
 
 class DataService:

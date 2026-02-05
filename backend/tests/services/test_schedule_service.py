@@ -1,103 +1,85 @@
-import pytest
 import json
-from datetime import datetime
-from unittest.mock import AsyncMock, patch, mock_open
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi import HTTPException
-import pytz
 
-from app.services.schedule_service import ScheduleService
 from app.models.schedule import ScheduleRequest
+from app.services.schedule_service import ScheduleService
 
 
-class TestScheduleService:
-    @pytest.fixture
-    def schedule_service(self):
-        return ScheduleService()
+@pytest.fixture
+def schedule_service():
+    return ScheduleService()
 
-    @pytest.fixture
-    def sample_schedule_data(self):
-        return [
-            {
-                "round": 1,
-                "name": "Melbourne",
-                "location": "Australia",
-                "sessions": {
-                    "practice": {
-                        "start": "2025-03-14T01:00:00",
-                        "end": "2025-03-14T01:45:00",
-                    },
-                    "qualifying": {
-                        "start": "2025-03-14T04:50:00",
-                        "end": "2025-03-14T05:20:00",
-                    },
-                    "sprint": {
-                        "start": "2025-03-15T01:25:00",
-                        "end": "2025-03-15T02:05:00",
-                    },
-                    "race": {
-                        "start": "2025-03-15T22:55:00",
-                        "end": "2025-03-15T23:40:00",
-                    },
+
+@pytest.fixture
+def sample_schedule():
+    return [
+        {
+            "round": 1,
+            "name": "Melbourne",
+            "location": "Australia",
+            "sessions": {
+                "practice": {
+                    "start": "2025-03-14T01:00:00",
+                    "end": "2025-03-14T01:45:00",
+                },
+                "race": {
+                    "start": "2025-03-15T22:55:00",
+                    "end": "2025-03-15T23:40:00",
                 },
             },
-            {
-                "round": 2,
-                "name": "Sakhir",
-                "location": "Bahrain",
-                "sessions": {
-                    "practice": {
-                        "start": "2025-04-11T11:00:00",
-                        "end": "2025-04-11T11:45:00",
-                    },
-                    "qualifying": {
-                        "start": "2025-04-11T14:55:00",
-                        "end": "2025-04-11T15:25:00",
-                    },
-                    "sprint": {
-                        "start": "2025-04-12T11:15:00",
-                        "end": "2025-04-12T11:55:00",
-                    },
-                    "race": {
-                        "start": "2025-04-13T07:40:00",
-                        "end": "2025-04-13T08:25:00",
-                    },
+        },
+        {
+            "round": 2,
+            "name": "Sakhir",
+            "location": "Bahrain",
+            "sessions": {
+                "practice": {
+                    "start": "2025-04-11T11:00:00",
+                    "end": "2025-04-11T11:45:00",
+                },
+                "race": {
+                    "start": "2025-04-13T07:40:00",
+                    "end": "2025-04-13T08:25:00",
                 },
             },
-        ]
+        },
+    ]
 
-    @pytest.fixture
-    def sample_schedule_with_tbc(self):
-        return [
-            {
-                "round": 9,
-                "name": "Budapest",
-                "location": "Hungary",
-                "sessions": {
-                    "practice": {"start": "2025-08-01", "time": "TBC"},
-                    "qualifying": {"start": "2025-08-01", "time": "TBC"},
-                    "sprint": {"start": "2025-08-02", "time": "TBC"},
-                    "race": {
-                        "start": "2025-08-03T15:00:00",
-                        "end": "2025-08-03T16:00:00",
-                    },
-                },
-            }
-        ]
 
-    @pytest.fixture
-    def mock_aiofiles_open(self):
-        def _mock(data):
-            mock_file = AsyncMock()
-            mock_file.__aenter__.return_value.read = AsyncMock(
-                return_value=json.dumps(data)
-            )
-            return patch("aiofiles.open", return_value=mock_file)
+@pytest.fixture
+def mock_aiofiles_open():
+    def _mock(data):
+        mock_file = AsyncMock()
+        mock_file.__aenter__.return_value.read = AsyncMock(
+            return_value=json.dumps(data)
+        )
+        return patch("aiofiles.open", return_value=mock_file)
 
-        return _mock
+    return _mock
 
-    # Tests for get_series_schedule
+
+class TestGetSeriesSchedule:
     @pytest.mark.asyncio
-    async def test_get_series_schedule_file_not_found(self, schedule_service):
+    async def test_returns_schedule_in_utc(
+        self, schedule_service, sample_schedule, mock_aiofiles_open
+    ):
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(sample_schedule):
+                result = await schedule_service.get_series_schedule(
+                    ScheduleRequest(series="f1")
+                )
+
+                assert result == sample_schedule
+                assert (
+                    result[0]["sessions"]["practice"]["start"] == "2025-03-14T01:00:00"
+                )
+
+    @pytest.mark.asyncio
+    async def test_file_not_found(self, schedule_service):
         with patch("os.path.exists", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 await schedule_service.get_series_schedule(ScheduleRequest(series="f1"))
@@ -106,267 +88,183 @@ class TestScheduleService:
             assert exc_info.value.detail == "Schedule data not found"
 
     @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_series_schedule_success_utc(
-        self, schedule_service, sample_schedule_data, mock_aiofiles_open
+    async def test_converts_to_target_timezone(
+        self, schedule_service, sample_schedule, mock_aiofiles_open
     ):
         with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(sample_schedule_data):
+            with mock_aiofiles_open(sample_schedule):
                 result = await schedule_service.get_series_schedule(
-                    ScheduleRequest(series="f1")
+                    ScheduleRequest(series="f1", timezone="America/New_York")
                 )
 
-                assert result == sample_schedule_data
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_series_schedule_timezone_precedence(
-        self, schedule_service, sample_schedule_data, mock_aiofiles_open
-    ):
-        """Test that timezone parameter takes precedence over x_timezone"""
-        with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(sample_schedule_data):
-                with patch.object(
-                    schedule_service, "_convert_schedule_timezone"
-                ) as mock_convert:
-                    mock_convert.return_value = sample_schedule_data
-
-                    await schedule_service.get_series_schedule(
-                        ScheduleRequest(
-                            series="f1",
-                            timezone="America/New_York",
-                            x_timezone="Europe/London",
-                        )
-                    )
-
-                    mock_convert.assert_called_once_with(
-                        sample_schedule_data, "America/New_York"
-                    )
-
-    # Tests for get_next_race
-    @pytest.mark.asyncio
-    async def test_get_next_race_file_not_found(self, schedule_service):
-        with patch("os.path.exists", return_value=False):
-            with pytest.raises(HTTPException) as exc_info:
-                await schedule_service.get_next_race(ScheduleRequest(series="f1"))
-
-            assert exc_info.value.status_code == 404
-            assert exc_info.value.detail == "Schedule data not found"
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_success(
-        self, schedule_service, sample_schedule_data, mock_aiofiles_open
-    ):
-        # Set all sessions in first race to past
-        # Only first session of second race to future
-        future_time = "2030-04-11T11:00:00"
-
-        # All sessions in first race to past
-        sample_schedule_data[0]["sessions"]["practice"]["start"] = "2020-01-01T11:30:00"
-        sample_schedule_data[0]["sessions"]["qualifying"]["start"] = (
-            "2020-01-01T11:30:00"
-        )
-        sample_schedule_data[0]["sessions"]["sprint"]["start"] = "2020-01-01T11:30:00"
-        sample_schedule_data[0]["sessions"]["race"]["start"] = "2020-01-01T11:30:00"
-
-        # Only practice in second race to future
-        sample_schedule_data[1]["sessions"]["practice"]["start"] = future_time
-        sample_schedule_data[1]["sessions"]["qualifying"]["start"] = (
-            "2020-01-01T11:30:00"
-        )
-        sample_schedule_data[1]["sessions"]["sprint"]["start"] = "2020-01-01T11:30:00"
-        sample_schedule_data[1]["sessions"]["race"]["start"] = "2020-01-01T11:30:00"
-
-        with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(sample_schedule_data):
-                result = await schedule_service.get_next_race(
-                    ScheduleRequest(series="f1")
+                # Verify conversion happened
+                assert (
+                    result[0]["sessions"]["practice"]["start"] != "2025-03-14T01:00:00"
                 )
 
-                assert result is not None
-                assert result["round"] == 2
-                assert result["totalRounds"] == 2
-                assert "nextSession" in result
-                assert result["nextSession"]["name"] == "practice"
-                assert result["nextSession"]["date"] == future_time
-                assert result.get("seasonCompleted") is False
-
     @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_returns_last_race(
-        self, schedule_service, sample_schedule_data, mock_aiofiles_open
-    ):
-        # All sessions in the past
-        with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(sample_schedule_data):
-                result = await schedule_service.get_next_race(
-                    ScheduleRequest(series="f1")
-                )
-
-                # Should return last race of the season
-                assert result is not None
-                assert result["round"] == 2  # Last race in the schedule
-                assert result["totalRounds"] == 2
-                assert result.get("seasonCompleted") is True
-                assert "nextSession" not in result
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_empty_schedule(
+    async def test_skips_tbc_sessions_during_conversion(
         self, schedule_service, mock_aiofiles_open
     ):
-        empty_schedule = []
-
-        with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(empty_schedule):
-                result = await schedule_service.get_next_race(
-                    ScheduleRequest(series="f1")
-                )
-
-                assert result is None
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_with_tbc_sessions(
-        self, schedule_service, sample_schedule_with_tbc, mock_aiofiles_open
-    ):
-        future_time = "2030-08-03T15:00:00"
-        sample_schedule_with_tbc[0]["sessions"]["race"]["start"] = future_time
-
-        with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(sample_schedule_with_tbc):
-                result = await schedule_service.get_next_race(
-                    ScheduleRequest(series="f1")
-                )
-
-                assert result is not None
-                assert result["nextSession"]["name"] == "race"
-                assert result["nextSession"]["date"] == future_time
-                assert result.get("seasonCompleted") is False
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_with_tbc_date_only_sessions(
-        self, schedule_service, mock_aiofiles_open
-    ):
-        # Test TBC sessions with date-only format
-        tbc_schedule = [
+        schedule = [
             {
                 "round": 1,
-                "name": "Test GP",
-                "location": "Test",
+                "name": "Test",
                 "sessions": {
-                    "practice": {
-                        "start": "2030-08-01",
-                        "time": "TBC",
-                    },  # Date-only format for TBC
-                    "race": {"start": "2030-08-02T15:00:00"},
+                    "practice": {"start": "2025-08-01", "time": "TBC"},
+                    "race": {
+                        "start": "2025-08-02T15:00:00",
+                        "end": "2025-08-02T16:00:00",
+                    },
                 },
             }
         ]
 
         with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(tbc_schedule):
-                result = await schedule_service.get_next_race(
-                    ScheduleRequest(series="f1")
+            with mock_aiofiles_open(schedule):
+                result = await schedule_service.get_series_schedule(
+                    ScheduleRequest(series="f1", timezone="America/New_York")
                 )
-
-                assert result is not None
-                assert result["nextSession"]["name"] == "practice"
-                assert result["nextSession"]["date"] == "2030-08-01"
-                assert result["nextSession"]["isTBC"] is True
-
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_with_timezone(
-        self, schedule_service, sample_schedule_data
-    ):
-        future_time = "2030-03-14T01:00:00"
-        sample_schedule_data[0]["sessions"]["practice"]["start"] = future_time
-
-        with patch("os.path.exists", return_value=True):
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(sample_schedule_data))
-            ):
-                with patch.object(
-                    schedule_service, "_convert_race_timezone"
-                ) as mock_convert:
-                    mock_convert.return_value = sample_schedule_data[0]
-
-                    await schedule_service.get_next_race(
-                        ScheduleRequest(series="f1", timezone="America/New_York")
-                    )
-
-                    mock_convert.assert_called_once()
+                # TBC sessions should not be converted
+                assert result[0]["sessions"]["practice"]["start"] == "2025-08-01"
+                assert result[0]["sessions"]["practice"]["time"] == "TBC"
+                # Non-TBC should be converted
+                assert result[0]["sessions"]["race"]["start"] != "2025-08-02T15:00:00"
 
     @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_sessions_without_start(
+    async def test_handles_missing_time_fields(
         self, schedule_service, mock_aiofiles_open
     ):
-        schedule_without_start = [
+        schedule = [
             {
                 "round": 1,
-                "name": "Test Grand Prix",
-                "location": "Test",
-                "sessions": {"practice": {"end": "2030-03-14T02:00:00"}},
+                "name": "Test",
+                "sessions": {
+                    "practice": {}  # No start or end
+                },
             }
         ]
 
         with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(schedule_without_start):
+            with mock_aiofiles_open(schedule):
+                result = await schedule_service.get_series_schedule(
+                    ScheduleRequest(series="f1", timezone="America/New_York")
+                )
+                assert len(result) == 1
+
+
+class TestGetNextRace:
+    @pytest.mark.asyncio
+    async def test_file_not_found_raises_404(self, schedule_service):
+        with patch("os.path.exists", return_value=False):
+            with pytest.raises(HTTPException) as exc:
+                await schedule_service.get_next_race(ScheduleRequest(series="f1"))
+            assert exc.value.status_code == 404
+            assert exc.value.detail == "Schedule data not found"
+
+    @pytest.mark.asyncio
+    async def test_returns_next_race_with_future_sessions(
+        self, schedule_service, sample_schedule, mock_aiofiles_open
+    ):
+        sample_schedule[1]["sessions"]["practice"]["start"] = "2030-04-11T11:00:00"
+        sample_schedule[1]["sessions"]["race"]["start"] = "2030-04-13T07:40:00"
+
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(sample_schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
 
-                # Should return the last race with seasonCompleted=True
-                assert result is not None
-                assert result["round"] == 1
-                assert result.get("seasonCompleted") is True
+                assert result["round"] == 2
+                assert result["totalRounds"] == 2
+                assert result["seasonCompleted"] is False
+                assert result["nextSession"]["name"] == "practice"
+                assert result["nextSession"]["date"] == "2030-04-11T11:00:00"
+                assert result["nextSession"]["isTBC"] is False
 
     @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_earliest_session_selection(
+    async def test_selects_earliest_future_session(
         self, schedule_service, mock_aiofiles_open
     ):
-        # Test that earliest session is selected as next session
-        test_schedule = [
+        schedule = [
             {
                 "round": 1,
-                "name": "Test GP",
-                "location": "Test",
+                "name": "Test",
                 "sessions": {
-                    "qualifying": {"start": "2030-03-15T14:00:00"},  # Later
-                    "practice": {
-                        "start": "2030-03-15T10:00:00"
-                    },  # Earlier - should be selected
+                    "qualifying": {"start": "2030-03-15T14:00:00"},
+                    "practice": {"start": "2030-03-15T10:00:00"},
                     "race": {"start": "2030-03-16T15:00:00"},
                 },
             }
         ]
 
         with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(test_schedule):
+            with mock_aiofiles_open(schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
 
-                assert result is not None
                 assert result["nextSession"]["name"] == "practice"
                 assert result["nextSession"]["date"] == "2030-03-15T10:00:00"
 
     @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_invalid_datetime_handling(
+    async def test_returns_last_race_when_season_complete(
+        self, schedule_service, sample_schedule, mock_aiofiles_open
+    ):
+        # All sessions in the past
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(sample_schedule):
+                result = await schedule_service.get_next_race(
+                    ScheduleRequest(series="f1")
+                )
+
+                assert result["round"] == 2
+                assert result["totalRounds"] == 2
+                assert result["seasonCompleted"] is True
+                assert "nextSession" not in result
+
+    @pytest.mark.asyncio
+    async def test_empty_schedule_returns_none(
         self, schedule_service, mock_aiofiles_open
     ):
-        # Test handling of invalid datetime strings
-        invalid_schedule = [
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open([]):
+                result = await schedule_service.get_next_race(
+                    ScheduleRequest(series="f1")
+                )
+                assert result is None
+
+    @pytest.mark.asyncio
+    async def test_handles_date_only_format(self, schedule_service, mock_aiofiles_open):
+        schedule = [
             {
                 "round": 1,
-                "name": "Test GP",
-                "location": "Test",
+                "name": "Test",
+                "sessions": {
+                    "practice": {"start": "2030-08-01", "time": "TBC"},
+                    "race": {"start": "2030-08-02T15:00:00"},
+                },
+            }
+        ]
+
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(schedule):
+                result = await schedule_service.get_next_race(
+                    ScheduleRequest(series="f1")
+                )
+
+                assert result["nextSession"]["name"] == "practice"
+                assert result["nextSession"]["date"] == "2030-08-01"
+                assert result["nextSession"]["isTBC"] is True
+
+    @pytest.mark.asyncio
+    async def test_skips_invalid_datetime_strings(
+        self, schedule_service, mock_aiofiles_open
+    ):
+        schedule = [
+            {
+                "round": 1,
+                "name": "Test",
                 "sessions": {
                     "practice": {"start": "invalid-datetime"},
                     "race": {"start": "2030-03-16T15:00:00"},
@@ -375,252 +273,122 @@ class TestScheduleService:
         ]
 
         with patch("os.path.exists", return_value=True):
-            with mock_aiofiles_open(invalid_schedule):
+            with mock_aiofiles_open(schedule):
                 result = await schedule_service.get_next_race(
                     ScheduleRequest(series="f1")
                 )
 
-                assert result is not None
-                assert (
-                    result["nextSession"]["name"] == "race"
-                )  # Should skip invalid datetime
+                assert result["nextSession"]["name"] == "race"
 
-    # Tests for _parse_datetime
-    def test_parse_datetime_date_only(self, schedule_service):
-        result = schedule_service._parse_datetime("2025-08-01")
-        expected = datetime(2025, 8, 1, tzinfo=pytz.UTC)
-        assert result == expected
-
-    def test_parse_datetime_full_iso(self, schedule_service):
-        result = schedule_service._parse_datetime("2025-08-01T15:30:00")
-        expected = datetime(2025, 8, 1, 15, 30, tzinfo=pytz.UTC)
-        assert result == expected
-
-    def test_parse_datetime_with_timezone(self, schedule_service):
-        result = schedule_service._parse_datetime("2025-08-01T15:30:00+02:00")
-        # Should preserve timezone info
-        assert result.tzinfo is not None
-        assert result.year == 2025
-        assert result.month == 8
-        assert result.day == 1
-
-    # Tests for _convert_schedule_timezone
-    def test_convert_schedule_timezone(self, schedule_service, sample_schedule_data):
-        result = schedule_service._convert_schedule_timezone(
-            sample_schedule_data, "America/New_York"
-        )
-
-        # Check that times were converted (specific time conversion depends on timezone)
-        assert result[0]["sessions"]["practice"]["start"] != "2025-03-14T01:00:00"
-        assert result[0]["sessions"]["practice"]["end"] != "2025-03-14T01:45:00"
-
-    def test_convert_schedule_timezone_with_tbc(
-        self, schedule_service, sample_schedule_with_tbc
+    @pytest.mark.asyncio
+    async def test_converts_to_target_timezone(
+        self, schedule_service, sample_schedule, mock_aiofiles_open
     ):
-        # Should not fail with TBC sessions
-        result = schedule_service._convert_schedule_timezone(
-            sample_schedule_with_tbc, "America/New_York"
-        )
+        sample_schedule[0]["sessions"]["practice"]["start"] = "2030-03-14T01:00:00"
+        sample_schedule[0]["sessions"]["practice"]["end"] = "2030-03-14T01:45:00"
 
-        assert result[0]["sessions"]["practice"]["time"] == "TBC"
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(sample_schedule):
+                result = await schedule_service.get_next_race(
+                    ScheduleRequest(series="f1", timezone="America/New_York")
+                )
 
-    def test_convert_schedule_timezone_missing_time_fields(self, schedule_service):
-        schedule_missing_times = [
+                # Times should be converted
+                assert result["sessions"]["practice"]["start"] != "2030-03-14T01:00:00"
+                assert (
+                    "-05:00" in result["sessions"]["practice"]["start"]
+                    or "-04:00" in result["sessions"]["practice"]["start"]
+                )
+
+    @pytest.mark.asyncio
+    async def test_does_not_convert_date_only_strings(
+        self, schedule_service, mock_aiofiles_open
+    ):
+        schedule = [
             {
                 "round": 1,
-                "name": "Test Grand Prix",
-                "location": "Test",
+                "name": "Test",
                 "sessions": {
-                    "practice": {
-                        # Missing start and end
-                    }
+                    "practice": {"start": "2030-08-01", "time": "TBC"},
                 },
             }
         ]
 
-        # Should not fail
-        result = schedule_service._convert_schedule_timezone(
-            schedule_missing_times, "America/New_York"
-        )
-        assert len(result) == 1
+        with patch("os.path.exists", return_value=True):
+            with mock_aiofiles_open(schedule):
+                result = await schedule_service.get_next_race(
+                    ScheduleRequest(series="f1", timezone="America/New_York")
+                )
 
-    # Tests for _convert_race_timezone
-    def test_convert_race_timezone(self, schedule_service, sample_schedule_data):
-        race = sample_schedule_data[0].copy()
+                # Date-only strings should not be converted (len check in _convert_race_timezone)
+                assert result["sessions"]["practice"]["start"] == "2030-08-01"
 
-        result = schedule_service._convert_race_timezone(race, "America/New_York")
 
-        # Check that times were converted
-        assert result["sessions"]["practice"]["start"] != "2025-03-14T01:00:00"
-        assert result["sessions"]["practice"]["end"] != "2025-03-14T01:45:00"
+class TestGetScheduleDir:
+    def test_returns_current_year_when_has_json_files(self, schedule_service):
+        """Should return current year directory when it exists and contains JSON files"""
+        mock_schedule_dir = MagicMock(spec=Path)
+        mock_schedule_dir.exists.return_value = True
+        mock_schedule_dir.glob.return_value = [Path("f1.json"), Path("f2.json")]
+        mock_schedule_dir.name = "2025"
 
-    def test_convert_race_timezone_with_next_session(
-        self, schedule_service, sample_schedule_data
-    ):
-        race = sample_schedule_data[0].copy()
-        race["nextSession"] = {"name": "practice", "date": "2025-03-14T01:00:00"}
+        with patch("app.services.schedule_service.SCHEDULE_DIR", mock_schedule_dir):
+            result = schedule_service._get_schedule_dir()
 
-        result = schedule_service._convert_race_timezone(race, "America/New_York")
+            assert result == mock_schedule_dir
+            mock_schedule_dir.glob.assert_called_once_with("*.json")
 
-        # Check that nextSession date was converted
-        assert result["nextSession"]["date"] != "2025-03-14T01:00:00"
+    def test_fallback_to_previous_year_when_current_empty(self, schedule_service):
+        """Should fallback to previous year when current year has no JSON files"""
+        mock_current_dir = MagicMock(spec=Path)
+        mock_current_dir.exists.return_value = True
+        mock_current_dir.glob.return_value = []  # No JSON files
+        mock_current_dir.name = "2025"
 
-    def test_convert_race_timezone_with_tbc_sessions(self, schedule_service):
-        race_with_tbc = {
-            "round": 9,
-            "name": "Budapest",
-            "location": "Hungary",
-            "sessions": {"practice": {"start": "2025-08-01", "time": "TBC"}},
-        }
+        mock_parent = MagicMock(spec=Path)
+        mock_current_dir.parent = mock_parent
 
-        # Should not fail with TBC sessions
-        result = schedule_service._convert_race_timezone(
-            race_with_tbc, "America/New_York"
-        )
-        assert result["sessions"]["practice"]["time"] == "TBC"
+        mock_prev_dir = MagicMock(spec=Path)
+        mock_prev_dir.exists.return_value = True
+        mock_parent.__truediv__.return_value = mock_prev_dir
 
-    def test_convert_race_timezone_missing_next_session_date(
-        self, schedule_service, sample_schedule_data
-    ):
-        race = sample_schedule_data[0].copy()
-        race["nextSession"] = {
-            "name": "practice1"
-            # Missing date
-        }
+        with patch("app.services.schedule_service.SCHEDULE_DIR", mock_current_dir):
+            result = schedule_service._get_schedule_dir()
 
-        # Should not fail
-        result = schedule_service._convert_race_timezone(race, "America/New_York")
-        assert "nextSession" in result
+            assert result == mock_prev_dir
+            mock_parent.__truediv__.assert_called_once_with("2024")
 
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_fallback_skips_invalid_dates(
-        self, schedule_service, mock_aiofiles_open
-    ):
-        # Build a schedule with two races.
-        # Use arbitrary start strings that map in _parse_datetime.
-        schedule = [
-            {
-                "round": 1,
-                "name": "Race A",
-                "location": "A",
-                "sessions": {
-                    "practice": {"start": "A_practice"},
-                    "race": {"start": "A_race"},
-                },
-            },
-            {
-                "round": 2,
-                "name": "Race B",
-                "location": "B",
-                "sessions": {
-                    "practice": {"start": "B_practice"},
-                    "race": {"start": "B_race"},
-                },
-            },
-        ]
+    def test_returns_current_when_previous_year_not_exists(self, schedule_service):
+        """Should return current year dir when previous year doesn't exist"""
+        mock_current_dir = MagicMock(spec=Path)
+        mock_current_dir.exists.return_value = True
+        mock_current_dir.glob.return_value = []
+        mock_current_dir.name = "2025"
 
-        # Map pseudo-strings to datetimes via _parse_datetime:
-        # - A_practice -> raises ValueError (exercise except branch)
-        # - A_race -> returns a future date 2030-01-10
-        # - B_practice -> returns a future date 2030-01-05 (earlier)
-        # - B_race -> returns future date 2030-01-20
-        def fake_parse(dt_str):
-            if dt_str == "A_practice":
-                raise ValueError("invalid")
-            if dt_str == "A_race":
-                return datetime(2030, 1, 10, tzinfo=pytz.UTC)
-            if dt_str == "B_practice":
-                return datetime(2030, 1, 5, tzinfo=pytz.UTC)
-            if dt_str == "B_race":
-                return datetime(2030, 1, 20, tzinfo=pytz.UTC)
-            raise ValueError("unknown")
+        mock_parent = MagicMock(spec=Path)
+        mock_current_dir.parent = mock_parent
 
-        # Ensure "now" is before these future dates so they are considered future sessions
-        fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
+        mock_prev_dir = MagicMock(spec=Path)
+        mock_prev_dir.exists.return_value = False
+        mock_parent.__truediv__.return_value = mock_prev_dir
 
-        with (
-            patch("os.path.exists", return_value=True),
-            mock_aiofiles_open(schedule),
-            patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
-            patch("app.services.schedule_service.datetime") as mock_dt,
-        ):
-            mock_dt.now.return_value = fake_now
+        with patch("app.services.schedule_service.SCHEDULE_DIR", mock_current_dir):
+            result = schedule_service._get_schedule_dir()
 
-            result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))
+            assert result == mock_current_dir
 
-            # B_practice is the earliest valid session, so Race B should be selected
-            assert result is not None
-            assert result["round"] == 2
-            assert result["totalRounds"] == 2
-            # seasonCompleted should be False because we found a future session
-            assert result.get("seasonCompleted") is False
+    def test_handles_non_numeric_directory_name(self, schedule_service):
+        """Should handle non-numeric directory names gracefully"""
+        mock_current_dir = MagicMock(spec=Path)
+        mock_current_dir.exists.return_value = True
+        mock_current_dir.glob.return_value = []
+        mock_current_dir.name = "schedules"  # Non-numeric
 
-    @pytest.mark.asyncio
-    @patch("app.config.SCHEDULE_DIR", "/test/schedules")
-    async def test_get_next_race_fallback_sorting_picks_earliest_race(
-        self, schedule_service, mock_aiofiles_open
-    ):
-        schedule = [
-            {
-                "round": 1,
-                "name": "Alpha",
-                "location": "X",
-                "sessions": {
-                    "practice": {"start": "alpha_practice"},
-                    "race": {"start": "alpha_race"},
-                },
-            },
-            {
-                "round": 2,
-                "name": "Beta",
-                "location": "Y",
-                "sessions": {
-                    "practice": {"start": "beta_practice"},
-                    "race": {"start": "beta_race"},
-                },
-            },
-            {
-                "round": 3,
-                "name": "Gamma",
-                "location": "Z",
-                "sessions": {
-                    "practice": {"start": "gamma_practice"},
-                    "race": {"start": "gamma_race"},
-                },
-            },
-        ]
+        mock_parent = MagicMock(spec=Path)
+        mock_current_dir.parent = mock_parent
 
-        # Map pseudo-strings to datetimes so earliest dates are:
-        # Alpha -> 2030-06-10
-        # Beta  -> 2030-04-01  <-- earliest
-        # Gamma -> 2030-05-05
-        mapping = {
-            "alpha_practice": datetime(2030, 6, 10, tzinfo=pytz.UTC),
-            "alpha_race": datetime(2030, 6, 12, tzinfo=pytz.UTC),
-            "beta_practice": datetime(2030, 4, 1, tzinfo=pytz.UTC),
-            "beta_race": datetime(2030, 4, 3, tzinfo=pytz.UTC),
-            "gamma_practice": datetime(2030, 5, 5, tzinfo=pytz.UTC),
-            "gamma_race": datetime(2030, 5, 7, tzinfo=pytz.UTC),
-        }
+        with patch("app.services.schedule_service.SCHEDULE_DIR", mock_current_dir):
+            result = schedule_service._get_schedule_dir()
 
-        def fake_parse(dt_str):
-            return mapping[dt_str]
-
-        fake_now = datetime(2029, 12, 31, tzinfo=pytz.UTC)
-
-        with (
-            patch("os.path.exists", return_value=True),
-            mock_aiofiles_open(schedule),
-            patch.object(ScheduleService, "_parse_datetime", side_effect=fake_parse),
-            patch("app.services.schedule_service.datetime") as mock_dt,
-        ):
-            mock_dt.now.return_value = fake_now
-
-            result = await schedule_service.get_next_race(ScheduleRequest(series="f1"))
-
-            # Beta (round 2) has the earliest session
-            assert result is not None
-            assert result["round"] == 2
-            assert result["totalRounds"] == 3
-            assert result.get("seasonCompleted") is False
+            # Should return current dir when name is not numeric
+            assert result == mock_current_dir

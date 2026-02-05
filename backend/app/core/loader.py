@@ -1,11 +1,11 @@
 import json
 import os
 import re
-import pandas as pd
 from pathlib import Path
 
-from app.config import DATA_DIR, LOGGER, PROFILES_DIR
+import pandas as pd
 
+from app.config import DATA_DIR, LOGGER, PROFILES_DIR
 
 FILE_PATTERNS = {
     "drivers": "{series}_{year}_drivers_standings.csv",

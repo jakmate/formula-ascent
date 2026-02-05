@@ -1,11 +1,12 @@
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, mock_open, patch
 
+import pytest
+
 from app.scrapers.schedule_scraper import (
+    format_utc_datetime,
     get_country_for_location,
     get_timezone_for_location,
-    format_utc_datetime,
     is_race_completed_or_ongoing,
     parse_time_to_datetime,
     scrape_f1_schedule,

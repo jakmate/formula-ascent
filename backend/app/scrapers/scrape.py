@@ -1,12 +1,14 @@
 import gc
+
 from bs4 import BeautifulSoup
-from app.scrapers.schedule_scraper import scrape_schedules
+
+from app.config import CURRENT_YEAR
 from app.scrapers.championship_scraper import process_championship
+from app.scrapers.driver_scraper import scrape_drivers
 from app.scrapers.entries_scraper import process_entries
 from app.scrapers.qualifying_scraper import scrape_quali
-from app.scrapers.driver_scraper import scrape_drivers
+from app.scrapers.schedule_scraper import scrape_schedules
 from app.scrapers.scraping_utils import create_session, safe_request
-from app.config import CURRENT_YEAR
 
 BASE_URL = "https://en.wikipedia.org/wiki/"
 

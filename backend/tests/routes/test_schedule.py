@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 from fastapi import HTTPException
 
-from app.routes.schedule import get_series_schedule, get_next_race
+from app.routes.schedule import get_next_race, get_series_schedule
 from app.services.schedule_service import ScheduleRequest
 
 

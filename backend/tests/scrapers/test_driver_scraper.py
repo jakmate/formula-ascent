@@ -1,16 +1,17 @@
 import json
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
+
 import pandas as pd
 
 from app.scrapers.driver_scraper import (
+    extract_dob_from_result,
+    extract_nationality_from_result,
+    get_all_drivers_from_data,
     get_driver_filename,
     needs_rescrape,
-    search_wikidata_drivers,
-    extract_nationality_from_result,
-    extract_dob_from_result,
     save_profile,
-    get_all_drivers_from_data,
     scrape_drivers,
+    search_wikidata_drivers,
 )
 
 

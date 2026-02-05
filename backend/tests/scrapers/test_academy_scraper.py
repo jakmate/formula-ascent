@@ -1,17 +1,18 @@
 import os
 from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
 
+from app.config import DATA_DIR
 from app.scrapers.academy_scraper import (
-    extract_team_links,
-    parse_year_range,
     expand_years_in_data,
     extract_table_data,
-    scrape_academy_page,
+    extract_team_links,
+    parse_year_range,
     save_academy_data,
     scrape_academies,
+    scrape_academy_page,
 )
-from app.config import DATA_DIR
 
 
 class TestExtractTeamLinks:

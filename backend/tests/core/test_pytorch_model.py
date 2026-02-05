@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+
 from app.core.pytorch_model import RacingPredictor
 
 

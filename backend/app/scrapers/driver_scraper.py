@@ -1,9 +1,10 @@
 import glob
 import json
 import os
-import pandas as pd
 import re
 from datetime import datetime
+
+import pandas as pd
 
 from app.config import PROFILES_DIR
 from app.scrapers.scraping_utils import create_session

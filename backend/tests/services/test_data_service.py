@@ -1,11 +1,12 @@
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
 import pandas as pd
+import pytest
 from fastapi import HTTPException
 
-from app.services.data_service import DataService
-from app.core.state import AppState
 from app.config import CURRENT_YEAR
+from app.core.state import AppState
+from app.services.data_service import DataService
 
 
 @pytest.fixture

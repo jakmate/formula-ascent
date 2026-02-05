@@ -1,8 +1,9 @@
-import pandas as pd
-import numpy as np
 from unittest.mock import patch
 
-from app.core.utils import get_race_columns, extract_position, calculate_age
+import numpy as np
+import pandas as pd
+
+from app.core.utils import calculate_age, extract_position, get_race_columns
 
 
 class TestGetRaceColumns:

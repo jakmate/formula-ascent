@@ -1,13 +1,14 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from app.dependencies import (
-    initialize_app_state,
     cleanup_app_state,
     get_app_state,
-    get_model_service,
-    get_data_service,
     get_cronjob_service,
+    get_data_service,
+    get_model_service,
+    initialize_app_state,
 )
 
 

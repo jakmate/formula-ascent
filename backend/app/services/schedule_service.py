@@ -1,9 +1,10 @@
-import aiofiles
 import json
 import os
 from datetime import datetime
-from fastapi import HTTPException
+
+import aiofiles
 import pytz
+from fastapi import HTTPException
 
 from app.config import SCHEDULE_DIR
 from app.models.schedule import ScheduleRequest
@@ -12,12 +13,7 @@ from app.models.schedule import ScheduleRequest
 class ScheduleService:
     async def get_series_schedule(self, request: ScheduleRequest):
         """Get schedule for a specific racing series with timezone conversion"""
-        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Schedule data not found")
-
-        async with aiofiles.open(file_path, "r") as f:
-            schedule = json.loads(await f.read())
+        schedule = await self._open_schedule_file(request)
 
         user_timezone = request.get_timezone()
         if user_timezone != "UTC":
@@ -26,169 +22,87 @@ class ScheduleService:
         return schedule
 
     async def get_next_race(self, request: ScheduleRequest):
-        """Get the next upcoming race for a series with timezone conversion.
-        If no upcoming races, return the last race of the season."""
-        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Schedule data not found")
-
-        async with aiofiles.open(file_path, "r") as f:
-            schedule = json.loads(await f.read())
-
-        total_rounds = len(schedule)
+        """Get the next upcoming race. If none, return last race of season."""
+        schedule = await self._open_schedule_file(request)
         now = datetime.now(pytz.UTC)
-        next_race = None
-        next_session = None
-        season_completed = True
 
-        for race in schedule:
-            # Check if this race has any future sessions
-            has_future_session = False
-            race_earliest_session = None
+        next_race = self._find_next_race(schedule, now)
 
-            for session_name, session_info in race["sessions"].items():
-                start_str = session_info.get("start")
-                if not start_str:
-                    continue
-
-                try:
-                    # Handle both date-only strings (for TBC) and full datetime strings
-                    if len(start_str) == 10:  # YYYY-MM-DD format (TBC sessions)
-                        # Create datetime at start of day for comparison
-                        session_dt = datetime.strptime(start_str, "%Y-%m-%d").replace(
-                            tzinfo=pytz.UTC, hour=0, minute=0, second=0, microsecond=0
-                        )
-                    else:
-                        # Parse full datetime string
-                        session_dt = datetime.fromisoformat(start_str)
-                        if session_dt.tzinfo is None:
-                            session_dt = pytz.UTC.localize(session_dt)
-
-                    if session_dt > now:
-                        has_future_session = True
-                        season_completed = False  # Found at least one future session
-                        candidate_session = {
-                            "name": session_name,
-                            "date": start_str,
-                            "isTBC": session_info.get("time") == "TBC",
-                        }
-
-                        # Parse next session date safely
-                        if next_session:
-                            next_session_date_str = next_session["date"]
-
-                            if len(next_session_date_str) > 10:
-                                next_session_dt = datetime.fromisoformat(
-                                    next_session_date_str
-                                )
-                            else:  # Date only
-                                next_session_dt = datetime.strptime(
-                                    next_session_date_str, "%Y-%m-%d"
-                                ).replace(tzinfo=pytz.UTC)
-
-                            # Ensure timezone awareness
-                            next_session_dt = next_session_dt.replace(tzinfo=pytz.UTC)
-                        else:
-                            next_session_dt = None
-
-                        if not next_session_dt or session_dt < next_session_dt:
-                            next_session = candidate_session
-
-                        # Track earliest session in this race for fallback
-                        if (
-                            not race_earliest_session
-                            or session_dt < race_earliest_session
-                        ):
-                            race_earliest_session = session_dt
-
-                except (ValueError, TypeError):
-                    # Skip invalid datetime strings
-                    continue
-
-            # If found future sessions && this is first next_race, or race is sooner
-            sessions = next_race.get("sessions", {}) if next_race else {}
-            first_session_start = (
-                self._parse_datetime(list(sessions.values())[0]["start"]).replace(
-                    tzinfo=pytz.UTC
-                )
-                if sessions
-                else None
-            )
-
-            if has_future_session and (
-                not next_race
-                or not sessions
-                or (
-                    race_earliest_session
-                    and race_earliest_session < first_session_start
-                )
-            ):
-                next_race = race.copy()
-                next_race["totalRounds"] = total_rounds
-
-        # If no race with future sessions found, find the next race by date only
         if not next_race:
-            race_start_dates = []
-            for race in schedule:
-                # Get the earliest date from any session in this race
-                earliest_date = None
-                for session_name, session_info in race["sessions"].items():
-                    start_str = session_info.get("start")
-                    if start_str:
-                        try:
-                            # Handle date-only strings (TBC sessions)
-                            session_date = self._parse_datetime(start_str)
-                            if session_date > now:
-                                season_completed = (
-                                    False  # Found at least one future session
-                                )
-                                if not earliest_date or session_date < earliest_date:
-                                    earliest_date = session_date
-                        except (ValueError, TypeError):
-                            continue
+            next_race = schedule[-1].copy() if schedule else None
+            if next_race:
+                next_race["seasonCompleted"] = True
 
-                if earliest_date:
-                    race_start_dates.append((race, earliest_date))
-
-            # Sort by date and pick the earliest
-            if race_start_dates:
-                race_start_dates.sort(key=lambda x: x[1])
-                next_race = race_start_dates[0][0].copy()
-                next_race["totalRounds"] = total_rounds
-
-        # If no future races found, return the last race of the season
-        if not next_race and schedule:
-            next_race = schedule[-1].copy()  # Last race in the schedule
-            next_race["totalRounds"] = total_rounds
-            next_race["seasonCompleted"] = True
-        elif next_race:
-            next_race["seasonCompleted"] = season_completed
-
-        # Apply timezone conversion and set next session
         if next_race:
-            if not next_race.get("seasonCompleted") and next_session:
-                next_race["nextSession"] = next_session
-
-            user_timezone = request.get_timezone()
-            if user_timezone != "UTC":
-                next_race = self._convert_race_timezone(next_race, user_timezone)
+            next_race["totalRounds"] = len(schedule)
+            user_tz = request.get_timezone()
+            if user_tz != "UTC":
+                next_race = self._convert_race_timezone(next_race, user_tz)
 
         return next_race
+
+    def _find_next_race(self, schedule, now):
+        """Find the next race with future sessions"""
+        upcoming_races = []
+
+        for race in schedule:
+            future_sessions = self._get_future_sessions(race, now)
+            if future_sessions:
+                earliest = min(s["datetime"] for s in future_sessions)
+                upcoming_races.append((race, earliest, future_sessions[0]))
+
+        if not upcoming_races:
+            return None
+
+        upcoming_races.sort(key=lambda x: x[1])
+        race, _, next_session = upcoming_races[0]
+
+        result = race.copy()
+        result["nextSession"] = {
+            "name": next_session["name"],
+            "date": next_session["date_str"],
+            "isTBC": next_session["is_tbc"],
+        }
+        result["seasonCompleted"] = False
+        return result
+
+    def _get_future_sessions(self, race, now):
+        """Get all future sessions for a race"""
+        future = []
+        for name, info in race["sessions"].items():
+            if start_str := info.get("start"):
+                try:
+                    dt = self._parse_datetime(start_str)
+                    if dt > now:
+                        future.append(
+                            {
+                                "name": name,
+                                "datetime": dt,
+                                "date_str": start_str,
+                                "is_tbc": info.get("time") == "TBC",
+                            }
+                        )
+                except (ValueError, TypeError):
+                    continue
+        return sorted(future, key=lambda x: x["datetime"])
 
     def _parse_datetime(self, date_string: str) -> datetime:
         """Parse a date string that could be either YYYY-MM-DD or full ISO format"""
         if len(date_string) == 10:
             return datetime.strptime(date_string, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
         else:
-            dt = datetime.fromisoformat(date_string)
-            if dt.tzinfo is None:
-                dt = pytz.UTC.localize(dt)
-            return dt
+            return self._parse_iso_and_localize(date_string)
+
+    def _parse_iso_and_localize(self, string: str) -> datetime:
+        """Parse an ISO timestamp, if naive localize as UTC"""
+        dt = datetime.fromisoformat(string)
+        if dt.tzinfo is None:
+            dt = pytz.UTC.localize(dt)
+        return dt
 
     def _convert_schedule_timezone(self, schedule, target_timezone):
         """Convert all datetime strings in schedule from UTC to target timezone"""
         target_tz = pytz.timezone(target_timezone)
-        utc_tz = pytz.UTC
 
         for race in schedule:
             for _, session_info in race["sessions"].items():
@@ -198,9 +112,7 @@ class ScheduleService:
                 for time_field in ["start", "end"]:
                     time_str = session_info.get(time_field)
                     if time_str:
-                        utc_dt = datetime.fromisoformat(time_str)
-                        if utc_dt.tzinfo is None:
-                            utc_dt = utc_tz.localize(utc_dt)
+                        utc_dt = self._parse_iso_and_localize(time_str)
                         local_dt = utc_dt.astimezone(target_tz)
                         session_info[time_field] = local_dt.isoformat()
 
@@ -209,7 +121,6 @@ class ScheduleService:
     def _convert_race_timezone(self, race, target_timezone):
         """Convert datetime strings in a single race from UTC to target timezone"""
         target_tz = pytz.timezone(target_timezone)
-        utc_tz = pytz.UTC
 
         for _, session_info in race["sessions"].items():
             if session_info.get("time") == "TBC":
@@ -218,18 +129,14 @@ class ScheduleService:
             for time_field in ["start", "end"]:
                 time_str = session_info.get(time_field)
                 if time_str and len(time_str) > 10:
-                    utc_dt = datetime.fromisoformat(time_str)
-                    if utc_dt.tzinfo is None:
-                        utc_dt = utc_tz.localize(utc_dt)
+                    utc_dt = self._parse_iso_and_localize(time_str)
                     local_dt = utc_dt.astimezone(target_tz)
                     session_info[time_field] = local_dt.isoformat()
 
         if "nextSession" in race:
             start_str = race["nextSession"].get("date")
             if start_str and len(start_str) > 10:
-                utc_dt = datetime.fromisoformat(start_str)
-                if utc_dt.tzinfo is None:
-                    utc_dt = utc_tz.localize(utc_dt)
+                utc_dt = self._parse_iso_and_localize(start_str)
                 local_dt = utc_dt.astimezone(target_tz)
                 race["nextSession"]["date"] = local_dt.isoformat()
 
@@ -257,3 +164,11 @@ class ScheduleService:
 
         # Return current year dir as default
         return SCHEDULE_DIR
+
+    async def _open_schedule_file(self, request: ScheduleRequest):
+        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Schedule data not found")
+
+        async with aiofiles.open(file_path, "r") as f:
+            return json.loads(await f.read())

@@ -1,7 +1,9 @@
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
 from bs4 import BeautifulSoup
+
 from app.scrapers.scraping_utils import (
     create_session,
     remove_superscripts,

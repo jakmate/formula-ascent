@@ -1,14 +1,16 @@
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 from bs4 import BeautifulSoup
+
 from app.scrapers.qualifying_scraper import (
     add_time_gap,
-    extract_race_report_links,
-    process_qualifying_data,
-    parse_time_to_seconds,
-    normalize_time_str,
-    process_two_table_qualifying,
     extract_quali_table_data,
+    extract_race_report_links,
+    normalize_time_str,
+    parse_time_to_seconds,
+    process_qualifying_data,
+    process_two_table_qualifying,
     save_qualifying_data,
     scrape_quali,
 )

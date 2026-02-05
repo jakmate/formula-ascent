@@ -1,12 +1,14 @@
 import time
-import torch
 from datetime import datetime
 from typing import List
-from app.models.predictions import PredictionsResponse, ModelResults, PredictionResponse
-from app.models.system import SystemStatus
-from app.core.state import AppState
-from app.services.data_service import DataService
+
+import torch
+
 from app.config import CURRENT_YEAR, LOGGER
+from app.core.state import AppState
+from app.models.predictions import ModelResults, PredictionResponse, PredictionsResponse
+from app.models.system import SystemStatus
+from app.services.data_service import DataService
 
 
 class PredictionService:

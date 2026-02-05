@@ -1,16 +1,17 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 from bs4 import BeautifulSoup
 
 from app.scrapers.championship_scraper import (
-    map_url,
-    find_championship_table,
     build_headers,
+    find_championship_table,
     get_footer_rows_count,
+    get_round_names,
+    has_number_column,
+    map_url,
+    process_championship,
     process_table_row,
     write_championship_csv,
-    process_championship,
-    has_number_column,
-    get_round_names,
 )
 
 

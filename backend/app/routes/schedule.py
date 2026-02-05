@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Header, Query
 from typing import Optional
 
-from app.services.schedule_service import ScheduleService, ScheduleRequest
+from fastapi import APIRouter, Header, HTTPException, Query
+
 from app.config import LOGGER
+from app.services.schedule_service import ScheduleRequest, ScheduleService
 
 router = APIRouter()
 

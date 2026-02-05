@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+
 from app.scrapers.scrape import map_url, scrape, scrape_current_year, scrape_wiki
 
 

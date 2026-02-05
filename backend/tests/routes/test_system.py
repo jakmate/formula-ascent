@@ -1,10 +1,11 @@
-import pytest
 from datetime import datetime
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi import BackgroundTasks
 
-from app.routes.system import refresh_data, refresh_predictions, refresh_schedule
 from app.models.system import RefreshResponse
+from app.routes.system import refresh_data, refresh_predictions, refresh_schedule
 
 
 @pytest.fixture

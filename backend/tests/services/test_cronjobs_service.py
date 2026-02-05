@@ -1,9 +1,10 @@
-import pytest
-from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 
-from app.services.cronjobs_service import CronjobService
+import pytest
+
 from app.core.state import AppState
+from app.services.cronjobs_service import CronjobService
 
 
 @pytest.fixture

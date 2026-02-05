@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 import app.routes.health as health
 import app.routes.predictions as predictions
 import app.routes.schedule as schedule

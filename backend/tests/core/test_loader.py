@@ -1,20 +1,21 @@
-import pandas as pd
 import json
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import MagicMock, mock_open, patch
+
+import pandas as pd
 
 from app.core.loader import (
+    get_driver_filename,
     get_file_pattern,
     get_series_directories,
     load_all_entries_data,
-    load_year_data,
-    load_standings_data,
-    load_qualifying_data,
-    get_driver_filename,
-    load_driver_data,
-    merge_entries,
-    parse_round_count,
-    merge_team_data,
     load_data,
+    load_driver_data,
+    load_qualifying_data,
+    load_standings_data,
+    load_year_data,
+    merge_entries,
+    merge_team_data,
+    parse_round_count,
 )
 
 

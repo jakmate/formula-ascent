@@ -1,21 +1,22 @@
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
+
 from bs4 import BeautifulSoup
 
 from app.scrapers.entries_scraper import (
-    get_entries_heading_id,
+    clean_headers,
     find_entries_table,
+    get_entries_heading_id,
     get_rowspan_column_count,
-    should_remove_footer_row,
+    process_entries,
+    process_f1_modern_drivers,
     process_headers,
     process_multirow_headers,
-    process_single_row_headers,
-    clean_headers,
-    remove_footer_if_needed,
     process_rowspan_columns,
-    process_f1_modern_drivers,
-    write_f1_modern_rows,
+    process_single_row_headers,
     process_standard_row,
-    process_entries,
+    remove_footer_if_needed,
+    should_remove_footer_row,
+    write_f1_modern_rows,
 )
 
 

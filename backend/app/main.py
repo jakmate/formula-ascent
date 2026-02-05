@@ -1,11 +1,12 @@
 import os
-import uvicorn
 from contextlib import asynccontextmanager
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import LOGGER
-from app.dependencies import initialize_app_state, cleanup_app_state
+from app.dependencies import cleanup_app_state, initialize_app_state
 from app.routes.router import api_router
 
 

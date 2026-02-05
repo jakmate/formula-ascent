@@ -1,4 +1,5 @@
 import csv
+
 from app.scrapers.scraping_utils import create_output_file, remove_superscripts
 
 

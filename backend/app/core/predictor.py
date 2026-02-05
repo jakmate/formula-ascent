@@ -1,18 +1,18 @@
-import numpy as np
 import os
-import pandas as pd
 import random
 import re
-import torch.optim as optim
-import torch.nn as nn
-import torch
 
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from imblearn.pipeline import Pipeline
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, average_precision_score
+from sklearn.metrics import average_precision_score, classification_report
 from sklearn.model_selection import StratifiedKFold
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -21,8 +21,8 @@ from sklearn.svm import SVC
 
 from app.config import CURRENT_YEAR, NOT_PARTICIPATED_CODES, RETIREMENT_CODES, SEED
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
-from app.core.utils import calculate_age, extract_position, get_race_columns
 from app.core.pytorch_model import RacingPredictor
+from app.core.utils import calculate_age, extract_position, get_race_columns
 
 os.environ["PYTHONHASHSEED"] = str(SEED)
 random.seed(SEED)

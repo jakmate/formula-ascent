@@ -1,12 +1,13 @@
 import asyncio
 import os
-import joblib
-import torch
 from datetime import datetime
 
-from app.core.state import AppState
-from app.config import MODELS_DIR, LOGGER
+import joblib
+import torch
+
+from app.config import LOGGER, MODELS_DIR
 from app.core.predictor import RacingPredictor
+from app.core.state import AppState
 
 
 class ModelService:

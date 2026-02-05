@@ -1,11 +1,12 @@
 import asyncio
 from datetime import datetime
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.core.state import AppState
 from app.config import CURRENT_YEAR, LOGGER, SEASON_END_MONTH
-from app.scrapers.scrape import scrape_current_year, scrape_wiki
+from app.core.state import AppState
 from app.scrapers.schedule_scraper import scrape_schedules
+from app.scrapers.scrape import scrape_current_year, scrape_wiki
 
 
 class CronjobService:

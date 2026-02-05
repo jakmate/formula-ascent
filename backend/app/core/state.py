@@ -1,7 +1,8 @@
 import json
 import os
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.config import LOGGER, STATE_FILE
 

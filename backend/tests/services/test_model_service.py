@@ -1,11 +1,12 @@
 import os
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
+from unittest.mock import Mock, patch
 
-from app.services.model_service import ModelService
-from app.core.state import AppState
+import pytest
+
 from app.core.predictor import RacingPredictor
+from app.core.state import AppState
+from app.services.model_service import ModelService
 
 
 @pytest.fixture

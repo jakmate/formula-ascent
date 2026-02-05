@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.services.prediction_service import PredictionService
-from app.models.predictions import PredictionsResponse
-from app.dependencies import get_app_state, get_data_service
-from app.core.state import AppState
 from app.config import LOGGER
+from app.core.state import AppState
+from app.dependencies import get_app_state, get_data_service
+from app.models.predictions import PredictionsResponse
 from app.services.data_service import DataService
+from app.services.prediction_service import PredictionService
 
 router = APIRouter()
 

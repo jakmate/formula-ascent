@@ -1,12 +1,13 @@
-import os
 import json
-import pytz
+import os
 import re
-from bs4 import BeautifulSoup, SoupStrainer
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urljoin
+
+import pytz
+from bs4 import BeautifulSoup, SoupStrainer
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
-from urllib.parse import urljoin
 
 from app.config import CURRENT_YEAR, SCHEDULE_DIR
 from app.scrapers.scraping_utils import create_session

@@ -1,14 +1,15 @@
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
-from app.services.prediction_service import PredictionService
-from app.models.predictions import PredictionsResponse, ModelResults, PredictionResponse
-from app.core.state import AppState
-from app.services.data_service import DataService
-from app.config import SEED
 
+import numpy as np
+import pandas as pd
+import pytest
+
+from app.config import SEED
+from app.core.state import AppState
+from app.models.predictions import ModelResults, PredictionResponse, PredictionsResponse
+from app.services.data_service import DataService
+from app.services.prediction_service import PredictionService
 
 rng = np.random.default_rng(SEED)
 
