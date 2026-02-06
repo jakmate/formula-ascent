@@ -7,6 +7,7 @@ from app.config import CURRENT_YEAR, LOGGER, SEASON_END_MONTH
 from app.core.state import AppState
 from app.scrapers.schedule_scraper import scrape_schedules
 from app.scrapers.scrape import scrape_current_year, scrape_wiki
+from app.services.prediction_service import PredictionService
 
 
 class CronjobService:
@@ -49,12 +50,14 @@ class CronjobService:
                 and CURRENT_YEAR > self.app_state.system_status["last_trained_season"]
             ):
                 LOGGER.info(f"New season {CURRENT_YEAR} complete. Starting training...")
-                await self._train_models_task()
+                try:
+                    await self.data_service.initialize_system()
+                except Exception as e:
+                    LOGGER.error(f"Training task failed: {e}")
             else:
                 LOGGER.info(
                     "No new complete season available. Updating predictions only."
                 )
-                from app.services.prediction_service import PredictionService
 
                 for series in ["f3_to_f2", "f2_to_f1"]:
                     prediction_service = PredictionService(
@@ -65,13 +68,6 @@ class CronjobService:
             LOGGER.error(f"Scrape and train task failed: {e}")
         finally:
             self.app_state.save_state()
-
-    async def _train_models_task(self):
-        """Train models on newly available complete seasons"""
-        try:
-            await self.data_service.initialize_system()
-        except Exception as e:
-            LOGGER.error(f"Training task failed: {e}")
 
     def _is_season_complete(self):
         """Check if current season is complete based on date"""
@@ -89,8 +85,6 @@ class CronjobService:
             LOGGER.info("Predictions scraping completed")
 
             # Update predictions without training
-            from app.services.prediction_service import PredictionService
-
             for series in ["f3_to_f2", "f2_to_f1"]:
                 prediction_service = PredictionService(
                     self.app_state, series, self.data_service

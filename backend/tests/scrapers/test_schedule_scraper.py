@@ -176,7 +176,7 @@ class TestScrapeF1Schedule:
             FORMULA 1 BAHRAIN GRAND PRIX 2025</span>
             <span class="typography-module_technical-xs-regular__-W0Gs">28 Feb - 02 Mar</span>
         </a>
-        """  # noqa: F501
+        """
         mock_session.get.return_value = mock_response
 
         with patch("app.scrapers.schedule_scraper.CURRENT_YEAR", 2025):

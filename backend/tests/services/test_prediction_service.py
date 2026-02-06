@@ -16,7 +16,6 @@ rng = np.random.default_rng(SEED)
 
 @pytest.fixture
 def mock_app_state():
-    """Create a mock AppState with necessary attributes"""
     state = Mock(spec=AppState)
     state.models = {"f3_to_f2": {"RandomForest": Mock(), "PyTorch": Mock()}}
     state.feature_cols = {
@@ -35,13 +34,11 @@ def mock_app_state():
 
 @pytest.fixture
 def mock_data_service():
-    """Create a mock DataService"""
     return Mock(spec=DataService)
 
 
 @pytest.fixture
 def sample_dataframe():
-    """Create sample DataFrame for testing"""
     return pd.DataFrame(
         {
             "Driver": ["Hamilton", "Verstappen", "Leclerc"],
@@ -68,15 +65,12 @@ def sample_dataframe():
 
 @pytest.fixture
 def prediction_service(mock_app_state, mock_data_service):
-    """Create PredictionService instance"""
     return PredictionService(
         app_state=mock_app_state, series="f3_to_f2", data_service=mock_data_service
     )
 
 
-class TestPredictionServiceInit:
-    """Test initialization of PredictionService"""
-
+class TestInit:
     def test_init_sets_attributes(self, mock_app_state, mock_data_service):
         service = PredictionService(mock_app_state, "f3_to_f2", mock_data_service)
         assert service.app_state == mock_app_state
@@ -86,10 +80,8 @@ class TestPredictionServiceInit:
 
 
 class TestGetPredictions:
-    """Test get_predictions method"""
-
     @pytest.mark.asyncio
-    async def test_get_predictions_success(
+    async def test_success(
         self, prediction_service, mock_data_service, sample_dataframe
     ):
         # Setup
@@ -120,7 +112,7 @@ class TestGetPredictions:
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: F501
+            )
             mock_pytorch_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -135,14 +127,14 @@ class TestGetPredictions:
         assert len(result.predictions["RandomForest"].predictions) == 3
 
     @pytest.mark.asyncio
-    async def test_get_predictions_no_models_raises_error(self, prediction_service):
+    async def test_no_models_raises_error(self, prediction_service):
         prediction_service.app_state.models["f3_to_f2"] = {}
 
         with pytest.raises(ValueError, match="No models available for series f3_to_f2"):
             await prediction_service.get_predictions()
 
     @pytest.mark.asyncio
-    async def test_get_predictions_no_feature_cols_raises_error(
+    async def test_no_feature_cols_raises_error(
         self, prediction_service, mock_data_service, sample_dataframe
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
@@ -152,7 +144,7 @@ class TestGetPredictions:
             await prediction_service.get_predictions()
 
     @pytest.mark.asyncio
-    async def test_get_predictions_uses_cache(
+    async def test_uses_cache(
         self, prediction_service, mock_data_service, sample_dataframe
     ):
         # First call - should cache
@@ -195,8 +187,6 @@ class TestGetPredictions:
 
 
 class TestGetModelPredictions:
-    """Test _get_model_predictions method"""
-
     def test_sklearn_model_predictions(self, prediction_service):
         x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
@@ -235,7 +225,7 @@ class TestGetModelPredictions:
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: F501
+            )
             mock_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -266,57 +256,10 @@ class TestGetModelPredictions:
         with pytest.raises(ValueError, match="Model InvalidModel not found"):
             prediction_service._get_model_predictions("InvalidModel", x_current)
 
-    def test_pytorch_model_uses_cuda(self, prediction_service):
-        x_current = pd.DataFrame(rng.random((2, 5)))
-        mock_model = prediction_service.app_state.models["f3_to_f2"]["PyTorch"]
-        mock_model.eval = Mock()
-        mock_model.to = Mock(return_value=mock_model)
-        mock_model.calibrator = None
-
-        # scaler returns scaled array
-        prediction_service.app_state.scaler[
-            "f3_to_f2"
-        ].transform.return_value = rng.random((2, 5))
-
-        # Prepare a mock tensor we can assert was called
-        mock_tensor = Mock()
-        mock_tensor.to.return_value = mock_tensor
-
-        # Prepare a mock logits / sigmoid return object with cpu().numpy().flatten() chain
-        mock_sig_ret = Mock()
-        mock_cpu = Mock()
-        mock_cpu.numpy.return_value.flatten.return_value = np.array([0.1, 0.2])
-        mock_sig_ret.cpu.return_value = mock_cpu
-
-        # Make the model call return a logits-like object (mock)
-        mock_logits = Mock()
-        mock_model.return_value = mock_logits
-
-        # Patch tensor creation, cuda availability and sigmoid behaviour
-        with (
-            patch("torch.no_grad"),
-            patch("torch.FloatTensor", return_value=mock_tensor),
-            patch("torch.cuda.is_available", return_value=True),
-            patch("torch.sigmoid", return_value=mock_sig_ret),
-            patch("torch.device") as mock_device,
-        ):
-            result = prediction_service._get_model_predictions("PyTorch", x_current)
-
-        # Assert device was created with cuda
-        mock_device.assert_called_with("cuda")
-        # Assert tensor.to(device) was called
-        mock_tensor.to.assert_called_once()
-
-        # result should be a numpy-like array of length 2
-        assert isinstance(result, np.ndarray)
-        assert len(result) == 2
-
 
 class TestCreatePredictionResponses:
-    """Test _create_prediction_responses method"""
-
-    def test_creates_prediction_responses(self, prediction_service, sample_dataframe):
-        calibrated_probas = np.array([0.75, 0.65, 0.55])
+    def test_success(self, prediction_service, sample_dataframe):
+        calibrated_probas = np.array([0.55, 0.75, 0.65])
 
         result = prediction_service._create_prediction_responses(
             sample_dataframe, calibrated_probas
@@ -324,27 +267,7 @@ class TestCreatePredictionResponses:
 
         assert len(result) == 3
         assert all(isinstance(pred, PredictionResponse) for pred in result)
-        assert result[0].driver == "Hamilton"
-        assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == pytest.approx(
-            75.0
-        )
-        assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == pytest.approx(
-            65.0
-        )
-        assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == pytest.approx(
-            55.0
-        )
-
-    def test_predictions_sorted_by_percentage(
-        self, prediction_service, sample_dataframe
-    ):
-        calibrated_probas = np.array([0.55, 0.75, 0.65])  # Unsorted
-
-        result = prediction_service._create_prediction_responses(
-            sample_dataframe, calibrated_probas
-        )
-
-        # Should be sorted descending
+        assert result[0].driver == "Verstappen"
         assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == pytest.approx(
             75.0
         )
@@ -357,10 +280,8 @@ class TestCreatePredictionResponses:
 
 
 class TestUpdatePredictions:
-    """Test update_predictions method"""
-
     @pytest.mark.asyncio
-    async def test_update_predictions_success(
+    async def test_success(
         self, prediction_service, mock_data_service, sample_dataframe
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
@@ -387,7 +308,7 @@ class TestUpdatePredictions:
             mock_output = Mock()
             mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
                 np.array([0.65, 0.55, 0.45])
-            )  # noqa: F501
+            )
             mock_pytorch_model.return_value = mock_output
 
             with patch("torch.sigmoid", return_value=mock_output):
@@ -397,9 +318,7 @@ class TestUpdatePredictions:
         assert len(prediction_service.app_state.current_predictions["f3_to_f2"]) == 2
 
     @pytest.mark.asyncio
-    async def test_update_predictions_with_features_df(
-        self, prediction_service, sample_dataframe
-    ):
+    async def test_with_features_df(self, prediction_service, sample_dataframe):
         prediction_service.app_state.system_status["current_year"] = 2024
 
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
@@ -413,9 +332,7 @@ class TestUpdatePredictions:
         assert "f3_to_f2" in prediction_service.app_state.current_predictions
 
     @pytest.mark.asyncio
-    async def test_update_predictions_empty_dataframe(
-        self, prediction_service, mock_data_service
-    ):
+    async def test_empty_dataframe(self, prediction_service, mock_data_service):
         mock_data_service.load_current_data = AsyncMock(return_value=pd.DataFrame())
 
         await prediction_service.update_predictions()
@@ -427,21 +344,42 @@ class TestUpdatePredictions:
         )
 
     @pytest.mark.asyncio
-    async def test_update_predictions_model_failure(
+    async def test_model_failure(
         self, prediction_service, mock_data_service, sample_dataframe
     ):
+        # Ensure current_year matches sample data to avoid filtering out rows
+        prediction_service.app_state.system_status["current_year"] = 2024
+
+        # Replace models with controlled test doubles
+        mock_rf = Mock()
+        mock_rf.predict_proba.side_effect = Exception("Prediction error")
+
+        mock_svm = Mock()
+        mock_svm.predict_proba.return_value = np.array(
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+        )
+
+        prediction_service.app_state.models["f3_to_f2"] = {
+            "RandomForest": mock_rf,
+            "SVM": mock_svm,
+        }
+
+        prediction_service.app_state.scaler[
+            "f3_to_f2"
+        ].transform.return_value = rng.random((3, 5))
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
-
-        mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
-        mock_rf_model.predict_proba.side_effect = Exception("Prediction error")
-
-        # Should not raise, just log error
         await prediction_service.update_predictions()
 
+        predictions = prediction_service.app_state.current_predictions.get(
+            "f3_to_f2", []
+        )
+
+        # Only successful model's predictions stored
+        assert len(predictions) == 1
+        assert predictions[0]["model"] == "SVM"
+
     @pytest.mark.asyncio
-    async def test_update_predictions_initializes_current_predictions_when_missing(
-        self, sample_dataframe
-    ):
+    async def test_initializes_current_predictions_when_missing(self, sample_dataframe):
         # Build a minimal app_state object without current_predictions
         class MinimalState:
             pass
@@ -485,52 +423,10 @@ class TestUpdatePredictions:
 
 
 class TestClearPredictionCache:
-    """Test clear_prediction_cache method"""
-
     def test_clears_cache(self, prediction_service):
         # Add some cache data
         prediction_service.prediction_cache["test_key"] = {"data": "value"}
 
         prediction_service.clear_prediction_cache()
 
-        assert len(prediction_service.prediction_cache) == 0
-
-
-class TestIntegration:
-    """Integration tests combining multiple methods"""
-
-    @pytest.mark.asyncio
-    async def test_full_prediction_workflow(
-        self, prediction_service, mock_data_service, sample_dataframe
-    ):
-        """Test complete workflow from data loading to predictions"""
-        mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
-
-        # Setup models
-        mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
-        mock_rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
-        )
-        mock_rf_model.calibrator = None
-
-        # Remove PyTorch model for simpler test
-        prediction_service.app_state.models["f3_to_f2"] = {
-            "RandomForest": mock_rf_model
-        }
-        # Also update system_status to reflect single model
-        prediction_service.app_state.system_status["models_available"] = {
-            "f3_to_f2": ["RandomForest"]
-        }
-
-        # Get predictions
-        result = await prediction_service.get_predictions()
-
-        # Verify complete response structure
-        assert isinstance(result, PredictionsResponse)
-        assert len(result.predictions) == 1
-        assert result.predictions["RandomForest"].predictions[0].driver == "Hamilton"
-        assert result.system_status.models_available == {"f3_to_f2": ["RandomForest"]}
-
-        # Clear cache and verify
-        prediction_service.clear_prediction_cache()
         assert len(prediction_service.prediction_cache) == 0

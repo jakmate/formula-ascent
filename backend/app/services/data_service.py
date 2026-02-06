@@ -66,7 +66,7 @@ class DataService:
         # Cache the processed data
         self.data_cache[cache_key] = current_df
         LOGGER.info(
-            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records"  # noqa: F501
+            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records"
         )
 
         return current_df

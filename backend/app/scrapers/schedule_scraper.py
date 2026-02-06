@@ -303,7 +303,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                             # Extract time
                             time_span = session_el.select_one(
-                                ".typography-module_technical-s-regular__6LvKq.text-text-5"  # noqa: F501
+                                ".typography-module_technical-s-regular__6LvKq.text-text-5"
                             )
                             time_str = ""
                             if time_span:
@@ -529,7 +529,7 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                     except Exception as e:
                         print(
-                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}"  # noqa: F501
+                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}"
                         )
 
                 # Add fallback race session

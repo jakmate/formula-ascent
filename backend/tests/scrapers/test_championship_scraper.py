@@ -47,7 +47,7 @@ def test_map_url_2023_plus():
 
 # find_championship_table tests
 def test_find_championship_table_found():
-    html = '<h3 id="World_Drivers\'_Championship_standings"></h3><table class="wikitable"></table>'  # noqa: F501
+    html = '<h3 id="World_Drivers\'_Championship_standings"></h3><table class="wikitable"></table>'
     soup = make_soup(html)
     table, error = find_championship_table(soup, "Drivers'", 1, 2020)
     assert table is not None
