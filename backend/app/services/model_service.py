@@ -67,7 +67,7 @@ class ModelService:
         except Exception as e:
             LOGGER.error(f"Error saving models: {e}")
 
-    async def load_models(self):
+    async def load_models(self) -> bool:
         """Load models from disk"""
         try:
             models_loaded = False
@@ -81,54 +81,12 @@ class ModelService:
                     continue
 
                 # Load preprocessor
-                preprocessor_path = os.path.join(series_dir, "preprocessor.joblib")
-                if os.path.exists(preprocessor_path):
-                    preprocessor = await asyncio.to_thread(
-                        joblib.load, preprocessor_path
-                    )
-                    self.app_state.scaler[series] = preprocessor["scaler"]
-                    self.app_state.feature_cols[series] = preprocessor["feature_cols"]
+                await self._load_preprocessor(series, series_dir)
 
                 # Load models
                 for model_file in os.listdir(series_dir):
-                    if (
-                        model_file == "preprocessor.joblib"
-                        or "_calibrator" in model_file
-                    ):
-                        continue
-
-                    name = os.path.splitext(model_file)[0]
-                    model_path = os.path.join(series_dir, model_file)
-
-                    if model_file.endswith(".joblib"):
-                        model = await asyncio.to_thread(joblib.load, model_path)
-                        self.app_state.models[series][name] = model
-                        models_loaded = True
-                    elif model_file.endswith(".pt"):
-                        device = torch.device(
-                            "cuda" if torch.cuda.is_available() else "cpu"
-                        )
-                        model = RacingPredictor(
-                            len(self.app_state.feature_cols[series])
-                        )
-                        state_dict = await asyncio.to_thread(
-                            torch.load,
-                            model_path,
-                            map_location=device,
-                            weights_only=True,
-                        )
-                        model.load_state_dict(state_dict)
-                        model = model.to(device)
-                        model.eval()
-                        calibrator_path = os.path.join(
-                            series_dir, f"{name}_calibrator.joblib"
-                        )
-                        if os.path.exists(calibrator_path):
-                            model.calibrator = await asyncio.to_thread(
-                                joblib.load, calibrator_path
-                            )
-                        self.app_state.models[series][name] = model
-                        models_loaded = True
+                    loaded = await self._load_model_file(series, series_dir, model_file)
+                    models_loaded = models_loaded or loaded
 
                 # Update models_available for this series
                 if self.app_state.models[series]:
@@ -145,6 +103,46 @@ class ModelService:
         except Exception as e:
             LOGGER.error(f"Error loading models: {e}")
             return False
+
+    async def _load_preprocessor(self, series: str, series_dir: str) -> None:
+        preprocessor_path = os.path.join(series_dir, "preprocessor.joblib")
+        if os.path.exists(preprocessor_path):
+            preprocessor = await asyncio.to_thread(joblib.load, preprocessor_path)
+            self.app_state.scaler[series] = preprocessor["scaler"]
+            self.app_state.feature_cols[series] = preprocessor["feature_cols"]
+
+    async def _load_model_file(
+        self, series: str, series_dir: str, model_file: str
+    ) -> bool:
+        if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
+            return False
+
+        name = os.path.splitext(model_file)[0]
+        model_path = os.path.join(series_dir, model_file)
+
+        if model_file.endswith(".joblib"):
+            model = await asyncio.to_thread(joblib.load, model_path)
+            self.app_state.models[series][name] = model
+            return True
+        elif model_file.endswith(".pt"):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model = RacingPredictor(len(self.app_state.feature_cols[series]))
+            state_dict = await asyncio.to_thread(
+                torch.load,
+                model_path,
+                map_location=device,
+                weights_only=True,
+            )
+            model.load_state_dict(state_dict)
+            model = model.to(device)
+            model.eval()
+            calibrator_path = os.path.join(series_dir, f"{name}_calibrator.joblib")
+            if os.path.exists(calibrator_path):
+                model.calibrator = await asyncio.to_thread(joblib.load, calibrator_path)
+            self.app_state.models[series][name] = model
+            return True
+
+        return False
 
     async def train_models(self, trainable_df):
         """Train models on provided data"""
