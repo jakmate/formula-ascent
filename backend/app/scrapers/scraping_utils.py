@@ -33,25 +33,40 @@ def safe_request(session, url, max_retries=3, base_delay=1):
             return response
 
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 403:
-                print(f"403 error on attempt {attempt + 1} for {url}")
-                if attempt < max_retries - 1:
-                    wait_time = 2 + (attempt * 1)
-                    print(f"Waiting {wait_time} seconds before retry...")
-                    time.sleep(wait_time)
-                else:
-                    print(f"Final 403 error for {url} - skipping")
-                    return None
-            else:
+            if e.response.status_code != 403:
                 raise
+            if not _handle_403_retry(attempt, max_retries, url):
+                return None
         except Exception as e:
-            print(f"Error on attempt {attempt + 1} for {url}: {str(e)}")
-            if attempt < max_retries - 1:
-                time.sleep(base_delay * (attempt + 1))
-            else:
+            if not _handle_generic_retry(attempt, max_retries, url, e, base_delay):
                 return None
 
     return None
+
+
+def _handle_403_retry(attempt, max_retries, url):
+    """Handle 403 error with retry logic. Returns True to continue, False to stop."""
+    print(f"403 error on attempt {attempt + 1} for {url}")
+
+    if attempt >= max_retries - 1:
+        print(f"Final 403 error for {url} - skipping")
+        return False
+
+    wait_time = 2 + attempt
+    print(f"Waiting {wait_time} seconds before retry...")
+    time.sleep(wait_time)
+    return True
+
+
+def _handle_generic_retry(attempt, max_retries, url, error, base_delay):
+    """Handle generic exception with retry logic. Returns True to continue, False to stop."""
+    print(f"Error on attempt {attempt + 1} for {url}: {str(error)}")
+
+    if attempt >= max_retries - 1:
+        return False
+
+    time.sleep(base_delay * (attempt + 1))
+    return True
 
 
 def remove_superscripts(cell, preserve_spaces=True):
