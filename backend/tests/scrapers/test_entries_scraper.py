@@ -294,6 +294,31 @@ class TestProcessF1ModernDrivers:
         expected = [["Lewis Hamilton", "44–", "Valtteri Bottas", "77"]]
         assert result == expected
 
+    def test_removes_superscripts(self):
+        html = """
+        <td>
+            Lewis Hamilton<sup>[1]</sup><br/>
+            44<br/>
+            –<br/>
+            Valtteri Bottas<sup>[2]</sup><br/>
+            77
+        </td>
+        """
+        soup = BeautifulSoup(html, "lxml")
+        cells = [soup.find("td")]
+
+        # Verify superscripts exist before processing
+        assert len(cells[0].find_all("sup")) == 2
+
+        result = process_f1_modern_drivers(cells)
+
+        # Verify superscripts were removed (decomposed)
+        assert len(cells[0].find_all("sup")) == 0
+
+        # Verify the result doesn't contain superscript content
+        expected = [["Lewis Hamilton", "44–", "Valtteri Bottas", "77"]]
+        assert result == expected
+
 
 class TestWriteF1ModernRows:
     def test_write_multiple_drivers(self):
@@ -311,6 +336,19 @@ class TestWriteF1ModernRows:
         writer.writerow.assert_any_call(
             ["Team A", "Constructor", "Engine", "Car", "Driver 2", "77"]
         )
+
+    def test_removes_unwanted_indices(self):
+        writer = Mock()
+        row_data = ["Team A", "Constructor", "Engine", "Car"]
+        processed_cells = [["Driver 1", "Driver 2"], ["44", "77"]]
+        unwanted_indices = [1, 3]  # Remove "Constructor" and "Car" columns
+
+        write_f1_modern_rows(writer, row_data, processed_cells, unwanted_indices)
+
+        assert writer.writerow.call_count == 2
+        # Rows should have indices 1 and 3 removed
+        writer.writerow.assert_any_call(["Team A", "Engine", "Driver 1", "44"])
+        writer.writerow.assert_any_call(["Team A", "Engine", "Driver 2", "77"])
 
 
 class TestProcessStandardRow:
@@ -467,3 +505,85 @@ class TestProcessEntries:
 
                 mock_file.assert_called_once()
                 mock_writer.writerow.assert_called()  # At least header written
+
+    def test_driver_column_not_found_no_error(self, mock_file, mock_create):
+        html = """
+        <table class="wikitable">
+            <tr><th>Team</th><th>Chassis</th></tr>
+            <tr><th>Team</th><th>Chassis</th></tr>
+            <tr><th>Team</th><th>Chassis</th></tr>
+            <tr><td>Mercedes</td><td>W11</td></tr>
+        </table>
+        """
+        soup = BeautifulSoup(html, "lxml")
+        table = soup.find("table")
+
+        mock_create.return_value = "/path/to/file.csv"
+
+        with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
+            mock_find.return_value = table
+
+            with patch("csv.writer") as mock_writer_class:
+                mock_writer = Mock()
+                mock_writer_class.return_value = mock_writer
+
+                # Should not raise ValueError
+                process_entries(soup, 2020, 1)
+
+                # Processing should continue normally
+                mock_file.assert_called_once()
+                mock_writer.writerow.assert_called()
+
+    def test_f1_2014_plus_drivers_path(self, mock_file, mock_create):
+        html = """
+        <table class="wikitable">
+            <tr><th>Team</th><th>Constructor</th><th>Drivers</th></tr>
+            <tr><th>Team</th><th>Constructor</th><th>Drivers</th></tr>
+            <tr><th>Team</th><th>Constructor</th><th>Drivers</th></tr>
+            <tr>
+                <td rowspan="1">Mercedes</td>
+                <td rowspan="1">Mercedes</td>
+                <td>Hamilton<br/>44<br/>Bottas<br/>77</td>
+            </tr>
+        </table>
+        """
+        soup = BeautifulSoup(html, "lxml")
+        table = soup.find("table")
+
+        mock_create.return_value = "/path/to/f1_2020_entries.csv"
+
+        with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
+            mock_find.return_value = table
+
+            with patch("csv.writer") as mock_writer_class:
+                mock_writer = Mock()
+                mock_writer_class.return_value = mock_writer
+
+                with patch(
+                    "app.scrapers.entries_scraper.process_f1_modern_drivers"
+                ) as mock_process_modern:
+                    with patch(
+                        "app.scrapers.entries_scraper.write_f1_modern_rows"
+                    ) as mock_write_modern:
+                        mock_process_modern.return_value = [
+                            ["Hamilton", "Bottas"],
+                            ["44", "77"],
+                        ]
+
+                        process_entries(soup, 2020, 1)  # series=1, year=2020 (>=2014)
+
+                        # Verify F1 modern processing functions were called
+                        assert mock_process_modern.call_count > 0
+                        assert mock_write_modern.call_count > 0
+
+                        # Verify write_f1_modern_rows was called with correct arguments
+                        call_args = mock_write_modern.call_args
+                        assert call_args[0][0] == mock_writer  # writer
+                        assert isinstance(call_args[0][1], list)  # row_data
+                        assert call_args[0][2] == [
+                            ["Hamilton", "Bottas"],
+                            ["44", "77"],
+                        ]  # processed_cells
+                        assert isinstance(
+                            call_args[0][3], list
+                        )  # sorted_unwanted_indices
