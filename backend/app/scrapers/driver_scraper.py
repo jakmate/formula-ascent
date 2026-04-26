@@ -66,7 +66,9 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
 
         try:
             response = session.get(
-                SPARQL_ENDPOINT, params={"query": query, "format": "json"}, timeout=30
+                SPARQL_ENDPOINT,
+                params={"query": query, "format": "json"},
+                timeout=30,
             )
 
             if response.status_code == 200:
@@ -90,7 +92,7 @@ def extract_nationality_from_result(result):
     # Prefer country for sport over citizenship
     if "nationalityLabel" in result and result["nationalityLabel"]["value"]:
         return result["nationalityLabel"]["value"]
-    elif "citizenshipLabel" in result and result["citizenshipLabel"]["value"]:
+    if "citizenshipLabel" in result and result["citizenshipLabel"]["value"]:
         return result["citizenshipLabel"]["value"]
     return None
 
@@ -186,7 +188,7 @@ def scrape_drivers(session=None):
         new_drivers = []
         existing_drivers = []
 
-        for driver in driver_search_map.keys():
+        for driver in driver_search_map:
             profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
             if os.path.exists(profile_file):
                 existing_drivers.append(driver)
@@ -251,7 +253,7 @@ def scrape_drivers(session=None):
             updated_count = 0
             for driver in existing_drivers:
                 profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
-                with open(profile_file, "r", encoding="utf-8") as f:
+                with open(profile_file, encoding="utf-8") as f:
                     existing_profile = json.load(f)
 
                 result = existing_results.get(driver)

@@ -5,48 +5,21 @@
     "location": "Australia",
     "sessions": {
       "practice": {
-        "start": "2026-03-06",
-        "time": "TBC"
+        "start": "2026-03-08T00:00:00"
       },
       "qualifying": {
-        "start": "2026-03-06",
-        "time": "TBC"
+        "start": "2026-03-08T00:00:00"
       },
       "sprint": {
-        "start": "2026-03-07",
-        "time": "TBC"
+        "start": "2026-03-08T00:00:00"
       },
       "race": {
-        "start": "2026-03-08",
-        "time": "TBC"
+        "start": "2026-03-08T00:00:00"
       }
     }
   },
   {
     "round": 2,
-    "name": "Sakhir",
-    "location": "Bahrain",
-    "sessions": {
-      "practice": {
-        "start": "2026-04-10",
-        "time": "TBC"
-      },
-      "qualifying": {
-        "start": "2026-04-10",
-        "time": "TBC"
-      },
-      "sprint": {
-        "start": "2026-04-11",
-        "time": "TBC"
-      },
-      "race": {
-        "start": "2026-04-12",
-        "time": "TBC"
-      }
-    }
-  },
-  {
-    "round": 3,
     "name": "Monaco",
     "location": "Monaco",
     "sessions": {
@@ -69,7 +42,7 @@
     }
   },
   {
-    "round": 4,
+    "round": 3,
     "name": "Barcelona",
     "location": "Spain",
     "sessions": {
@@ -92,7 +65,7 @@
     }
   },
   {
-    "round": 5,
+    "round": 4,
     "name": "Spielberg",
     "location": "Austria",
     "sessions": {
@@ -115,7 +88,7 @@
     }
   },
   {
-    "round": 6,
+    "round": 5,
     "name": "Silverstone",
     "location": "United Kingdom",
     "sessions": {
@@ -138,7 +111,7 @@
     }
   },
   {
-    "round": 7,
+    "round": 6,
     "name": "Spa-Francorchamps",
     "location": "Belgium",
     "sessions": {
@@ -161,7 +134,7 @@
     }
   },
   {
-    "round": 8,
+    "round": 7,
     "name": "Budapest",
     "location": "Hungary",
     "sessions": {
@@ -184,7 +157,7 @@
     }
   },
   {
-    "round": 9,
+    "round": 8,
     "name": "Monza",
     "location": "Italy",
     "sessions": {
@@ -207,7 +180,7 @@
     }
   },
   {
-    "round": 10,
+    "round": 9,
     "name": "Madrid",
     "location": "Madrid",
     "sessions": {

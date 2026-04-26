@@ -16,12 +16,13 @@ def mock_schedule_service():
 class TestGetSeriesSchedule:
     @pytest.mark.asyncio
     async def test_get_series_schedule_success(self, mock_schedule_service):
-        """Test successful schedule retrieval"""
+        """Test successful schedule retrieval."""
         expected_data = {"schedule": "test_data"}
         mock_schedule_service.get_series_schedule.return_value = expected_data
 
         with patch(
-            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+            "app.routes.schedule.ScheduleService",
+            return_value=mock_schedule_service,
         ):
             result = await get_series_schedule("f1", "UTC", "America/New_York")
 
@@ -36,7 +37,7 @@ class TestGetSeriesSchedule:
     @pytest.mark.asyncio
     async def test_get_series_schedule_exception(self, mock_schedule_service):
         mock_schedule_service.get_series_schedule.side_effect = Exception(
-            "Service error"
+            "Service error",
         )
 
         with (
@@ -61,7 +62,8 @@ class TestGetNextRace:
         mock_schedule_service.get_next_race.return_value = expected_data
 
         with patch(
-            "app.routes.schedule.ScheduleService", return_value=mock_schedule_service
+            "app.routes.schedule.ScheduleService",
+            return_value=mock_schedule_service,
         ):
             result = await get_next_race("f1", "UTC", "America/New_York")
 

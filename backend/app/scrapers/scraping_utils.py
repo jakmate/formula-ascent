@@ -7,7 +7,7 @@ from app.config import DATA_DIR
 
 
 def create_session():
-    """Create a session with a single, stable user agent"""
+    """Create a session with a single, stable user agent."""
     session = requests.Session()
 
     session.headers.update(
@@ -18,14 +18,14 @@ def create_session():
             "Accept-Encoding": "gzip, deflate",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
-        }
+        },
     )
 
     return session
 
 
 def safe_request(session, url, max_retries=3, base_delay=1):
-    """Make a request with retry logic and rate limiting"""
+    """Make a request with retry logic and rate limiting."""
     for attempt in range(max_retries):
         try:
             response = session.get(url, timeout=15)
@@ -59,8 +59,8 @@ def _handle_403_retry(attempt, max_retries, url):
 
 
 def _handle_generic_retry(attempt, max_retries, url, error, base_delay):
-    """Handle generic exception with retry logic. Returns True to continue, False to stop."""
-    print(f"Error on attempt {attempt + 1} for {url}: {str(error)}")
+    """Retry logic for generic exceptions. Returns True to continue, False to stop."""
+    print(f"Error on attempt {attempt + 1} for {url}: {error!s}")
 
     if attempt >= max_retries - 1:
         return False
@@ -70,7 +70,7 @@ def _handle_generic_retry(attempt, max_retries, url, error, base_delay):
 
 
 def remove_superscripts(cell, preserve_spaces=True):
-    """Clean cell text by removing sup elements and extracting clean text"""
+    """Clean cell text by removing sup elements and extracting clean text."""
     # Remove all sup elements (citations, footnotes, etc.)
     for sup in cell.find_all("sup"):
         sup.decompose()

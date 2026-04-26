@@ -18,7 +18,7 @@ class TestGetRaceColumns:
                 "MON Race": [3, 4],
                 "Invalid": ["text", "text"],  # Not a track code pattern
                 "MON Sprint": [np.nan, np.nan],
-            }
+            },
         )
 
         result = get_race_columns(df)
@@ -34,7 +34,7 @@ class TestGetRaceColumns:
     def test_no_race_columns(self):
         """Test DataFrame with no valid race columns."""
         df = pd.DataFrame(
-            {"Driver": ["Alice", "Bob"], "Age": [25, 30], "Team": ["TeamA", "TeamB"]}
+            {"Driver": ["Alice", "Bob"], "Age": [25, 30], "Team": ["TeamA", "TeamB"]},
         )
 
         result = get_race_columns(df)
@@ -48,7 +48,7 @@ class TestGetRaceColumns:
                 "BAH Sprint": [1, 2],
                 "bah race": [2, 1],  # lowercase
                 "Mon Sprint": [3, 4],  # mixed case
-            }
+            },
         )
 
         result = get_race_columns(df)
@@ -102,7 +102,7 @@ class TestCalculateAge:
             {
                 "dob": ["invalid", "1990-13-40", "90-05-15", None],
                 "year": [2020, 2020, 2020, 2020],
-            }
+            },
         )
 
         result = calculate_age(df)
@@ -120,7 +120,7 @@ class TestCalculateAge:
             {
                 "dob": ["1990-05-15", "invalid", "1985-12-01", None],
                 "year": [2020, 2020, 2020, 2020],
-            }
+            },
         )
 
         result = calculate_age(df)

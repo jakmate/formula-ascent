@@ -18,7 +18,7 @@ from app.scrapers.academy_scraper import (
 class TestExtractTeamLinks:
     @pytest.fixture
     def mock_soup(self):
-        """Create a mock BeautifulSoup object with F1 section and table"""
+        """Create a mock BeautifulSoup object with F1 section and table."""
         soup = MagicMock()
 
         # Create mock F1 heading
@@ -56,20 +56,20 @@ class TestExtractTeamLinks:
         return soup
 
     def test_no_f1_section(self, mock_soup):
-        """Test handling when no F1 section is found"""
+        """Test handling when no F1 section is found."""
         mock_soup.find.return_value = None
         result = extract_team_links(mock_soup)
         assert result == []
 
     def test_no_table_found(self, mock_soup):
-        """Test handling when no table is found"""
+        """Test handling when no table is found."""
         f1_heading = mock_soup.find.return_value
         f1_heading.find_next.return_value = None
         result = extract_team_links(mock_soup)
         assert result == []
 
     def test_invalid_link_format(self, mock_soup):
-        """Test handling of invalid link formats"""
+        """Test handling of invalid link formats."""
         table = mock_soup.find.return_value.find_next.return_value
         row2 = table.find_all.return_value[1]
         cell1 = row2.find_all.return_value[0]
@@ -81,11 +81,11 @@ class TestExtractTeamLinks:
 
 class TestParseYearRange:
     def test_single_year(self):
-        """Test parsing a single year"""
+        """Test parsing a single year."""
         assert parse_year_range("2023") == ["2023"]
 
     def test_year_range(self):
-        """Test parsing a year range"""
+        """Test parsing a year range."""
         assert parse_year_range("2010–2015") == [
             "2010",
             "2011",
@@ -96,7 +96,7 @@ class TestParseYearRange:
         ]
 
     def test_multiple_ranges(self):
-        """Test parsing multiple year ranges"""
+        """Test parsing multiple year ranges."""
         assert parse_year_range("2010–2012, 2015–2017") == [
             "2010",
             "2011",
@@ -107,25 +107,25 @@ class TestParseYearRange:
         ]
 
     def test_open_ended_range(self):
-        """Test parsing open-ended range (should use CURRENT_YEAR)"""
+        """Test parsing open-ended range (should use CURRENT_YEAR)."""
         with patch("app.scrapers.academy_scraper.CURRENT_YEAR", 2024):
             assert parse_year_range("2020–") == ["2020", "2021", "2022", "2023", "2024"]
 
     def test_invalid_year_format(self):
-        """Test handling invalid year formats"""
+        """Test handling invalid year formats."""
         assert parse_year_range("unknown") == ["unknown"]
         assert parse_year_range("2010–invalid") == ["2010–invalid"]
 
 
 class TestExpandYearsInData:
     def test_empty_data(self):
-        """Test handling empty data"""
+        """Test handling empty data."""
         headers, data = expand_years_in_data([], [])
         assert headers == ["Driver", "Year"]
         assert data == []
 
     def test_no_year_column(self):
-        """Test handling when no year column is found"""
+        """Test handling when no year column is found."""
         headers = ["Driver", "Team"]
         data_rows = [["Lewis Hamilton", "Mercedes"]]
         headers, data = expand_years_in_data(headers, data_rows)
@@ -133,7 +133,7 @@ class TestExpandYearsInData:
         assert data == []
 
     def test_single_year_expansion(self):
-        """Test expanding single year data"""
+        """Test expanding single year data."""
         headers = ["Driver", "Years"]
         data_rows = [["Lewis Hamilton", "2023"]]
         headers, data = expand_years_in_data(headers, data_rows)
@@ -141,7 +141,7 @@ class TestExpandYearsInData:
         assert data == [["Lewis Hamilton", "2023"]]
 
     def test_year_range_expansion(self):
-        """Test expanding year ranges"""
+        """Test expanding year ranges."""
         headers = ["Driver", "Years"]
         data_rows = [["Lewis Hamilton", "2020–2022"]]
         headers, data = expand_years_in_data(headers, data_rows)
@@ -156,7 +156,7 @@ class TestExpandYearsInData:
 class TestExtractTableData:
     @pytest.fixture
     def mock_table(self):
-        """Create a mock table with headers and data"""
+        """Create a mock table with headers and data."""
         table = MagicMock()
 
         # Create header row
@@ -177,7 +177,7 @@ class TestExtractTableData:
         return table
 
     def test_empty_table(self):
-        """Test handling empty table"""
+        """Test handling empty table."""
         table = MagicMock()
         table.find_all.return_value = []
         result = extract_table_data(table, "current_drivers")
@@ -185,9 +185,9 @@ class TestExtractTableData:
 
     @patch("app.scrapers.academy_scraper.remove_superscripts")
     def test_f1_graduates_table(self, mock_remove_superscripts, mock_table):
-        """Test extraction from F1 graduates table with multiple header rows"""
+        """Test extraction from F1 graduates table with multiple header rows."""
         mock_remove_superscripts.side_effect = (
-            lambda x, *args: x.text if hasattr(x, "text") else x
+            lambda x, *_: x.text if hasattr(x, "text") else x
         )
 
         # Create second header row for F1 graduates
@@ -212,7 +212,7 @@ class TestExtractTableData:
 class TestScrapeAcademyPage:
     @pytest.fixture
     def mock_session(self):
-        """Create a mock session"""
+        """Create a mock session."""
         session = MagicMock()
         response = MagicMock()
         response.text = "<html><body></body></html>"
@@ -222,10 +222,12 @@ class TestScrapeAcademyPage:
 
     @patch("app.scrapers.academy_scraper.safe_request")
     def test_failed_request(self, mock_safe_request, mock_session):
-        """Test handling failed request"""
+        """Test handling failed request."""
         mock_safe_request.return_value = None
         result = scrape_academy_page(
-            "https://example.com", "Red Bull Junior Team", mock_session
+            "https://example.com",
+            "Red Bull Junior Team",
+            mock_session,
         )
         assert result is None
 
@@ -234,17 +236,17 @@ class TestSaveAcademyData:
     @patch("builtins.open", new_callable=mock_open)
     @patch("os.makedirs")
     def test_save_academy_data_success(self, mock_makedirs, mock_file):
-        """Test successful saving of academy data"""
+        """Test successful saving of academy data."""
         academy_data = {
             "name": "Red Bull Junior Team",
             "current_drivers": [
-                {"headers": ["Driver", "Year"], "data": [["Lewis Hamilton", "2023"]]}
+                {"headers": ["Driver", "Year"], "data": [["Lewis Hamilton", "2023"]]},
             ],
             "former_drivers": [
-                {"headers": ["Driver", "Year"], "data": [["Sebastian Vettel", "2008"]]}
+                {"headers": ["Driver", "Year"], "data": [["Sebastian Vettel", "2008"]]},
             ],
             "f1_graduates": [
-                {"headers": ["Driver", "Year"], "data": [["Max Verstappen", "2015"]]}
+                {"headers": ["Driver", "Year"], "data": [["Max Verstappen", "2015"]]},
             ],
         }
 
@@ -271,7 +273,7 @@ class TestSaveAcademyData:
 
     @patch("os.makedirs")
     def test_empty_academy_data(self, mock_makedirs):
-        """Test handling empty academy data"""
+        """Test handling empty academy data."""
         save_academy_data(None, "test_dir")
         mock_makedirs.assert_not_called()
 
@@ -292,7 +294,7 @@ class TestScrapeAcademies:
         mock_safe_request,
         mock_create_session,
     ):
-        """Test the full scrape workflow"""
+        """Test the full scrape workflow."""
         # Setup mock session
         mock_session = MagicMock()
         mock_create_session.return_value = mock_session
@@ -334,7 +336,8 @@ class TestScrapeAcademies:
 
         # Verify main page was requested
         mock_safe_request.assert_called_once_with(
-            mock_session, "https://en.wikipedia.org/wiki/Driver_development_program"
+            mock_session,
+            "https://en.wikipedia.org/wiki/Driver_development_program",
         )
 
         # Verify team links were extracted
@@ -343,7 +346,9 @@ class TestScrapeAcademies:
         # Verify only one academy was scraped (Marussia was skipped)
         assert mock_scrape_page.call_count == 1
         mock_scrape_page.assert_any_call(
-            "https://example.com/red-bull", "Red Bull Junior Team", mock_session
+            "https://example.com/red-bull",
+            "Red Bull Junior Team",
+            mock_session,
         )
 
         # Verify data was saved
@@ -352,7 +357,7 @@ class TestScrapeAcademies:
     @patch("app.scrapers.academy_scraper.create_session")
     @patch("app.scrapers.academy_scraper.safe_request")
     def test_failed_initial_request(self, mock_safe_request, mock_create_session):
-        """Test handling failed initial request"""
+        """Test handling failed initial request."""
         mock_session = MagicMock()
         mock_create_session.return_value = mock_session
         mock_safe_request.return_value = None

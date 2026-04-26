@@ -118,10 +118,20 @@ class TestLoadState:
 
             assert result is True
             assert state.system_status["last_scrape_full"] == datetime(
-                2024, 1, 1, 12, 0, 0
+                2024,
+                1,
+                1,
+                12,
+                0,
+                0,
             )
             assert state.system_status["last_training"] == datetime(
-                2024, 1, 1, 13, 0, 0
+                2024,
+                1,
+                1,
+                13,
+                0,
+                0,
             )
             assert state.system_status["last_trained_season"] == "2024"
             assert state.system_status["models_available"] == {
@@ -174,7 +184,8 @@ class TestLoadState:
             assert result is False
             mock_logger.error.assert_called()
             mock_rename.assert_called_once_with(
-                mock_state_file, f"{mock_state_file}.backup"
+                mock_state_file,
+                f"{mock_state_file}.backup",
             )
 
     def test_load_state_general_exception(self):
@@ -182,7 +193,7 @@ class TestLoadState:
 
         with (
             patch("os.path.exists", return_value=True),
-            patch("builtins.open", side_effect=IOError("File error")),
+            patch("builtins.open", side_effect=OSError("File error")),
             patch("app.core.state.LOGGER") as mock_logger,
         ):
             result = state.load_state()
@@ -207,10 +218,20 @@ class TestLoadState:
 
             assert result is True
             assert state.system_status["last_scrape_full"] == datetime(
-                2024, 6, 15, 14, 30, 45
+                2024,
+                6,
+                15,
+                14,
+                30,
+                45,
             )
             assert state.system_status["last_training"] == datetime(
-                2024, 6, 15, 15, 45, 30
+                2024,
+                6,
+                15,
+                15,
+                45,
+                30,
             )
 
     def test_load_state_adds_missing_models_available_keys(self):
@@ -222,7 +243,7 @@ class TestLoadState:
             "last_training": "2024-01-01T13:00:00",
             "last_trained_season": "2024",
             "models_available": {
-                "f3_to_f2": ["f3_model_only"]
+                "f3_to_f2": ["f3_model_only"],
                 # "f2_to_f1" intentionally missing
             },
         }
@@ -242,10 +263,10 @@ class TestLoadState:
 
 
 class TestStateIntegration:
-    """Test save/load integration"""
+    """Test save/load integration."""
 
     def test_save_load_roundtrip(self):
-        """Test saving and loading state maintains data integrity"""
+        """Test saving and loading state maintains data integrity."""
         state1 = AppState()
         test_time = datetime(2024, 1, 1, 12, 0, 0)
 
@@ -288,7 +309,7 @@ class TestStateIntegration:
             assert state2.scaler == {"f3_to_f2": None, "f2_to_f1": None}
 
     def test_save_load_with_series_data(self):
-        """Test roundtrip with actual series data"""
+        """Test roundtrip with actual series data."""
         state1 = AppState()
 
         # Add series-specific data

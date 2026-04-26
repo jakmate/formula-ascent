@@ -1,6 +1,9 @@
 {
   "name": "Maciej Gładysz",
-  "dob": null,
-  "nationality": null,
-  "scraped": false
+  "dob": "2008-04-28",
+  "nationality": "Poland",
+  "wikidata_id": "Q122216907",
+  "wikidata_url": "http://www.wikidata.org/entity/Q122216907",
+  "scraped": true,
+  "scraped_date": "2026-04-26T17:08:02.085199"
 }

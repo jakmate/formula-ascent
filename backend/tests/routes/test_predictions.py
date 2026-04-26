@@ -28,7 +28,9 @@ class TestGetPredictions:
             mock_service_class.return_value = mock_service
 
             result = await get_predictions(
-                "f2_to_f1", mock_app_state, mock_data_service
+                "f2_to_f1",
+                mock_app_state,
+                mock_data_service,
             )
 
             # Route returns what the service returns
@@ -36,7 +38,9 @@ class TestGetPredictions:
 
             # Service was constructed correctly
             mock_service_class.assert_called_once_with(
-                mock_app_state, "f2_to_f1", mock_data_service
+                mock_app_state,
+                "f2_to_f1",
+                mock_data_service,
             )
 
             # Async method was awaited
@@ -44,7 +48,9 @@ class TestGetPredictions:
 
     @pytest.mark.asyncio
     async def test_prediction_service_exception(
-        self, mock_app_state, mock_data_service
+        self,
+        mock_app_state,
+        mock_data_service,
     ):
         """Test exceptions are handled properly."""
         with patch("app.routes.predictions.PredictionService") as mock_service_class:

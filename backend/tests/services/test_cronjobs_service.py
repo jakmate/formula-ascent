@@ -104,7 +104,7 @@ class TestScrapeAndTrainTask:
         with patch.object(cronjobs_service, "_is_season_complete", return_value=True):
             # Make initialize_system raise exception
             cronjobs_service.data_service.initialize_system = AsyncMock(
-                side_effect=Exception("Training failed")
+                side_effect=Exception("Training failed"),
             )
 
             await cronjobs_service.scrape_and_train_task()
@@ -122,7 +122,10 @@ class TestScrapeAndTrainTask:
     @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.PredictionService")
     async def test_update_predictions(
-        self, mock_prediction_service_class, mock_scrape, cronjobs_service
+        self,
+        mock_prediction_service_class,
+        mock_scrape,
+        cronjobs_service,
     ):
         # Mock prediction service
         mock_prediction_service = Mock()
@@ -140,7 +143,10 @@ class TestScrapeAndTrainTask:
     @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.LOGGER")
     async def test_scrape_exception_handling(
-        self, mock_logger, mock_scrape, cronjobs_service
+        self,
+        mock_logger,
+        mock_scrape,
+        cronjobs_service,
     ):
         # Make scraping raise exception
         mock_scrape.side_effect = Exception("Scraping failed")
@@ -149,7 +155,7 @@ class TestScrapeAndTrainTask:
 
         # Verify specific error message was logged
         mock_logger.error.assert_called_with(
-            "Scrape and train task failed: Scraping failed"
+            "Scrape and train task failed: Scraping failed",
         )
         cronjobs_service.app_state.save_state.assert_called_once()
 
@@ -217,7 +223,7 @@ class TestScrapePredictions:
         await cronjobs_service.scrape_predictions()
 
         mock_logger.error.assert_called_with(
-            "Predictions scrape task failed: Scrape failed"
+            "Predictions scrape task failed: Scrape failed",
         )
         cronjobs_service.app_state.save_state.assert_called_once()
 
@@ -227,7 +233,10 @@ class TestScrapeSchedule:
     @patch("app.services.cronjobs_service.scrape_schedules")
     @patch("app.services.cronjobs_service.datetime")
     async def test_success(
-        self, mock_datetime, mock_scrape_schedules, cronjobs_service
+        self,
+        mock_datetime,
+        mock_scrape_schedules,
+        cronjobs_service,
     ):
         mock_now = datetime(2024, 6, 15)
         mock_datetime.now.return_value = mock_now
@@ -244,13 +253,16 @@ class TestScrapeSchedule:
     @patch("app.services.cronjobs_service.scrape_schedules")
     @patch("app.services.cronjobs_service.LOGGER")
     async def test_exception(
-        self, mock_logger, mock_scrape_schedules, cronjobs_service
+        self,
+        mock_logger,
+        mock_scrape_schedules,
+        cronjobs_service,
     ):
         mock_scrape_schedules.side_effect = Exception("Schedule scrape failed")
 
         await cronjobs_service.scrape_schedule()
 
         mock_logger.error.assert_called_with(
-            "Schedule scrape task failed: Schedule scrape failed"
+            "Schedule scrape task failed: Schedule scrape failed",
         )
         cronjobs_service.app_state.save_state.assert_called_once()

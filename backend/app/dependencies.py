@@ -1,5 +1,3 @@
-from typing import Optional
-
 from app.config import LOGGER
 from app.core.state import AppState
 from app.services.cronjobs_service import CronjobService
@@ -7,17 +5,17 @@ from app.services.data_service import DataService
 from app.services.model_service import ModelService
 
 # Global application state
-app_state: Optional[AppState] = None
-model_service: Optional[ModelService] = None
-data_service: Optional[DataService] = None
-cronjob_service: Optional[CronjobService] = None
+app_state: AppState | None = None
+model_service: ModelService | None = None
+data_service: DataService | None = None
+cronjob_service: CronjobService | None = None
 
 # Global data cache
 data_cache = {}
 
 
 async def initialize_app_state():
-    """Initialize application state and services"""
+    """Initialize application state and services."""
     global app_state, model_service, data_service, cronjob_service
 
     # Initialize state
@@ -39,7 +37,7 @@ async def initialize_app_state():
 
 
 async def cleanup_app_state():
-    """Clean up application state and services"""
+    """Clean up application state and services."""
     if cronjob_service:
         await cronjob_service.stop()
     if app_state:
@@ -47,28 +45,28 @@ async def cleanup_app_state():
 
 
 def get_app_state() -> AppState:
-    """Get application state dependency"""
+    """Get application state dependency."""
     if app_state is None:
         raise RuntimeError("Application state not initialized")
     return app_state
 
 
 def get_model_service() -> ModelService:
-    """Get model service dependency"""
+    """Get model service dependency."""
     if model_service is None:
         raise RuntimeError("Model service not initialized")
     return model_service
 
 
 def get_data_service() -> DataService:
-    """Get data service dependency"""
+    """Get data service dependency."""
     if data_service is None:
         raise RuntimeError("Data service not initialized")
     return data_service
 
 
 def get_cronjob_service() -> CronjobService:
-    """Get cronjob service dependency"""
+    """Get cronjob service dependency."""
     if cronjob_service is None:
         raise RuntimeError("Cronjob service not initialized")
     return cronjob_service

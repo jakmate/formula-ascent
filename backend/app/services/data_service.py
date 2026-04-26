@@ -9,19 +9,19 @@ from app.core.state import AppState
 
 
 class DataService:
-    def __init__(self, app_state: AppState, data_cache: dict = None):
+    def __init__(self, app_state: AppState, data_cache: dict | None = None) -> None:
         self.app_state = app_state
         self.data_cache = data_cache if data_cache is not None else {}
 
     async def load_current_data(self, series: str):
-        """Load and process current racing data with caching"""
+        """Load and process current racing data with caching."""
         start_time = time.time()
         cache_key = f"current_data_{series}"
 
         # Return cached data if available
         if cache_key in self.data_cache:
             LOGGER.info(
-                f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s"
+                f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s",
             )
             await asyncio.sleep(0)
             return self.data_cache[cache_key]
@@ -38,7 +38,8 @@ class DataService:
 
         if feeder_df.empty:
             raise HTTPException(
-                status_code=404, detail=f"No {feeder_series} data available"
+                status_code=404,
+                detail=f"No {feeder_series} data available",
             )
 
         processing_start = time.time()
@@ -66,22 +67,21 @@ class DataService:
         # Cache the processed data
         self.data_cache[cache_key] = current_df
         LOGGER.info(
-            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records"
+            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records",
         )
 
         return current_df
 
     def _parse_series(self, series: str):
-        """Parse series string to get feeder and parent series"""
+        """Parse series string to get feeder and parent series."""
         if series == "f3_to_f2":
             return "F3", "F2"
-        elif series == "f2_to_f1":
+        if series == "f2_to_f1":
             return "F2", "F1"
-        else:
-            raise ValueError(f"Unknown series: {series}")
+        raise ValueError(f"Unknown series: {series}")
 
     async def initialize_system(self):
-        """Initial data loading and processing"""
+        """Initial data loading and processing."""
         from app.services.model_service import ModelService
 
         for series in ["f3_to_f2", "f2_to_f1"]:
@@ -116,7 +116,7 @@ class DataService:
                     await model_service.save_models()
                 else:
                     LOGGER.warning(
-                        f"No historical data available for training {series}"
+                        f"No historical data available for training {series}",
                     )
 
                 # Generate current predictions
@@ -129,10 +129,10 @@ class DataService:
 
         self.app_state.save_state()
 
-    def clear_cache(self, series: str = None):
-        """Clear cached data for specific series or all"""
+    def clear_cache(self, series: str | None = None):
+        """Clear cached data for specific series or all."""
         if series:
-            keys_to_remove = [k for k in self.data_cache.keys() if series in k]
+            keys_to_remove = [k for k in self.data_cache if series in k]
             for key in keys_to_remove:
                 del self.data_cache[key]
             LOGGER.info(f"Cleared cache for {series}")

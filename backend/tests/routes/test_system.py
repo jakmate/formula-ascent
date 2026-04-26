@@ -30,12 +30,13 @@ class TestRefreshData:
             mock_datetime.now.return_value = fixed_time
 
             result = await refresh_data(
-                background_tasks=background_tasks, cronjob_service=mock_cronjob_service
+                background_tasks=background_tasks,
+                cronjob_service=mock_cronjob_service,
             )
 
             # Verify background task was added
             background_tasks.add_task.assert_called_once_with(
-                mock_cronjob_service.scrape_and_train_task
+                mock_cronjob_service.scrape_and_train_task,
             )
 
             # Verify response
@@ -52,19 +53,22 @@ class TestRefreshPredictions:
 
     @pytest.mark.asyncio
     async def test_refresh_predictions_schedules_task(
-        self, mock_cronjob_service, background_tasks
+        self,
+        mock_cronjob_service,
+        background_tasks,
     ):
         fixed_time = datetime(2025, 1, 1, 12, 0, 0)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
 
             result = await refresh_predictions(
-                background_tasks=background_tasks, cronjob_service=mock_cronjob_service
+                background_tasks=background_tasks,
+                cronjob_service=mock_cronjob_service,
             )
 
             # background task scheduled with the expected service method
             background_tasks.add_task.assert_called_once_with(
-                mock_cronjob_service.scrape_predictions
+                mock_cronjob_service.scrape_predictions,
             )
 
             # correct response shape and contents
@@ -84,18 +88,21 @@ class TestRefreshSchedule:
 
     @pytest.mark.asyncio
     async def test_refresh_schedule_schedules_task(
-        self, mock_cronjob_service, background_tasks
+        self,
+        mock_cronjob_service,
+        background_tasks,
     ):
         fixed_time = datetime(2025, 6, 1, 9, 30, 0)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
 
             result = await refresh_schedule(
-                background_tasks=background_tasks, cronjob_service=mock_cronjob_service
+                background_tasks=background_tasks,
+                cronjob_service=mock_cronjob_service,
             )
 
             background_tasks.add_task.assert_called_once_with(
-                mock_cronjob_service.scrape_schedule
+                mock_cronjob_service.scrape_schedule,
             )
 
             assert isinstance(result, RefreshResponse)

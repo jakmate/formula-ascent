@@ -11,8 +11,8 @@ from app.routes.router import api_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application startup and shutdown handling"""
+async def lifespan(_: FastAPI):
+    """Application startup and shutdown handling."""
     try:
         LOGGER.info("Starting application...")
 
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    """Create FastAPI application with all configurations"""
+    """Create FastAPI application with all configurations."""
     app = FastAPI(
         title="Formula Predictions API",
         version="1.0.0",
@@ -58,5 +58,6 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="debug", reload=False)
+    port = int(os.environ.get("PORT", "8000"))
+    host = os.environ.get("HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=port, log_level="debug", reload=False)

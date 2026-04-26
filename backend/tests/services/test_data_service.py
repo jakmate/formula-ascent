@@ -62,7 +62,7 @@ class TestLoadCurrentData:
 
         # Features dataframe with no current year data but has historical data
         features_df = pd.DataFrame(
-            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]}
+            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]},
         )
         mock_engineer.return_value = features_df
 
@@ -122,7 +122,7 @@ class TestLoadCurrentData:
 
         # Verify cache hit was logged
         mock_logger.info.assert_called_once_with(
-            "Cache HIT for f2_to_f1 - returned in 0.50s"
+            "Cache HIT for f2_to_f1 - returned in 0.50s",
         )
 
         # Verify cached data was returned
@@ -161,7 +161,7 @@ class TestLoadCurrentData:
 
         # Mock features with current year data
         features_df = pd.DataFrame(
-            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]}
+            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]},
         )
         mock_engineer.return_value = features_df
 
@@ -234,11 +234,11 @@ class TestInitializeSystem:
         mock_load_quali.return_value = pd.DataFrame({"driver": ["A", "B"]})
         mock_quali_features.return_value = pd.DataFrame({"driver": ["A", "B"]})
         mock_target.return_value = pd.DataFrame(
-            {"driver": ["A", "B"], "promoted": [1, 0], "year": [2022, 2023]}
+            {"driver": ["A", "B"], "promoted": [1, 0], "year": [2022, 2023]},
         )
 
         features_df = pd.DataFrame(
-            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]}
+            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]},
         )
         mock_engineer.return_value = features_df
 
@@ -302,11 +302,11 @@ class TestInitializeSystem:
                 "driver": ["A"],
                 "promoted": [1],
                 "year": [CURRENT_YEAR],
-            }
+            },
         )
 
         features_df = pd.DataFrame(
-            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]}
+            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]},
         )
         mock_engineer.return_value = features_df
 
@@ -319,10 +319,10 @@ class TestInitializeSystem:
 
         # Verify warning was logged for no historical data
         mock_logger.warning.assert_any_call(
-            "No historical data available for training f3_to_f2"
+            "No historical data available for training f3_to_f2",
         )
         mock_logger.warning.assert_any_call(
-            "No historical data available for training f2_to_f1"
+            "No historical data available for training f2_to_f1",
         )
 
         # Verify ModelService was not called since no trainable data

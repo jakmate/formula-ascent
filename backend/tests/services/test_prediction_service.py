@@ -19,7 +19,7 @@ def mock_app_state():
     state = Mock(spec=AppState)
     state.models = {"f3_to_f2": {"RandomForest": Mock(), "PyTorch": Mock()}}
     state.feature_cols = {
-        "f3_to_f2": ["points", "wins", "podiums", "dnf_rate", "experience"]
+        "f3_to_f2": ["points", "wins", "podiums", "dnf_rate", "experience"],
     }
     state.scaler = {"f3_to_f2": Mock()}
     state.system_status = {
@@ -59,14 +59,16 @@ def sample_dataframe():
             "team_pos": [1, 1, 1],
             "team_points": [600.0, 650.0, 580.0],
             "year": [2024, 2024, 2024],
-        }
+        },
     )
 
 
 @pytest.fixture
 def prediction_service(mock_app_state, mock_data_service):
     return PredictionService(
-        app_state=mock_app_state, series="f3_to_f2", data_service=mock_data_service
+        app_state=mock_app_state,
+        series="f3_to_f2",
+        data_service=mock_data_service,
     )
 
 
@@ -82,7 +84,10 @@ class TestInit:
 class TestGetPredictions:
     @pytest.mark.asyncio
     async def test_success(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         # Setup
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
@@ -90,7 +95,7 @@ class TestGetPredictions:
         # Mock model predictions
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_rf_model.calibrator = None
 
@@ -135,7 +140,10 @@ class TestGetPredictions:
 
     @pytest.mark.asyncio
     async def test_no_feature_cols_raises_error(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
         prediction_service.app_state.feature_cols["f3_to_f2"] = []
@@ -145,19 +153,22 @@ class TestGetPredictions:
 
     @pytest.mark.asyncio
     async def test_uses_cache(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         # First call - should cache
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
 
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_rf_model.calibrator = None
 
         prediction_service.app_state.models["f3_to_f2"] = {
-            "RandomForest": mock_rf_model
+            "RandomForest": mock_rf_model,
         }
 
         await prediction_service.get_predictions()
@@ -172,7 +183,10 @@ class TestGetPredictions:
 
     @pytest.mark.asyncio
     async def test_get_predictions_handles_model_error(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
 
@@ -191,7 +205,7 @@ class TestGetModelPredictions:
         x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_model.calibrator = None
 
@@ -238,7 +252,7 @@ class TestGetModelPredictions:
         x_current = pd.DataFrame(rng.random((3, 5)))
         mock_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
 
         mock_calibrator = Mock()
@@ -262,33 +276,37 @@ class TestCreatePredictionResponses:
         calibrated_probas = np.array([0.55, 0.75, 0.65])
 
         result = prediction_service._create_prediction_responses(
-            sample_dataframe, calibrated_probas
+            sample_dataframe,
+            calibrated_probas,
         )
 
         assert len(result) == 3
         assert all(isinstance(pred, PredictionResponse) for pred in result)
         assert result[0].driver == "Verstappen"
         assert pytest.approx(result[0].empirical_percentage, rel=1e-9) == pytest.approx(
-            75.0
+            75.0,
         )
         assert pytest.approx(result[1].empirical_percentage, rel=1e-9) == pytest.approx(
-            65.0
+            65.0,
         )
         assert pytest.approx(result[2].empirical_percentage, rel=1e-9) == pytest.approx(
-            55.0
+            55.0,
         )
 
 
 class TestUpdatePredictions:
     @pytest.mark.asyncio
     async def test_success(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
 
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_rf_model.calibrator = None
 
@@ -323,7 +341,7 @@ class TestUpdatePredictions:
 
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_rf_model.calibrator = None
 
@@ -345,7 +363,10 @@ class TestUpdatePredictions:
 
     @pytest.mark.asyncio
     async def test_model_failure(
-        self, prediction_service, mock_data_service, sample_dataframe
+        self,
+        prediction_service,
+        mock_data_service,
+        sample_dataframe,
     ):
         # Ensure current_year matches sample data to avoid filtering out rows
         prediction_service.app_state.system_status["current_year"] = 2024
@@ -356,7 +377,7 @@ class TestUpdatePredictions:
 
         mock_svm = Mock()
         mock_svm.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
 
         prediction_service.app_state.models["f3_to_f2"] = {
@@ -371,7 +392,8 @@ class TestUpdatePredictions:
         await prediction_service.update_predictions()
 
         predictions = prediction_service.app_state.current_predictions.get(
-            "f3_to_f2", []
+            "f3_to_f2",
+            [],
         )
 
         # Only successful model's predictions stored
@@ -387,7 +409,7 @@ class TestUpdatePredictions:
         app_state = MinimalState()
         app_state.models = {"f3_to_f2": {"RandomForest": Mock()}}
         app_state.feature_cols = {
-            "f3_to_f2": ["points", "wins", "podiums", "dnf_rate", "experience"]
+            "f3_to_f2": ["points", "wins", "podiums", "dnf_rate", "experience"],
         }
         app_state.scaler = {"f3_to_f2": Mock()}
         # Ensure system_status has a current_year so the features_df slicing keeps rows
@@ -396,7 +418,7 @@ class TestUpdatePredictions:
         # Prepare the model to produce predictable output
         rf_model = app_state.models["f3_to_f2"]["RandomForest"]
         rf_model.predict_proba.return_value = np.array(
-            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+            [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         rf_model.calibrator = None
 
@@ -404,7 +426,9 @@ class TestUpdatePredictions:
         data_service = Mock(spec=DataService)
 
         svc = PredictionService(
-            app_state=app_state, series="f3_to_f2", data_service=data_service
+            app_state=app_state,
+            series="f3_to_f2",
+            data_service=data_service,
         )
 
         # Call with features_df containing matching year rows

@@ -69,7 +69,7 @@ def load_year_data(year_dir, series, data_type):
             df = pd.read_csv(data_file)
         except FileNotFoundError as e:
             LOGGER.warning(
-                f"Skipping {data_type} data for {year_dir.name} ({series}): {e}"
+                f"Skipping {data_type} data for {year_dir.name} ({series}): {e}",
             )
             return None
 
@@ -146,7 +146,7 @@ def load_driver_data(df):
         for driver in df["Driver"].unique():
             profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
             try:
-                with open(profile_file, "r", encoding="utf-8") as f:
+                with open(profile_file, encoding="utf-8") as f:
                     profile_data = json.load(f)
                     profiles[driver] = (
                         profile_data
@@ -159,7 +159,7 @@ def load_driver_data(df):
     # Map profiles to dataframe
     df["dob"] = df["Driver"].map(lambda d: profiles.get(d, default_profile)["dob"])
     df["nationality"] = df["Driver"].map(
-        lambda d: profiles.get(d, default_profile).get("nationality", "Unknown")
+        lambda d: profiles.get(d, default_profile).get("nationality", "Unknown"),
     )
     return df
 
@@ -196,9 +196,9 @@ def parse_round_count(rounds_str):
     rounds_str = str(rounds_str).replace("–", "-")
     count = 0
     for part in rounds_str.split(","):
-        part = part.strip()
-        if "-" in part:
-            start, end = map(int, part.split("-"))
+        p = part.strip()
+        if "-" in p:
+            start, end = map(int, p.split("-"))
             count += end - start + 1
         else:
             count += 1
@@ -272,11 +272,11 @@ def merge_academy_data(driver_df, academy_df):
     academy_merge["academy"] = academy_merge["academy"].replace("", None)
 
     # Left join on Driver and year
-    merged_df = driver_df.merge(
-        academy_merge[["Driver", "year", "academy"]], on=["Driver", "year"], how="left"
+    return driver_df.merge(
+        academy_merge[["Driver", "year", "academy"]],
+        on=["Driver", "year"],
+        how="left",
     )
-
-    return merged_df
 
 
 def load_data(series):
@@ -287,8 +287,7 @@ def load_data(series):
     df = merge_entries(driver_df, entries_df)
     df = merge_team_data(df, team_df)
     df = load_driver_data(df)
-    df = merge_academy_data(df, academy_df)
-    return df
+    return merge_academy_data(df, academy_df)
 
 
 if __name__ == "__main__":  # pragma: no cover

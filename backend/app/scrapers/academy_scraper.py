@@ -12,7 +12,7 @@ from app.scrapers.scraping_utils import (
 
 
 def extract_team_links(soup):
-    """Extract team links from the Formula One driver development programs table"""
+    """Extract team links from the Formula One driver development programs table."""
     f1_heading = soup.find("h3", {"id": "Formula_One"})
     if not f1_heading:
         print("No Formula One section found")
@@ -40,22 +40,22 @@ def extract_team_links(soup):
                 {
                     "name": remove_superscripts(link, False),
                     "url": "https://en.wikipedia.org" + href,
-                }
+                },
             )
 
     return team_links
 
 
 def parse_year_range(year_str):
-    """Parse year range string and return list of years"""
+    """Parse year range string and return list of years."""
     year_str = year_str.strip()
     years = []
 
     # Split on commas
     for segment in year_str.split(","):
-        segment = segment.strip()
-        if "–" in segment:
-            start, end = segment.split("–", 1)
+        seg = segment.strip()
+        if "–" in seg:
+            start, end = seg.split("–", 1)
             start = start.strip()
             end = end.strip()
 
@@ -64,15 +64,15 @@ def parse_year_range(year_str):
                 end_year = int(end) if end else CURRENT_YEAR
                 years.extend(str(y) for y in range(start_year, end_year + 1))
             except ValueError:
-                years.append(segment)
+                years.append(seg)
         else:
-            years.append(segment)
+            years.append(seg)
 
     return years
 
 
 def expand_years_in_data(headers, data_rows):
-    """Expand year ranges into separate rows and keep only driver and year columns"""
+    """Expand year ranges into separate rows and keep only driver and year columns."""
     if not data_rows or not headers:
         return ["Driver", "Year"], []
 
@@ -109,7 +109,7 @@ def expand_years_in_data(headers, data_rows):
 
 
 def extract_table_data(table, table_type):
-    """Extract data from a table"""
+    """Extract data from a table."""
     if not table:
         return None
 
@@ -155,7 +155,7 @@ def extract_table_data(table, table_type):
 
 
 def scrape_academy_page(academy_url, academy_name, session):
-    """Scrape data from an academy page"""
+    """Scrape data from an academy page."""
     try:
         response = safe_request(session, academy_url)
         if response is None:
@@ -191,7 +191,8 @@ def scrape_academy_page(academy_url, academy_name, session):
 
         for heading_id, key in headings_to_check:
             heading = soup.find("h3", {"id": heading_id}) or soup.find(
-                "h2", {"id": heading_id}
+                "h2",
+                {"id": heading_id},
             )
 
             if heading and key:
@@ -207,7 +208,8 @@ def scrape_academy_page(academy_url, academy_name, session):
                             heading_text = current.get_text().lower()
                             if any(kw in heading_text for kw in team_keywords):
                                 table = current.find_next_sibling(
-                                    "table", {"class": "wikitable"}
+                                    "table",
+                                    {"class": "wikitable"},
                                 )
                                 if table:
                                     table_data = extract_table_data(table, key)
@@ -237,7 +239,7 @@ def scrape_academy_page(academy_url, academy_name, session):
                 results["current_drivers"],
                 results["former_drivers"],
                 results["f1_graduates"],
-            ]
+            ],
         ):
             generic_heading = soup.find("h2", {"id": "Driver_development_program"})
             if generic_heading:
@@ -252,12 +254,12 @@ def scrape_academy_page(academy_url, academy_name, session):
         return results
 
     except Exception as e:
-        print(f"Error scraping {academy_url}: {str(e)}")
+        print(f"Error scraping {academy_url}: {e!s}")
         return None
 
 
 def save_academy_data(academy_data, academies_dir):
-    """Save academy data to CSV files"""
+    """Save academy data to CSV files."""
     if not academy_data:
         return
 
@@ -284,7 +286,7 @@ def save_academy_data(academy_data, academies_dir):
 
 
 def scrape_academies(session=None):
-    """Scrape driver development program data"""
+    """Scrape driver development program data."""
     if session is None:
         session = create_session()
 
@@ -295,7 +297,7 @@ def scrape_academies(session=None):
     response = safe_request(session, url)
     if response is None:
         print(f"Failed to fetch {url}")
-        return None
+        return
 
     parse_only = SoupStrainer(["h3", "table"])
     soup = BeautifulSoup(response.text, "lxml", parse_only=parse_only)
@@ -303,7 +305,7 @@ def scrape_academies(session=None):
     team_links = extract_team_links(soup)
     if not team_links:
         print("No team links found")
-        return None
+        return
 
     print(f"Found {len(team_links)} driver development programs")
 

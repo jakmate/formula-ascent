@@ -16,17 +16,20 @@ BASE_URL = "https://en.wikipedia.org/wiki/"
 def map_url(num, year):
     if num == 1:
         return f"{BASE_URL}{year}_Formula_One_World_Championship"
-    elif (year <= 2016 and num == 2) or (year <= 2018 and num == 3):
+    if (year <= 2016 and num == 2) or (year <= 2018 and num == 3):
         return f"{BASE_URL}{year}_GP{num}_Series"
-    elif num == 3:
+    if num == 3:
         return f"{BASE_URL}{year}_FIA_Formula_{num}_Championship"
-    elif num == 2:
+    if num == 2:
         return f"{BASE_URL}{year}_Formula_{num}_Championship"
     return None
 
 
 def scrape_wiki(
-    session=None, formulas=[1, 2, 3], start_year=2010, end_year=CURRENT_YEAR + 1
+    session=None,
+    formulas=(1, 2, 3),
+    start_year=2010,
+    end_year=CURRENT_YEAR + 1,
 ):
     if not session:
         session = create_session()
@@ -55,7 +58,7 @@ def scrape_wiki(
                 gc.collect()
 
             except Exception as e:
-                print(f"Error processing data for F{num} {year}: {str(e)}")
+                print(f"Error processing data for F{num} {year}: {e!s}")
 
 
 def scrape():

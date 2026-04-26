@@ -110,7 +110,7 @@ class TestProcessHeaders:
         rows = soup.find_all("tr")
 
         with patch(
-            "app.scrapers.entries_scraper.process_multirow_headers"
+            "app.scrapers.entries_scraper.process_multirow_headers",
         ) as mock_multi:
             mock_multi.return_value = (["Team", "Constructor", "Driver"], rows[2:])
             process_headers(rows, 1, 2016)
@@ -125,7 +125,7 @@ class TestProcessHeaders:
         rows = soup.find_all("tr")
 
         with patch(
-            "app.scrapers.entries_scraper.process_single_row_headers"
+            "app.scrapers.entries_scraper.process_single_row_headers",
         ) as mock_single:
             mock_single.return_value = (["Team", "Driver"], rows[1:])
             process_headers(rows, 1, 2015)
@@ -150,7 +150,7 @@ class TestProcessMultirowHeaders:
             assert len(data_rows) == 1
 
     def test_stopiteration_when_second_row_has_fewer_headers(self):
-        """When second row has fewer headers than placeholders, StopIteration is caught"""
+        """When second row has fewer headers than placeholders, StopIteration is caught."""
         html = """
         <tr><th colspan="3">Team</th><th>Driver</th></tr>
         <tr><th>Name</th><th>Constructor</th></tr>
@@ -259,7 +259,7 @@ class TestProcessRowspanColumns:
             assert trackers[0]["remaining"] == 0
 
     def test_empty_string_when_cells_exhausted(self):
-        """When cell_index exceeds cells length, append empty string"""
+        """When cell_index exceeds cells length, append empty string."""
         # Only one cell available but need to process 2 rowspan columns
         html = "<td>Team A</td>"
         soup = BeautifulSoup(html, "lxml")
@@ -331,10 +331,10 @@ class TestWriteF1ModernRows:
 
         assert writer.writerow.call_count == 2
         writer.writerow.assert_any_call(
-            ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"]
+            ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"],
         )
         writer.writerow.assert_any_call(
-            ["Team A", "Constructor", "Engine", "Car", "Driver 2", "77"]
+            ["Team A", "Constructor", "Engine", "Car", "Driver 2", "77"],
         )
 
     def test_removes_unwanted_indices(self):
@@ -365,7 +365,7 @@ class TestProcessStandardRow:
             assert result[1] == "Robert Vișoiu"
 
     def test_kimi_antonelli_name_fix(self):
-        """Andrea Kimi Antonelli should be changed to Kimi Antonelli for F2"""
+        """Andrea Kimi Antonelli should be changed to Kimi Antonelli for F2."""
         html = "<tr><td>Team</td><td>Andrea Kimi Antonelli</td></tr>"
         soup = BeautifulSoup(html, "lxml")
         cells = soup.find("tr").find_all(["td", "th"])
@@ -377,7 +377,7 @@ class TestProcessStandardRow:
             assert result[1] == "Kimi Antonelli"
 
     def test_zhou_guanyu_name_fix_f2(self):
-        """Guanyu Zhou should be changed to Zhou Guanyu for F2"""
+        """Guanyu Zhou should be changed to Zhou Guanyu for F2."""
         html = "<tr><td>Team</td><td>Guanyu Zhou</td></tr>"
         soup = BeautifulSoup(html, "lxml")
         cells = soup.find("tr").find_all(["td", "th"])
@@ -389,7 +389,7 @@ class TestProcessStandardRow:
             assert result[1] == "Zhou Guanyu"
 
     def test_unwanted_index_within_bounds(self):
-        """When unwanted index is within bounds, delete it"""
+        """When unwanted index is within bounds, delete it."""
         html = "<tr><td>Team</td><td>Engine</td><td>Driver</td></tr>"
         soup = BeautifulSoup(html, "lxml")
         cells = soup.find("tr").find_all(["td", "th"])
@@ -404,7 +404,7 @@ class TestProcessStandardRow:
             assert result == ["Team", "Driver"]
 
     def test_unwanted_index_out_of_bounds(self):
-        """When unwanted index is out of bounds, skip deletion"""
+        """When unwanted index is out of bounds, skip deletion."""
         html = "<tr><td>Team</td><td>Driver</td></tr>"
         soup = BeautifulSoup(html, "lxml")
         cells = soup.find("tr").find_all(["td", "th"])
@@ -419,7 +419,7 @@ class TestProcessStandardRow:
             assert result == ["Team", "Driver"]
 
     def test_empty_string_for_missing_driver_data(self):
-        """When driver_data list is shorter than driver_count, append empty string"""
+        """When driver_data list is shorter than driver_count, append empty string."""
         writer = Mock()
         row_data = ["Team A", "Constructor", "Engine", "Car"]
         # First cell has 3 drivers, second has only 1 number
@@ -431,17 +431,17 @@ class TestProcessStandardRow:
         # Should write 3 rows, with empty strings for missing numbers
         assert writer.writerow.call_count == 3
         writer.writerow.assert_any_call(
-            ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"]
+            ["Team A", "Constructor", "Engine", "Car", "Driver 1", "44"],
         )
         writer.writerow.assert_any_call(
-            ["Team A", "Constructor", "Engine", "Car", "Driver 2", ""]
+            ["Team A", "Constructor", "Engine", "Car", "Driver 2", ""],
         )
         writer.writerow.assert_any_call(
-            ["Team A", "Constructor", "Engine", "Car", "Driver 3", ""]
+            ["Team A", "Constructor", "Engine", "Car", "Driver 3", ""],
         )
 
     def test_empty_string_when_cells_exhausted(self):
-        """When cell_index exceeds cells, append empty string to fill columns"""
+        """When cell_index exceeds cells, append empty string to fill columns."""
         # Only 2 cells but num_columns is 4
         html = "<tr><td>Team</td><td>Driver</td></tr>"
         soup = BeautifulSoup(html, "lxml")
@@ -559,31 +559,34 @@ class TestProcessEntries:
                 mock_writer = Mock()
                 mock_writer_class.return_value = mock_writer
 
-                with patch(
-                    "app.scrapers.entries_scraper.process_f1_modern_drivers"
-                ) as mock_process_modern:
-                    with patch(
-                        "app.scrapers.entries_scraper.write_f1_modern_rows"
-                    ) as mock_write_modern:
-                        mock_process_modern.return_value = [
-                            ["Hamilton", "Bottas"],
-                            ["44", "77"],
-                        ]
+                with (
+                    patch(
+                        "app.scrapers.entries_scraper.process_f1_modern_drivers",
+                    ) as mock_process_modern,
+                    patch(
+                        "app.scrapers.entries_scraper.write_f1_modern_rows",
+                    ) as mock_write_modern,
+                ):
+                    mock_process_modern.return_value = [
+                        ["Hamilton", "Bottas"],
+                        ["44", "77"],
+                    ]
 
-                        process_entries(soup, 2020, 1)  # series=1, year=2020 (>=2014)
+                    process_entries(soup, 2020, 1)  # series=1, year=2020 (>=2014)
 
-                        # Verify F1 modern processing functions were called
-                        assert mock_process_modern.call_count > 0
-                        assert mock_write_modern.call_count > 0
+                    # Verify F1 modern processing functions were called
+                    assert mock_process_modern.call_count > 0
+                    assert mock_write_modern.call_count > 0
 
-                        # Verify write_f1_modern_rows was called with correct arguments
-                        call_args = mock_write_modern.call_args
-                        assert call_args[0][0] == mock_writer  # writer
-                        assert isinstance(call_args[0][1], list)  # row_data
-                        assert call_args[0][2] == [
-                            ["Hamilton", "Bottas"],
-                            ["44", "77"],
-                        ]  # processed_cells
-                        assert isinstance(
-                            call_args[0][3], list
-                        )  # sorted_unwanted_indices
+                    # Verify write_f1_modern_rows was called with correct arguments
+                    call_args = mock_write_modern.call_args
+                    assert call_args[0][0] == mock_writer  # writer
+                    assert isinstance(call_args[0][1], list)  # row_data
+                    assert call_args[0][2] == [
+                        ["Hamilton", "Bottas"],
+                        ["44", "77"],
+                    ]  # processed_cells
+                    assert isinstance(
+                        call_args[0][3],
+                        list,
+                    )  # sorted_unwanted_indices

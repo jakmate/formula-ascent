@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException, Query
 
@@ -11,13 +11,15 @@ router = APIRouter()
 @router.get("/{series}")
 async def get_series_schedule(
     series: str,
-    timezone: Optional[str] = Query(None),
-    x_timezone: Optional[str] = Header(None),
+    timezone: Annotated[str | None, Query()] = None,
+    x_timezone: Annotated[str | None, Header()] = None,
 ):
-    """Get schedule for a specific racing series with timezone conversion"""
+    """Get schedule for a specific racing series with timezone conversion."""
     try:
         request = ScheduleRequest(
-            series=series, timezone=timezone, x_timezone=x_timezone
+            series=series,
+            timezone=timezone,
+            x_timezone=x_timezone,
         )
         schedule_service = ScheduleService()
         return await schedule_service.get_series_schedule(request)
@@ -29,13 +31,15 @@ async def get_series_schedule(
 @router.get("/{series}/next")
 async def get_next_race(
     series: str,
-    timezone: Optional[str] = Query(None),
-    x_timezone: Optional[str] = Header(None),
+    timezone: Annotated[str | None, Query()] = None,
+    x_timezone: Annotated[str | None, Header()] = None,
 ):
-    """Get the next upcoming race for a series with timezone conversion"""
+    """Get the next upcoming race for a series with timezone conversion."""
     try:
         request = ScheduleRequest(
-            series=series, timezone=timezone, x_timezone=x_timezone
+            series=series,
+            timezone=timezone,
+            x_timezone=x_timezone,
         )
         schedule_service = ScheduleService()
         return await schedule_service.get_next_race(request)

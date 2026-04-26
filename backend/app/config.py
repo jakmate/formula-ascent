@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -16,8 +15,6 @@ DATA_DIR = BASE_DIR / "data"
 PROFILES_DIR = DATA_DIR / "driver_profiles"
 ACADEMIES_DIR = DATA_DIR / "academies"
 SCHEDULE_DIR = DATA_DIR / "schedules" / str(CURRENT_YEAR)
-
-PORT = int(os.environ.get("PORT", 8000))
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)

@@ -1,8 +1,8 @@
-import torch.nn as nn
+from torch import nn
 
 
 class RacingPredictor(nn.Module):
-    def __init__(self, input_dim, hidden_dim=16, dropout_rate=0.3):
+    def __init__(self, input_dim, hidden_dim=16, dropout_rate=0.3) -> None:
         super().__init__()
         # Single hidden layer
         self.network = nn.Sequential(

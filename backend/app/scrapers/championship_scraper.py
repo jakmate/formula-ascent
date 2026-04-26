@@ -8,7 +8,7 @@ def map_url(championship_type, series, year):
     if series == 1:
         if championship_type == "Drivers'":
             return "World_Drivers'_Championship_standings"
-        elif championship_type == "Teams'":
+        if championship_type == "Teams'":
             return "World_Constructors'_Championship_standings"
     elif year == 2013 and series == 2 and championship_type == "Drivers'":
         return f"{championship_type}_championship"
@@ -49,7 +49,7 @@ def has_number_column(race_headers, year):
     """Check if the table has a number column."""
     if len(race_headers) > 2:
         second_header = remove_superscripts(race_headers[2])
-        return "No." in second_header or ("No" == second_header and year == 2010)
+        return "No." in second_header or (second_header == "No" and year == 2010)
     return False
 
 
@@ -77,7 +77,7 @@ def build_headers(race_headers, round_headers, year, series, file_suffix):
         race_rounds.sort(
             key=lambda x: int(x.replace("R", ""))
             if x.replace("R", "").isdigit()
-            else 999
+            else 999,
         )
 
         for round_name in race_rounds:
@@ -126,7 +126,7 @@ def get_footer_rows_count(year, series, championship_type):
         return 3
     if (year < 2013 and series == 3) or (series == 2 and year < 2017) or series == 1:
         return 2
-    elif championship_type == "Drivers'" and year == 2020 and series == 3:
+    if championship_type == "Drivers'" and year == 2020 and series == 3:
         return 4
     return 3
 
@@ -219,7 +219,10 @@ def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
         for row in data_rows:
             cells = row.find_all(["th", "td"])
             row_data = process_table_row(
-                cells, combined_headers, has_no_col, rowspan_tracker
+                cells,
+                combined_headers,
+                has_no_col,
+                rowspan_tracker,
             )
             if row_data:
                 writer.writerow(row_data)
@@ -244,7 +247,11 @@ def process_championship(soup, championship_type, year, file_suffix, series):
         round_headers = all_rows[1].find_all("th")
 
     combined_headers, has_no_col = build_headers(
-        race_headers, round_headers, year, series, file_suffix
+        race_headers,
+        round_headers,
+        year,
+        series,
+        file_suffix,
     )
 
     # Get data rows

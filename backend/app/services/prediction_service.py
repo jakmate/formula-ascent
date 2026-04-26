@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
-from typing import List
 
+import pandas as pd
 import torch
 
 from app.config import CURRENT_YEAR, LOGGER
@@ -12,14 +12,19 @@ from app.services.data_service import DataService
 
 
 class PredictionService:
-    def __init__(self, app_state: AppState, series: str, data_service: DataService):
+    def __init__(
+        self,
+        app_state: AppState,
+        series: str,
+        data_service: DataService,
+    ) -> None:
         self.app_state = app_state
         self.series = series
         self.data_service = data_service
         self.prediction_cache = {}
 
     async def get_predictions(self) -> PredictionsResponse:
-        """Get predictions from all models with feature caching"""
+        """Get predictions from all models with feature caching."""
         start_time = time.time()
 
         if not self.app_state.models[self.series]:
@@ -35,7 +40,7 @@ class PredictionService:
 
             if not feature_cols:
                 raise ValueError(
-                    f"No feature columns available for series {self.series}"
+                    f"No feature columns available for series {self.series}",
                 )
 
             x_current = current_df[feature_cols].fillna(0)
@@ -83,7 +88,7 @@ class PredictionService:
         )
 
     def _get_model_predictions(self, model_name: str, x_current):
-        """Extract prediction logic for reusability"""
+        """Extract prediction logic for reusability."""
         if model_name not in self.app_state.models[self.series]:
             raise ValueError(f"Model {model_name} not found for series {self.series}")
 
@@ -107,9 +112,11 @@ class PredictionService:
         return raw_predictions
 
     def _create_prediction_responses(
-        self, current_df, calibrated_probas
-    ) -> List[PredictionResponse]:
-        """Create standardized prediction response objects"""
+        self,
+        current_df,
+        calibrated_probas,
+    ) -> list[PredictionResponse]:
+        """Create standardized prediction response objects."""
         prediction_values = calibrated_probas * 100.0  # Percentage for classification
         predictions = []
 
@@ -127,21 +134,23 @@ class PredictionService:
                     dnf_rate=float(row["dnf_rate"]),
                     experience=int(row["experience"]),
                     dob=row.get("dob"),
-                    age=float(row.get("age", 0)) if row.get("age") else None,
+                    age=float(row["age"])
+                    if row.get("age") is not None and not pd.isna(row.get("age"))
+                    else None,
                     participation_rate=float(row["participation_rate"]),
                     teammate_h2h=float(row["teammate_h2h_rate"]),
                     team=str(row["team"]),
                     team_pos=int(row["team_pos"]),
                     team_points=float(row["team_points"]),
                     empirical_percentage=float(prediction_values[idx]),
-                )
+                ),
             )
 
         predictions.sort(key=lambda x: x.empirical_percentage, reverse=True)
         return predictions
 
     async def update_predictions(self, features_df=None):
-        """Generate predictions for current season"""
+        """Generate predictions for current season."""
         try:
             if features_df is None:
                 current_df = await self.data_service.load_current_data(self.series)
@@ -149,7 +158,8 @@ class PredictionService:
                 current_df = features_df[
                     features_df["year"]
                     >= self.app_state.system_status.get(
-                        "current_year", CURRENT_YEAR - 1
+                        "current_year",
+                        CURRENT_YEAR - 1,
                     )
                 ].copy()
 
@@ -159,7 +169,7 @@ class PredictionService:
 
             x_current = current_df[self.app_state.feature_cols[self.series]].fillna(0)
             predictions = []
-            for model_name in self.app_state.models[self.series].keys():
+            for model_name in self.app_state.models[self.series]:
                 try:
                     result = self._get_model_predictions(model_name, x_current)
                     predictions.append(
@@ -168,11 +178,11 @@ class PredictionService:
                             "series": self.series,
                             "predictions": result,
                             "timestamp": datetime.now(),
-                        }
+                        },
                     )
                 except Exception as e:
                     LOGGER.error(
-                        f"Prediction failed for {model_name} in {self.series}: {e}"
+                        f"Prediction failed for {model_name} in {self.series}: {e}",
                     )
 
             # Store predictions with series key
@@ -180,13 +190,13 @@ class PredictionService:
                 self.app_state.current_predictions = {}
             self.app_state.current_predictions[self.series] = predictions
             LOGGER.info(
-                f"Generated {len(predictions)} prediction sets for {self.series}"
+                f"Generated {len(predictions)} prediction sets for {self.series}",
             )
 
         except Exception as e:
             LOGGER.error(f"Prediction update failed for {self.series}: {e}")
 
     def clear_prediction_cache(self):
-        """Clear cached predictions and features"""
+        """Clear cached predictions and features."""
         self.prediction_cache.clear()
         LOGGER.info(f"Cleared prediction cache for {self.series}")

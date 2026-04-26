@@ -5,8 +5,6 @@ import re
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
-import torch.optim as optim
 from imblearn.pipeline import Pipeline
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -18,6 +16,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import RobustScaler, StandardScaler
 from sklearn.svm import SVC
+from torch import nn, optim
 
 from app.config import CURRENT_YEAR, NOT_PARTICIPATED_CODES, RETIREMENT_CODES, SEED
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
@@ -26,7 +25,7 @@ from app.core.utils import calculate_age, extract_position, get_race_columns
 
 os.environ["PYTHONHASHSEED"] = str(SEED)
 random.seed(SEED)
-np.random.seed(SEED)
+np.random.RandomState(SEED)
 torch.manual_seed(SEED)
 torch._dynamo.disable()
 if torch.cuda.is_available():
@@ -44,27 +43,27 @@ def get_points_system(year):
             "feature_positions": [10, 8, 6, 5, 4, 3, 2, 1],
             "sprint_positions": [6, 5, 4, 3, 2, 1],
         }
-    elif year <= 2020:
+    if year <= 2020:
         return {
             "feature_max": 31,  # 25 + 4 pole + 2 FL
             "sprint_max": 17,  # 15 + 2 FL
             "feature_positions": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
             "sprint_positions": [15, 12, 10, 8, 6, 4, 2, 1],
         }
-    elif year == 2021:
+    if year == 2021:
         return {
             "race12_max": 17,  # 15 + 2 FL each
             "race3_max": 31,  # 25 + 4 pole + 2 FL
             "race12_positions": [15, 12, 10, 8, 6, 5, 4, 3, 2, 1],
             "race3_positions": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
         }
-    else:  # 2022-2025
-        return {
-            "feature_max": 28,  # 25 + 2 pole + 1 FL
-            "sprint_max": 11,  # 10 + 1 FL
-            "feature_positions": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
-            "sprint_positions": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
-        }
+    # 2022-2025
+    return {
+        "feature_max": 28,  # 25 + 2 pole + 1 FL
+        "sprint_max": 11,  # 10 + 1 FL
+        "feature_positions": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+        "sprint_positions": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+    }
 
 
 def identify_race_type(col_name, year):
@@ -75,9 +74,9 @@ def identify_race_type(col_name, year):
         if year == 2021:
             # Triple header year - need different logic
             return "race3" if "r3" in col_lower else "race12"
-        elif year >= 2022:
+        if year >= 2022:
             return "sprint" if "sr" in col_lower else "feature"
-        elif year <= 2020:
+        if year <= 2020:
             # R1/FR = Feature, R2/SR = Sprint for 2010-2020
             return "feature" if "r1" in col_lower or "fr" in col_lower else "sprint"
     except Exception:
@@ -114,7 +113,7 @@ def calculate_participation_stats(df, race_cols):
                 "year": row["year"],
                 "participated_races": participated_races,
                 "positions": positions,
-            }
+            },
         )
 
     return stats
@@ -135,9 +134,9 @@ def calculate_teammate_performance(df):
         position_matrix[:, i] = (
             df[col]
             .apply(
-                lambda x: extract_position(str(x).strip()) if pd.notna(x) else np.nan
+                lambda x: extract_position(str(x).strip()) if pd.notna(x) else np.nan,
             )
-            .values
+            .to_numpy()
         )
 
     # Add positions to df temporarily
@@ -180,7 +179,7 @@ def calculate_teammate_performance(df):
 
         # Calculate overall H2H rate for each driver
         for idx, (driver_idx, driver_name) in enumerate(
-            zip(driver_indices, driver_names)
+            zip(driver_indices, driver_names, strict=False),
         ):
             # Get all valid comparisons for this driver
             other_rates = h2h_rates[idx]
@@ -216,7 +215,7 @@ def calculate_teammate_performance(df):
                     "Team": team,
                     "teammate_h2h_rate": h2h_rate,
                     "is_multi_team": is_multi_team,
-                }
+                },
             )
 
     # Clean up
@@ -262,7 +261,8 @@ def calculate_qualifying_features(df, qualifying_df):
 
     # Extract positions for all rows at once
     qualifying_df["_extracted_pos"] = qualifying_df.apply(
-        extract_position_from_row, axis=1
+        extract_position_from_row,
+        axis=1,
     )
 
     # Group and aggregate in one operation
@@ -272,7 +272,7 @@ def calculate_qualifying_features(df, qualifying_df):
             [
                 ("avg_quali_pos", lambda x: x.mean() if x.notna().any() else np.nan),
                 ("std_quali_pos", lambda x: x.std() if x.notna().any() else np.nan),
-            ]
+            ],
         )
         .reset_index()
     )
@@ -283,7 +283,8 @@ def calculate_qualifying_features(df, qualifying_df):
 
     # Fill missing values
     df[["avg_quali_pos", "std_quali_pos"]] = df.get(
-        ["avg_quali_pos", "std_quali_pos"], np.nan
+        ["avg_quali_pos", "std_quali_pos"],
+        np.nan,
     )
 
     return df
@@ -307,7 +308,7 @@ def encode_nationality_and_academy(df, features_df, alpha=10):
             nat_stats["count"] + alpha
         )
         features_df["nationality_encoded"] = feat_nat.map(nat_stats["smoothed"]).fillna(
-            global_mean
+            global_mean,
         )
 
         # Academy encoding
@@ -316,7 +317,7 @@ def encode_nationality_and_academy(df, features_df, alpha=10):
             acad_stats["count"] + alpha
         )
         features_df["academy_encoded"] = feat_acad.map(acad_stats["smoothed"]).fillna(
-            global_mean
+            global_mean,
         )
 
         features_df["has_academy"] = (feat_acad != "NO_ACADEMY").astype(int)
@@ -356,7 +357,7 @@ def engineer_features(df):
             "avg_quali_pos": df.get("avg_quali_pos", 0),
             "std_quali_pos": df.get("std_quali_pos", 0),
             "academy": df.get("academy", None),
-        }
+        },
     )
 
     # Calculate race statistics
@@ -511,9 +512,7 @@ def engineer_features(df):
     features_df["champ_pos_pct"] = features_df.groupby("year")["pos"].rank(pct=True)
 
     # Encode nationalities and academies
-    features_df = encode_nationality_and_academy(df, features_df)
-
-    return features_df
+    return encode_nationality_and_academy(df, features_df)
 
 
 def create_target_variable(feeder_df, parent_df, series):
@@ -683,7 +682,7 @@ def train_models(df):
             "champ_pos_pct",
         ]
 
-    X = df_clean[feature_cols].fillna(0)
+    x = df_clean[feature_cols].fillna(0)
     y = df_clean["promoted"]
     years = df_clean["year"]
 
@@ -693,7 +692,7 @@ def train_models(df):
     train_years = unique_years[:n_train_years]
 
     train_mask = years.isin(train_years)
-    x_train, x_test = X[train_mask], X[~train_mask]
+    x_train, x_test = x[train_mask], x[~train_mask]
     y_train, y_test = y[train_mask], y[~train_mask]
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
@@ -703,13 +702,13 @@ def train_models(df):
     y_train_sub, y_val = y_train.iloc[train_idx], y_train.iloc[val_idx]
 
     print(
-        f"Training subset: {len(x_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})"
+        f"Training subset: {len(x_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})",
     )
     print(
-        f"Validation: {len(x_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})"
+        f"Validation: {len(x_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})",
     )
     print(
-        f"Test: {len(x_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})"
+        f"Test: {len(x_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})",
     )
 
     # Traditional ML pipelines
@@ -718,7 +717,7 @@ def train_models(df):
             [
                 ("scaler", StandardScaler()),
                 ("classifier", KNeighborsClassifier(n_neighbors=5, n_jobs=-1)),
-            ]
+            ],
         ),
         "LightGBM": Pipeline(
             [
@@ -730,8 +729,8 @@ def train_models(df):
                         verbosity=-1,
                         n_jobs=-1,
                     ),
-                )
-            ]
+                ),
+            ],
         ),
         "Logistic Regression": Pipeline(
             [
@@ -739,10 +738,12 @@ def train_models(df):
                 (
                     "classifier",
                     LogisticRegression(
-                        random_state=SEED, class_weight="balanced", max_iter=10000
+                        random_state=SEED,
+                        class_weight="balanced",
+                        max_iter=10000,
                     ),
                 ),
-            ]
+            ],
         ),
         "Naive Bayes": Pipeline([("classifier", GaussianNB())]),
         "SVM": Pipeline(
@@ -759,7 +760,7 @@ def train_models(df):
                         probability=True,
                     ),
                 ),
-            ]
+            ],
         ),
         "Random Forest": Pipeline(
             [
@@ -771,8 +772,8 @@ def train_models(df):
                         max_features="sqrt",
                         class_weight="balanced_subsample",
                     ),
-                )
-            ]
+                ),
+            ],
         ),
     }
 
@@ -812,7 +813,12 @@ def train_models(df):
     # Train PyTorch Model
     print("\nTraining PyTorch Model...")
     pytorch_model, scaler, test_probas = train_pytorch_model(
-        x_train_sub, y_train_sub, x_val, y_val, x_test, feature_cols
+        x_train_sub,
+        y_train_sub,
+        x_val,
+        y_val,
+        x_test,
+        feature_cols,
     )
 
     calibrated_probas = pytorch_model.calibrator.transform(test_probas)
@@ -828,7 +834,7 @@ def train_models(df):
 
 
 def predict_drivers(models, df, feature_cols, scaler=None):
-    """Make predictions for current year drivers"""
+    """Make predictions for current year drivers."""
     current_df = df[df["year"] == CURRENT_YEAR].copy()
     if current_df.empty:
         current_df = df[df["year"] == df["year"].max()].copy()
@@ -889,7 +895,7 @@ def predict_drivers(models, df, feature_cols, scaler=None):
                     "Team Points": current_df["team_points"],
                     "Raw_Prob": raw_probas,
                     "Empirical_%": empirical_pct,
-                }
+                },
             ).sort_values("Empirical_%", ascending=False)
 
             print(f"\n{name} Predictions:")

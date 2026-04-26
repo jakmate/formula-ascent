@@ -11,12 +11,12 @@ from app.core.state import AppState
 
 
 class ModelService:
-    def __init__(self, app_state: AppState, series: str = None):
+    def __init__(self, app_state: AppState, series: str | None = None) -> None:
         self.app_state = app_state
         self.series = series
 
     async def save_models(self):
-        """Save models to disk"""
+        """Save models to disk."""
         try:
             # Create series-specific directory
             series_dir = (
@@ -46,7 +46,9 @@ class ModelService:
                         )
                 else:
                     await asyncio.to_thread(
-                        joblib.dump, model, os.path.join(series_dir, f"{name}.joblib")
+                        joblib.dump,
+                        model,
+                        os.path.join(series_dir, f"{name}.joblib"),
                     )
 
             preprocessor_data = {
@@ -68,7 +70,7 @@ class ModelService:
             LOGGER.error(f"Error saving models: {e}")
 
     async def load_models(self) -> bool:
-        """Load models from disk"""
+        """Load models from disk."""
         try:
             models_loaded = False
 
@@ -91,12 +93,12 @@ class ModelService:
                 # Update models_available for this series
                 if self.app_state.models[series]:
                     self.app_state.system_status["models_available"][series] = list(
-                        self.app_state.models[series].keys()
+                        self.app_state.models[series].keys(),
                     )
 
             if models_loaded:
                 LOGGER.info(
-                    f"Loaded models for series: {list(self.app_state.models.keys())}"
+                    f"Loaded models for series: {list(self.app_state.models.keys())}",
                 )
 
             return models_loaded
@@ -112,7 +114,10 @@ class ModelService:
             self.app_state.feature_cols[series] = preprocessor["feature_cols"]
 
     async def _load_model_file(
-        self, series: str, series_dir: str, model_file: str
+        self,
+        series: str,
+        series_dir: str,
+        model_file: str,
     ) -> bool:
         if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
             return False
@@ -124,7 +129,7 @@ class ModelService:
             model = await asyncio.to_thread(joblib.load, model_path)
             self.app_state.models[series][name] = model
             return True
-        elif model_file.endswith(".pt"):
+        if model_file.endswith(".pt"):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model = RacingPredictor(len(self.app_state.feature_cols[series]))
             state_dict = await asyncio.to_thread(
@@ -145,12 +150,13 @@ class ModelService:
         return False
 
     async def train_models(self, trainable_df):
-        """Train models on provided data"""
+        """Train models on provided data."""
         LOGGER.info(f"Training models for {self.series} on {len(trainable_df)} records")
         from app.core.predictor import train_models
 
         (models, feature_cols, scaler) = await asyncio.to_thread(
-            train_models, trainable_df
+            train_models,
+            trainable_df,
         )
 
         # Store in series-specific slots
@@ -163,7 +169,7 @@ class ModelService:
 
         # Update available models for this series
         self.app_state.system_status["models_available"][self.series] = list(
-            models.keys()
+            models.keys(),
         )
 
         self.app_state.system_status["data_health"][self.series] = {

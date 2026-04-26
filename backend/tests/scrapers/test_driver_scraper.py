@@ -85,9 +85,9 @@ class TestSearchWikidataDrivers:
                         "person": {"value": "https://wikidata.org/entity/Q1"},
                         "dob": {"value": "1985-01-07T00:00:00Z"},
                         "nationalityLabel": {"value": "United Kingdom"},
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         }
         mock_session.get.return_value = mock_response
 
@@ -143,7 +143,7 @@ class TestGetAllDriversFromData:
         mock_glob.return_value = ["data/F1/2023"]
         mock_exists.return_value = True
         mock_df = pd.DataFrame(
-            {"Driver": ["Lewis Hamilton", "Max Verstappen", "Lewis Hamilton"]}
+            {"Driver": ["Lewis Hamilton", "Max Verstappen", "Lewis Hamilton"]},
         )
         mock_read_csv.return_value = mock_df
 
@@ -278,7 +278,7 @@ class TestScrapeDrivers:
                 "person": {"value": "https://wikidata.org/entity/Q1"},
                 "dob": {"value": "1985-01-07T00:00:00Z"},
                 "nationalityLabel": {"value": "United Kingdom"},
-            }
+            },
         }
         session = Mock()
         mock_session.return_value = session
@@ -312,7 +312,7 @@ class TestScrapeDrivers:
         mock_exists.return_value = True
 
         existing_profile = json.dumps(
-            {"scraped": True, "dob": "1985-01-07", "nationality": "UK"}
+            {"scraped": True, "dob": "1985-01-07", "nationality": "UK"},
         )
         mock_file.return_value.read.return_value = existing_profile
 
@@ -321,7 +321,7 @@ class TestScrapeDrivers:
                 "person": {"value": "https://wikidata.org/entity/Q1"},
                 "dob": {"value": "1985-01-07T00:00:00Z"},
                 "nationalityLabel": {"value": "United Kingdom"},
-            }
+            },
         }
         session = Mock()
         mock_session.return_value = session
@@ -347,7 +347,8 @@ class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
     @patch(
-        "app.scrapers.driver_scraper.DRIVER_ALIASES", {"Test Driver": "Aliased Driver"}
+        "app.scrapers.driver_scraper.DRIVER_ALIASES",
+        {"Test Driver": "Aliased Driver"},
     )
     def test_driver_alias_mapping(
         self,

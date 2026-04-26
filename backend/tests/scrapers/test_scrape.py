@@ -55,7 +55,12 @@ class TestScrapeWiki:
     @patch("app.scrapers.scrape.process_championship")
     @patch("app.scrapers.scrape.scrape_quali")
     def test_successful(
-        self, mock_quali, mock_championship, mock_entries, mock_request, mock_session
+        self,
+        mock_quali,
+        mock_championship,
+        mock_entries,
+        mock_request,
+        mock_session,
     ):
         mock_sess = Mock()
         mock_session.return_value = mock_sess
@@ -121,7 +126,7 @@ class TestScrapeWiki:
         # Call with session=None (default) — function should invoke create_session()
         scrape_wiki(session=None, formulas=[1], start_year=2020, end_year=2021)
 
-        # create_session must have been called once to create the session used internally
+        # create_session must have been called to create the session used internally
         mock_create_session.assert_called_once()
 
         # safe_request should be called using that session
@@ -155,7 +160,11 @@ class TestScrapeFunctions:
     @patch("app.scrapers.scrape.scrape_schedules")
     @patch("app.scrapers.scrape.CURRENT_YEAR", 2024)
     def test_scrape_current_year(
-        self, mock_schedules, mock_drivers, mock_wiki, mock_session
+        self,
+        mock_schedules,
+        mock_drivers,
+        mock_wiki,
+        mock_session,
     ):
         mock_sess = Mock()
         mock_session.return_value = mock_sess

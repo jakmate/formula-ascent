@@ -87,7 +87,7 @@ class TestLoadAllEntriesData:
         mock_get_dirs.return_value = [mock_dir_2023, mock_dir_2022]
 
         mock_read_csv.return_value = pd.DataFrame(
-            {"Driver": ["Driver1"], "Team": ["Team1"]}
+            {"Driver": ["Driver1"], "Team": ["Team1"]},
         )
 
         result = load_all_entries_data("F3")
@@ -116,7 +116,7 @@ class TestLoadAllEntriesData:
     @patch("app.core.loader.get_series_directories")
     @patch("app.core.loader.LOGGER")
     def test_skips_non_integer_directory(self, mock_logger, mock_get_dirs):
-        # If year_dir.name is not convertible to int, we should log an error and continue
+        # If year_dir.name is not convertible to int, we should log an error
         bad_dir = MagicMock()
         bad_dir.name = "not-a-year"
         mock_get_dirs.return_value = [bad_dir]
@@ -143,7 +143,7 @@ class TestLoadYearData:
         mock_dir = MagicMock()
         mock_dir.name = "2023"
         mock_read_csv.return_value = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver2"], "Pos": [1, None]}
+            {"Driver": ["Driver1", "Driver2"], "Pos": [1, None]},
         )
 
         result = load_year_data(mock_dir, "F3", "drivers")
@@ -274,7 +274,7 @@ class TestLoadDriverData:
     def test_loads_profile_data(self, mock_file, mock_exists):
         mock_exists.return_value = True
         mock_file.return_value.read.return_value = json.dumps(
-            {"dob": "1990-01-01", "nationality": "British", "scraped": True}
+            {"dob": "1990-01-01", "nationality": "British", "scraped": True},
         )
 
         df = pd.DataFrame({"Driver": ["Lewis Hamilton"]})
@@ -299,7 +299,7 @@ class TestLoadDriverData:
 
         # Make json.load raise; raise when file read attempted
         mock_file.return_value.__enter__.return_value.read.side_effect = ValueError(
-            "bad json"
+            "bad json",
         )
 
         # to ensure json.load actually runs and raises, patch json.load explicitly
@@ -314,7 +314,7 @@ class TestLoadDriverData:
 class TestMergeEntries:
     def test_merges_entries_with_drivers(self):
         driver_df = pd.DataFrame(
-            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]}
+            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]},
         )
         entries_df = pd.DataFrame(
             {
@@ -323,7 +323,7 @@ class TestMergeEntries:
                 "Rounds": ["All"],
                 "year": [2023],
                 "series": ["F3"],
-            }
+            },
         )
 
         result = merge_entries(driver_df, entries_df)
@@ -339,7 +339,7 @@ class TestMergeEntries:
 
     def test_multi_team_driver_selection(self):
         driver_df = pd.DataFrame(
-            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]}
+            {"Driver": ["Driver1"], "year": [2023], "series": ["F3"]},
         )
         entries_df = pd.DataFrame(
             {
@@ -348,7 +348,7 @@ class TestMergeEntries:
                 "Rounds": ["1-5", "6-12"],
                 "year": [2023, 2023],
                 "series": ["F3", "F3"],
-            }
+            },
         )
 
         result = merge_entries(driver_df, entries_df)
@@ -378,10 +378,10 @@ class TestParseRoundCount:
 class TestMergeTeamData:
     def test_merges_team_standings(self):
         driver_df = pd.DataFrame(
-            {"Driver": ["Driver1"], "Team": ["Team1"], "year": [2023]}
+            {"Driver": ["Driver1"], "Team": ["Team1"], "year": [2023]},
         )
         team_df = pd.DataFrame(
-            {"Team": ["Team1"], "Pos": [1], "Points": [100], "year": [2023]}
+            {"Team": ["Team1"], "Pos": [1], "Points": [100], "year": [2023]},
         )
 
         result = merge_team_data(driver_df, team_df)
@@ -412,7 +412,7 @@ class TestLoadData:
                 "year": [2023],
                 "series": ["F3"],
                 "academy": ["test_academy"],
-            }
+            },
         )
         mock_load_standings.return_value = mock_df
         mock_load_entries.return_value = mock_df

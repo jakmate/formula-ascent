@@ -40,7 +40,9 @@ class TestCreateApp:
 class TestLifespan:
     @pytest.mark.asyncio
     async def test_lifespan_successful_startup_shutdown(
-        self, mock_dependencies, mock_logger
+        self,
+        mock_dependencies,
+        mock_logger,
     ):
         mock_init, mock_cleanup = mock_dependencies
 
@@ -85,7 +87,7 @@ class TestLifespan:
 
 class TestAppIntegration:
     def test_app_startup_with_test_client(self, mock_dependencies):
-        """Test that the app can start successfully with TestClient"""
+        """Test that the app can start successfully with TestClient."""
         _, _ = mock_dependencies
 
         app = create_app()

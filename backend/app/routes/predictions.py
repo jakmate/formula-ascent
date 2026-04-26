@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import LOGGER
@@ -13,10 +15,10 @@ router = APIRouter()
 @router.get("/{series}", response_model=PredictionsResponse)
 async def get_predictions(
     series: str,
-    app_state: AppState = Depends(get_app_state),
-    data_service: DataService = Depends(get_data_service),
+    app_state: Annotated[AppState, Depends(get_app_state)],
+    data_service: Annotated[DataService, Depends(get_data_service)],
 ):
-    """Get predictions from all models"""
+    """Get predictions from all models."""
     try:
         prediction_service = PredictionService(app_state, series, data_service)
         return await prediction_service.get_predictions()

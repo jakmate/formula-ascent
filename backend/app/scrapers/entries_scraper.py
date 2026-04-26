@@ -1,3 +1,4 @@
+import contextlib
 import csv
 
 from app.scrapers.scraping_utils import create_output_file, remove_superscripts
@@ -49,17 +50,14 @@ def should_remove_footer_row(series, year):
         return False
     if series == 3 and year < 2017:
         return False
-    if series == 1 and year <= 2013:
-        return False
-    return True
+    return not (series == 1 and year <= 2013)
 
 
 def process_headers(all_rows, series, year):
     """Process table headers and return headers list and data rows."""
     if series == 1 and year > 2015:
         return process_multirow_headers(all_rows)
-    else:
-        return process_single_row_headers(all_rows)
+    return process_single_row_headers(all_rows)
 
 
 def process_multirow_headers(all_rows):
@@ -133,16 +131,15 @@ def process_rowspan_columns(trackers, cells, rowspan_columns):
         if trackers[col_idx]["remaining"] > 0:
             row_data.append(trackers[col_idx]["value"])
             trackers[col_idx]["remaining"] -= 1
+        elif cell_index < len(cells):
+            cell = cells[cell_index]
+            cell_index += 1
+            value = remove_superscripts(cell)
+            rowspan_val = int(cell.get("rowspan", "1"))
+            trackers[col_idx] = {"value": value, "remaining": rowspan_val - 1}
+            row_data.append(value)
         else:
-            if cell_index < len(cells):
-                cell = cells[cell_index]
-                cell_index += 1
-                value = remove_superscripts(cell)
-                rowspan_val = int(cell.get("rowspan", "1"))
-                trackers[col_idx] = {"value": value, "remaining": rowspan_val - 1}
-                row_data.append(value)
-            else:
-                row_data.append("")
+            row_data.append("")
 
     return row_data, cell_index
 
@@ -200,7 +197,13 @@ def write_f1_modern_rows(writer, row_data, processed_cells, unwanted_indices):
 
 
 def process_standard_row(
-    cells, cell_index, row_data, num_columns, driver_idx, series, unwanted_indices
+    cells,
+    cell_index,
+    row_data,
+    num_columns,
+    driver_idx,
+    series,
+    unwanted_indices,
 ):
     """Process standard row structure and return final row data."""
     # Fill remaining columns
@@ -217,7 +220,7 @@ def process_standard_row(
         row_data[driver_idx] = "Robert Vișoiu"
     if series == 2 and row_data[driver_idx] == "Andrea Kimi Antonelli":
         row_data[driver_idx] = "Kimi Antonelli"
-    if (series == 2 or series == 3) and row_data[driver_idx] == "Guanyu Zhou":
+    if (series in {2, 3}) and row_data[driver_idx] == "Guanyu Zhou":
         row_data[driver_idx] = "Zhou Guanyu"
 
     # Remove unwanted columns
@@ -248,10 +251,8 @@ def process_entries(soup, year, series):
 
     # Get driver column index (cache for performance)
     driver_idx = None
-    try:
+    with contextlib.suppress(ValueError):
         driver_idx = clean_headers_list.index("Driver")
-    except ValueError:
-        pass
 
     # Remove footer if needed
     data_rows = remove_footer_if_needed(data_rows, num_columns, series, year)
@@ -276,7 +277,9 @@ def process_entries(soup, year, series):
 
             # Process rowspan columns
             row_data, cell_index = process_rowspan_columns(
-                trackers, cells, rowspan_columns
+                trackers,
+                cells,
+                rowspan_columns,
             )
 
             remaining_cells = cells[cell_index:]
@@ -286,7 +289,10 @@ def process_entries(soup, year, series):
                 processed_cells = process_f1_modern_drivers(remaining_cells)
                 row_data.extend(processed_cells)
                 write_f1_modern_rows(
-                    writer, row_data, processed_cells, sorted_unwanted_indices
+                    writer,
+                    row_data,
+                    processed_cells,
+                    sorted_unwanted_indices,
                 )
             else:
                 # Standard structure

@@ -28,7 +28,7 @@ COLUMN_MAPPING = {
 
 
 def add_time_gap(base_time, gap):
-    """Add gap time to base time (e.g., '1:19.429' + '0.016' = '1:19.445')"""
+    """Add gap time to base time (e.g., '1:19.429' + '0.016' = '1:19.445')."""
     try:
         # Parse base time
         if ":" in base_time:
@@ -50,15 +50,14 @@ def add_time_gap(base_time, gap):
         # Format result
         if minutes > 0:
             return f"{minutes}:{total_seconds:06.3f}"
-        else:
-            return f"{total_seconds:.3f}"
+        return f"{total_seconds:.3f}"
     except (ValueError, IndexError):
         # If parsing fails, return original base time
         return base_time
 
 
 def extract_race_report_links(soup):
-    """Extract race report links from the season summary table"""
+    """Extract race report links from the season summary table."""
     # Find Season summary heading
     season_heading = (
         soup.find("h3", {"id": "Season_summary"})
@@ -88,7 +87,7 @@ def extract_race_report_links(soup):
 
 
 def process_qualifying_data(race_url, round_info, session):
-    """Process qualifying data from a race report page"""
+    """Process qualifying data from a race report page."""
     try:
         response = safe_request(session, race_url)
         if response is None:
@@ -110,25 +109,32 @@ def process_qualifying_data(race_url, round_info, session):
 
         # Check if this is Monte Carlo with Group A and Group B
         group_a_head = soup.find("h4", {"id": "Group_A"}) or soup.find(
-            "dt", string="Group A"
+            "dt",
+            string="Group A",
         )
         group_b_head = soup.find("h4", {"id": "Group_B"}) or soup.find(
-            "dt", string="Group B"
+            "dt",
+            string="Group B",
         )
 
         if group_a_head and group_b_head:
             result = process_two_table_qualifying(
-                group_a_head, group_b_head, round_info, race_url
+                group_a_head,
+                group_b_head,
+                round_info,
+                race_url,
             )
         else:
             result = process_single_qualifying_table(
-                qualifying_heading, round_info, race_url
+                qualifying_heading,
+                round_info,
+                race_url,
             )
 
         return result
 
     except Exception as e:
-        print(f"Error processing qualifying data from {race_url}: {str(e)}")
+        print(f"Error processing qualifying data from {race_url}: {e!s}")
         return None
 
 
@@ -156,7 +162,7 @@ def normalize_time_str(t):
 
 
 def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_url):
-    """Process Monte Carlo qualifying with Group A and Group B"""
+    """Process Monte Carlo qualifying with Group A and Group B."""
     try:
         # Process Group A
         group_a_table = group_a_head.find_next("table", {"class": "wikitable"})
@@ -211,7 +217,7 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
         }
 
     except Exception as e:
-        print(f"Error processing Monte Carlo qualifying from {race_url}: {str(e)}")
+        print(f"Error processing Monte Carlo qualifying from {race_url}: {e!s}")
         return None
 
 
@@ -240,7 +246,7 @@ def process_single_qualifying_table(qualifying_heading, round_info, race_url):
 
 
 def extract_quali_table_data(table):
-    """Extract data from a qualifying table"""
+    """Extract data from a qualifying table."""
     try:
         all_rows = table.find_all("tr")
         if len(all_rows) < 2:
@@ -325,7 +331,7 @@ def extract_quali_table_data(table):
                 headers[idx] = "Time"  # Rename column
                 time_col_index = idx
                 break
-            elif header == "Time":
+            if header == "Time":
                 time_col_index = idx
                 break
 
@@ -347,12 +353,12 @@ def extract_quali_table_data(table):
         return {"headers": headers, "data": data_rows}
 
     except Exception as e:
-        print(f"Error extracting table data: {str(e)}")
+        print(f"Error extracting table data: {e!s}")
         return None
 
 
 def save_qualifying_data(qualifying_results, year, series):
-    """Save all qualifying data to CSV files"""
+    """Save all qualifying data to CSV files."""
     if not qualifying_results:
         return
 

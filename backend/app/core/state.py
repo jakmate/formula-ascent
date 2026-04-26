@@ -8,7 +8,7 @@ from app.config import LOGGER, STATE_FILE
 
 
 class AppState:
-    def __init__(self):
+    def __init__(self) -> None:
         self.models = {"f3_to_f2": {}, "f2_to_f1": {}}
         self.feature_cols = {"f3_to_f2": [], "f2_to_f1": []}
         self.scaler = {"f3_to_f2": None, "f2_to_f1": None}
@@ -25,7 +25,7 @@ class AppState:
         self.scheduler = AsyncIOScheduler()
 
     def save_state(self):
-        """Save critical state to disk"""
+        """Save critical state to disk."""
         state = {
             "last_scrape_full": (
                 self.system_status["last_scrape_full"].isoformat()
@@ -54,10 +54,10 @@ class AppState:
             json.dump(state, f, default=str)
 
     def load_state(self):
-        """Load state from disk"""
+        """Load state from disk."""
         try:
             if os.path.exists(STATE_FILE):
-                with open(STATE_FILE, "r") as f:
+                with open(STATE_FILE) as f:
                     state = json.load(f)
 
                 self.system_status["last_scrape_full"] = (
@@ -74,7 +74,7 @@ class AppState:
                 loaded_models_avail = state.get("models_available", {})
                 if not isinstance(loaded_models_avail, dict):
                     LOGGER.warning(
-                        "models_available is not a dict. Resetting to default."
+                        "models_available is not a dict. Resetting to default.",
                     )
                     loaded_models_avail = {"f3_to_f2": [], "f2_to_f1": []}
                 else:

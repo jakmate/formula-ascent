@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -74,18 +74,18 @@ class TestIsRaceCompletedOrOngoing:
         assert is_race_completed_or_ongoing(race) is False
 
     def test_race_with_past_session(self):
-        past_time = datetime.now(timezone.utc) - timedelta(days=2)
+        past_time = datetime.now(UTC) - timedelta(days=2)
         race = {
-            "sessions": {"race": {"start": past_time.replace(tzinfo=None).isoformat()}}
+            "sessions": {"race": {"start": past_time.replace(tzinfo=None).isoformat()}},
         }
         assert is_race_completed_or_ongoing(race) is True
 
     def test_race_with_future_session(self):
-        future_time = datetime.now(timezone.utc) + timedelta(days=2)
+        future_time = datetime.now(UTC) + timedelta(days=2)
         race = {
             "sessions": {
-                "race": {"start": future_time.replace(tzinfo=None).isoformat()}
-            }
+                "race": {"start": future_time.replace(tzinfo=None).isoformat()},
+            },
         }
         assert is_race_completed_or_ongoing(race) is False
 
@@ -122,7 +122,10 @@ class TestParseTimeToDatetime:
     def test_time_with_day_name_adjustment(self):
         base_date = datetime(2025, 3, 15)  # Saturday
         result = parse_time_to_datetime(
-            "10:00", base_date, day_name="Friday", location="Monaco"
+            "10:00",
+            base_date,
+            day_name="Friday",
+            location="Monaco",
         )
         # Should adjust to Friday
         assert "2025-03-14" in result["start"]
@@ -203,10 +206,10 @@ class TestScrapeF1Schedule:
             ".typography-module_body-2-xs-bold__M03Ei": mock_round,
             ".typography-module_display-xl-bold__Gyl5W": Mock(text="Sakhir"),
             ".typography-module_body-xs-semibold__Fyfwn": Mock(
-                text="FORMULA 1 BAHRAIN GP 2025"
+                text="FORMULA 1 BAHRAIN GP 2025",
             ),
             ".typography-module_technical-xs-regular__-W0Gs": Mock(text="02 Mar"),
-        }.get(sel, None)
+        }.get(sel)
 
         mock_card.get.return_value = "/en/racing/2025/bahrain"
         mock_soup.find_all.return_value = [mock_card]
@@ -268,14 +271,10 @@ class TestSaveSchedules:
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
     @patch("app.scrapers.schedule_scraper.os.path.exists")
-    @patch("app.scrapers.schedule_scraper.os.makedirs")
     @patch("app.scrapers.schedule_scraper.json.dump")
-    @patch("builtins.open", new_callable=mock_open)
     def test_save_new_schedules(
         self,
-        mock_file,
         mock_json_dump,
-        mock_makedirs,
         mock_exists,
         mock_f2_scraper,
         mock_f1_scraper,
@@ -288,7 +287,7 @@ class TestSaveSchedules:
                 "name": "Bahrain",
                 "location": "Bahrain",
                 "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
-            }
+            },
         ]
         mock_f2_scraper.return_value = [
             {
@@ -296,7 +295,7 @@ class TestSaveSchedules:
                 "name": "Bahrain",
                 "location": "Bahrain",
                 "sessions": {"race": {"start": "2025-03-02T14:00:00"}},
-            }
+            },
         ]
 
         scrape_schedules(mock_session)
@@ -339,7 +338,7 @@ class TestSaveSchedules:
                 "name": "Bahrain Updated",
                 "location": "Bahrain",
                 "sessions": {"race": {"start": "2025-03-02T16:00:00"}},
-            }
+            },
         ]
         mock_f2_scraper.return_value = []
 
@@ -366,7 +365,11 @@ class TestSaveSchedules:
     @patch("app.scrapers.schedule_scraper.os.path.exists")
     @patch("app.scrapers.schedule_scraper.json.load")
     def test_invalid_json_handling(
-        self, mock_json_load, mock_exists, mock_f2_scraper, mock_f1_scraper
+        self,
+        mock_json_load,
+        mock_exists,
+        mock_f2_scraper,
+        mock_f1_scraper,
     ):
         mock_session = Mock()
         mock_exists.return_value = True

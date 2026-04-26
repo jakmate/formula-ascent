@@ -13,7 +13,7 @@ from app.scrapers.scraping_utils import (
 
 class TestCreateSession:
     def test_create_session(self):
-        """Test that create_session sets required headers"""
+        """Test that create_session sets required headers."""
         session = create_session()
         headers = session.headers
 
@@ -32,7 +32,7 @@ class TestCreateSession:
 
 class TestRemoveSuperscripts:
     def test_basic(self):
-        """Test removing sup elements from HTML"""
+        """Test removing sup elements from HTML."""
         html = "<div>Text<sup>1</sup> more text<sup>2</sup></div>"
         soup = BeautifulSoup(html, "lxml")
         cell = soup.find("div")
@@ -41,7 +41,7 @@ class TestRemoveSuperscripts:
         assert result == "Text more text"
 
     def test_preserve_spaces_false(self):
-        """Test preserve_spaces=False removes spacing"""
+        """Test preserve_spaces=False removes spacing."""
         html = "<div><span>Text1</span><sup>1</sup><span>Text2</span></div>"
         soup = BeautifulSoup(html, "lxml")
         cell = soup.find("div")
@@ -50,7 +50,7 @@ class TestRemoveSuperscripts:
         assert result == "Text1Text2"
 
     def test_no_sup_elements(self):
-        """Test with HTML containing no sup elements"""
+        """Test with HTML containing no sup elements."""
         html = "<div>Just plain text</div>"
         soup = BeautifulSoup(html, "lxml")
         cell = soup.find("div")
@@ -61,7 +61,7 @@ class TestRemoveSuperscripts:
 
 class TestSafeRequest:
     def test_successful(self):
-        """Test successful request"""
+        """Test successful request."""
         mock_session = Mock()
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -74,7 +74,7 @@ class TestSafeRequest:
         mock_response.raise_for_status.assert_called_once()
 
     def test_http_error_non_403(self):
-        """Test HTTP error that's not 403"""
+        """Test HTTP error that's not 403."""
         mock_session = Mock()
         mock_response = Mock()
         http_error = requests.exceptions.HTTPError()
@@ -88,7 +88,7 @@ class TestSafeRequest:
 
     @patch("time.sleep")
     def test_403_error_retry_success(self, mock_sleep):
-        """Test 403 error followed by successful retry"""
+        """Test 403 error followed by successful retry."""
         mock_session = Mock()
         mock_response_fail = Mock()
         mock_response_success = Mock()
@@ -110,7 +110,7 @@ class TestSafeRequest:
 
     @patch("time.sleep")
     def test_403_error_max_retries(self, mock_sleep):
-        """Test 403 error exceeding max retries"""
+        """Test 403 error exceeding max retries."""
         mock_session = Mock()
         mock_response = Mock()
 
@@ -130,7 +130,7 @@ class TestSafeRequest:
 
     @patch("time.sleep")
     def test_generic_exception_retry(self, mock_sleep):
-        """Test generic exception with retry"""
+        """Test generic exception with retry."""
         mock_session = Mock()
         mock_response = Mock()
 
@@ -148,10 +148,10 @@ class TestSafeRequest:
 
     @patch("time.sleep")
     def test_generic_exception_max_retries(self, mock_sleep):
-        """Test generic exception exceeding max retries"""
+        """Test generic exception exceeding max retries."""
         mock_session = Mock()
         mock_session.get.side_effect = requests.exceptions.ConnectionError(
-            "Connection failed"
+            "Connection failed",
         )
 
         result = safe_request(mock_session, "https://test.com", max_retries=2)
@@ -161,7 +161,7 @@ class TestSafeRequest:
         assert mock_sleep.call_count == 1
 
     def test_max_retries_zero(self):
-        """Test that max_retries=0 means no attempts are made"""
+        """Test that max_retries=0 means no attempts are made."""
         mock_session = Mock()
         mock_response = Mock()
         mock_session.get.return_value = mock_response

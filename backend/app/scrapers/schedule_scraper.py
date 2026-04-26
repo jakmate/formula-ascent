@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urljoin
 
 import pytz
@@ -13,11 +13,14 @@ from app.config import CURRENT_YEAR, SCHEDULE_DIR
 from app.scrapers.scraping_utils import create_session
 
 F1_MAIN_STRAINER = SoupStrainer(
-    "a", class_="group", href=re.compile(r"/en/racing/\d{4}/")
+    "a",
+    class_="group",
+    href=re.compile(r"/en/racing/\d{4}/"),
 )
 F1_SESSION_STRAINER = SoupStrainer("ul", class_=re.compile(r"grid"))
 FIA_MAIN_STRAINER = SoupStrainer(
-    ["div"], class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b")
+    ["div"],
+    class_=re.compile(r"col-12\b.*?\bcol-sm-6\b.*?\bcol-lg-4\b.*?\bcol-xl-3\b"),
 )
 FIA_SESSION_STRAINER = SoupStrainer("div", class_="pin")
 
@@ -92,19 +95,19 @@ def get_timezone_for_location(location_str):
             if timezone_str:
                 return timezone_str
     except Exception as e:
-        print(f"Geocoding error for '{location_str}': {str(e)}")
+        print(f"Geocoding error for '{location_str}': {e!s}")
 
     # Fallback to UTC if geocoding fails
     return "UTC"
 
 
 def format_utc_datetime(dt):
-    """Format datetime object to ISO string without UTC offset"""
+    """Format datetime object to ISO string without UTC offset."""
     return dt.replace(tzinfo=None).isoformat() if dt.tzinfo else dt.isoformat()
 
 
 def is_race_completed_or_ongoing(race):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     sessions = race.get("sessions", {})
     if not sessions:
         return False
@@ -115,9 +118,9 @@ def is_race_completed_or_ongoing(race):
         start = s.get("start")
         if start and "T" in start:
             try:
-                dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+                dt = datetime.fromisoformat(start)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
+                    dt = dt.replace(tzinfo=UTC)
                 start_times.append(dt)
             except ValueError:
                 continue
@@ -130,7 +133,7 @@ def is_race_completed_or_ongoing(race):
 
 
 def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
-    """Parse time string and combine with date to create datetime object in UTC"""
+    """Parse time string and combine with date to create datetime object in UTC."""
     if not time_str:
         return None
 
@@ -226,22 +229,24 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                 location = name_tag.text.strip() if name_tag else "Unknown"
 
                 full_name_tag = card.select_one(
-                    ".typography-module_body-xs-semibold__Fyfwn"
+                    ".typography-module_body-xs-semibold__Fyfwn",
                 )
                 race_name = full_name_tag.text.strip() if full_name_tag else "Unknown"
 
                 # Clean race name
                 clean_name = re.sub(
-                    r"FORMULA 1 |GRAND PRIX|\d{4}", "", race_name
+                    r"FORMULA 1 |GRAND PRIX|\d{4}",
+                    "",
+                    race_name,
                 ).strip()
 
                 # Extract date
                 date_span = card.select_one(
-                    ".typography-module_technical-xs-regular__-W0Gs"
+                    ".typography-module_technical-xs-regular__-W0Gs",
                 )
                 if not date_span:
                     date_span = card.select_one(
-                        ".typography-module_technical-m-bold__JDsxP"
+                        ".typography-module_technical-m-bold__JDsxP",
                     )
                 date_str = date_span.text.strip() if date_span else ""
 
@@ -249,11 +254,13 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                 if "-" in date_str:
                     last_date = date_str.split("-")[-1].strip()
                     date_obj = datetime.strptime(
-                        f"{last_date} {CURRENT_YEAR}", "%d %b %Y"
+                        f"{last_date} {CURRENT_YEAR}",
+                        "%d %b %Y",
                     )
                 else:
                     date_obj = datetime.strptime(
-                        f"{date_str} {CURRENT_YEAR}", "%d %b %Y"
+                        f"{date_str} {CURRENT_YEAR}",
+                        "%d %b %Y",
                     )
 
                 # Get race URL
@@ -279,13 +286,14 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                             date_container = session_el.select_one(".min-w-\\[44px\\]")
                             if date_container:
                                 day = date_container.select_one(
-                                    ".typography-module_technical-l-bold__AKrZb"
+                                    ".typography-module_technical-l-bold__AKrZb",
                                 ).text.strip()
                                 month = date_container.select_one(
-                                    ".typography-module_technical-s-regular__6LvKq"
+                                    ".typography-module_technical-s-regular__6LvKq",
                                 ).text.strip()
                                 session_date = datetime.strptime(
-                                    f"{day} {month} {CURRENT_YEAR}", "%d %b %Y"
+                                    f"{day} {month} {CURRENT_YEAR}",
+                                    "%d %b %Y",
                                 )
                             else:
                                 # Fallback to race's main date if not session date
@@ -293,7 +301,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                             # Extract session name
                             session_name_el = session_el.select_one(
-                                ".typography-module_display-m-bold__qgZFB"
+                                ".typography-module_display-m-bold__qgZFB",
                             )
                             session_name = (
                                 session_name_el.text.strip().lower()
@@ -303,7 +311,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                             # Extract time
                             time_span = session_el.select_one(
-                                ".typography-module_technical-s-regular__6LvKq.text-text-5"
+                                ".typography-module_technical-s-regular__6LvKq.text-text-5",
                             )
                             time_str = ""
                             if time_span:
@@ -311,7 +319,9 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 time_text = time_span.get_text(strip=True)
                                 # Remove any <time> tags if they are still present as text
                                 time_str = re.sub(
-                                    r"<time[^>]*>|</time>", "", time_text
+                                    r"<time[^>]*>|</time>",
+                                    "",
+                                    time_text,
                                 ).strip()
 
                             session_info = None
@@ -320,17 +330,21 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 start_str, end_str = time_str.split("-", 1)
                                 try:
                                     start_time = datetime.strptime(
-                                        start_str.strip(), "%H:%M"
+                                        start_str.strip(),
+                                        "%H:%M",
                                     ).time()
                                     end_time = datetime.strptime(
-                                        end_str.strip(), "%H:%M"
+                                        end_str.strip(),
+                                        "%H:%M",
                                     ).time()
 
                                     start_dt = datetime.combine(
-                                        session_date.date(), start_time
+                                        session_date.date(),
+                                        start_time,
                                     )
                                     end_dt = datetime.combine(
-                                        session_date.date(), end_time
+                                        session_date.date(),
+                                        end_time,
                                     )
 
                                     session_info = {
@@ -347,10 +361,12 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 # Handle single time (e.g., Race start time "12:00")
                                 try:
                                     start_time = datetime.strptime(
-                                        time_str.strip(), "%H:%M"
+                                        time_str.strip(),
+                                        "%H:%M",
                                     ).time()
                                     start_dt = datetime.combine(
-                                        session_date.date(), start_time
+                                        session_date.date(),
+                                        start_time,
                                     )
 
                                     # Estimate end time based on session type
@@ -387,7 +403,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                     except Exception as e:
                         print(
-                            f"Error scraping F1 race details for round {round_num}: {e}"
+                            f"Error scraping F1 race details for round {round_num}: {e}",
                         )
 
                 # Add fallback sessions if missing
@@ -405,7 +421,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                         "name": clean_name,
                         "location": get_country_for_location(location),
                         "sessions": sessions,
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"Error processing F1 race card: {e}")
@@ -417,7 +433,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
 
 def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=None):
-    """Generic scraper for F2 and F3 schedules"""
+    """Generic scraper for F2 and F3 schedules."""
     if existing_races_by_round is None:
         existing_races_by_round = {}
 
@@ -514,7 +530,10 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                                 # Pass location to parser
                                 session_dt = parse_time_to_datetime(
-                                    time_str, race_date, day_name, location
+                                    time_str,
+                                    race_date,
+                                    day_name,
+                                    location,
                                 )
 
                                 if session_dt:
@@ -529,7 +548,7 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                     except Exception as e:
                         print(
-                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}"
+                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}",
                         )
 
                 # Add fallback race session
@@ -542,7 +561,7 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                         "name": location,
                         "location": get_country_for_location(location),
                         "sessions": sessions,
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"Error processing {series_name.upper()} race container: {e}")
@@ -560,10 +579,14 @@ def scrape_schedules(session=None):
     series_scrapers = {
         "f1": lambda existing, session: scrape_f1_schedule(session, existing),
         "f2": lambda existing, session: scrape_fia_formula_schedule(
-            session, "f2", existing
+            session,
+            "f2",
+            existing,
         ),
         "f3": lambda existing, session: scrape_fia_formula_schedule(
-            session, "f3", existing
+            session,
+            "f3",
+            existing,
         ),
     }
 
@@ -573,7 +596,7 @@ def scrape_schedules(session=None):
             existing_schedule = []
 
             if os.path.exists(file_path):
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     try:
                         existing_schedule = json.load(f)
                     except json.JSONDecodeError:

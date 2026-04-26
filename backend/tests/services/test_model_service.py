@@ -99,7 +99,9 @@ class TestSaveModels:
         # Verify PyTorch model save
         expected_path = os.path.join(os.sep, "test", "models", "f3_to_f2", "PyTorch.pt")
         mock_torch_save.assert_called_once_with(
-            {"state": "dict"}, expected_path, _use_new_zipfile_serialization=True
+            {"state": "dict"},
+            expected_path,
+            _use_new_zipfile_serialization=True,
         )
 
         # Verify sklearn model save and preprocessor save
@@ -191,7 +193,11 @@ class TestLoadModels:
     @patch("joblib.load")
     @pytest.mark.asyncio
     async def test_without_series(
-        self, mock_joblib_load, mock_listdir, mock_exists, mock_app_state
+        self,
+        mock_joblib_load,
+        mock_listdir,
+        mock_exists,
+        mock_app_state,
     ):
         service = ModelService(mock_app_state, series=None)
         mock_exists.return_value = True
@@ -214,7 +220,12 @@ class TestLoadModels:
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_exception(
-        self, mock_logger, mock_joblib_load, mock_listdir, mock_exists, model_service
+        self,
+        mock_logger,
+        mock_joblib_load,
+        mock_listdir,
+        mock_exists,
+        model_service,
     ):
         mock_exists.return_value = True
         mock_listdir.side_effect = Exception("Directory read error")
@@ -223,7 +234,7 @@ class TestLoadModels:
 
         assert result is False
         mock_logger.error.assert_called_with(
-            "Error loading models: Directory read error"
+            "Error loading models: Directory read error",
         )
 
     @patch("app.services.model_service.MODELS_DIR", "/test/models")
@@ -274,7 +285,7 @@ class TestLoadModels:
             assert result is True
             mock_torch_load.assert_called()
             mock_model_instance.load_state_dict.assert_called_once_with(
-                {"param": "value"}
+                {"param": "value"},
             )
             mock_model_instance.to.assert_called_once()
             mock_model_instance.eval.assert_called_once()
@@ -285,7 +296,11 @@ class TestLoadModels:
     @patch("joblib.load")
     @pytest.mark.asyncio
     async def test_unknown_file_extension(
-        self, mock_joblib_load, mock_listdir, mock_exists, model_service
+        self,
+        mock_joblib_load,
+        mock_listdir,
+        mock_exists,
+        model_service,
     ):
         mock_exists.return_value = True
         mock_listdir.return_value = [
@@ -318,7 +333,11 @@ class TestTrainModels:
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_success(
-        self, mock_logger, mock_train_models, model_service, mock_trainable_df
+        self,
+        mock_logger,
+        mock_train_models,
+        model_service,
+        mock_trainable_df,
     ):
         # Setup mock return values
         mock_models = {"RandomForest": Mock(), "PyTorch": Mock()}
@@ -338,7 +357,8 @@ class TestTrainModels:
 
         # Verify system status updates
         assert isinstance(
-            model_service.app_state.system_status["last_training"], datetime
+            model_service.app_state.system_status["last_training"],
+            datetime,
         )
         assert model_service.app_state.system_status["last_trained_season"] == 2023
         assert (
@@ -354,5 +374,5 @@ class TestTrainModels:
         )
 
         mock_logger.info.assert_called_with(
-            "Training models for f3_to_f2 on 100 records"
+            "Training models for f3_to_f2 on 100 records",
         )

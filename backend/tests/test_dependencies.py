@@ -14,7 +14,7 @@ from app.dependencies import (
 
 @pytest.fixture
 def mock_services():
-    """Mock all service classes"""
+    """Mock all service classes."""
     with (
         patch("app.dependencies.AppState") as mock_app_state,
         patch("app.dependencies.ModelService") as mock_model_service,
@@ -48,7 +48,7 @@ def mock_services():
 
 @pytest.fixture(autouse=True)
 def reset_global_state():
-    """Reset global state before each test"""
+    """Reset global state before each test."""
     import app.dependencies
 
     app.dependencies.app_state = None
@@ -184,7 +184,7 @@ class TestGetDependencies:
 class TestFullLifecycle:
     @pytest.mark.asyncio
     async def test_full_lifecycle(self, mock_services):
-        """Test complete initialization and cleanup cycle"""
+        """Test complete initialization and cleanup cycle."""
         mocks = mock_services
         mocks["model_service_instance"].load_models.return_value = True
 

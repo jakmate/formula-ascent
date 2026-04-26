@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response, status
 
@@ -11,7 +12,7 @@ router = APIRouter(tags=["Health"])
 
 @router.get("/", tags=["Health"])
 async def root(request: Request):
-    """Health check endpoint"""
+    """Health check endpoint."""
     return {
         "name": "Formula Predictions API",
         "status": "running",
@@ -20,8 +21,8 @@ async def root(request: Request):
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health_check(app_state: AppState = Depends(get_app_state)):
-    """Health check with system status"""
+async def health_check(app_state: Annotated[AppState, Depends(get_app_state)]):
+    """Health check with system status."""
     models_loaded = {
         "f3_to_f2": len(app_state.models.get("f3_to_f2", {})),
         "f2_to_f1": len(app_state.models.get("f2_to_f1", {})),

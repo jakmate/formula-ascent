@@ -6,13 +6,13 @@ from app.core.predictor import create_target_variable, main
 
 
 class TestCreateTargetVariable:
-    """Tests for create_target_variable function"""
+    """Tests for create_target_variable function."""
 
     def test_empty_feeder_df(self):
-        """Test returns feeder_df with promoted=NaN when feeder_df is empty"""
+        """Test returns feeder_df with promoted=NaN when feeder_df is empty."""
         feeder_df = pd.DataFrame()
         parent_df = pd.DataFrame(
-            {"year": [2020, 2021], "Driver": ["Driver1", "Driver2"]}
+            {"year": [2020, 2021], "Driver": ["Driver1", "Driver2"]},
         )
 
         result = create_target_variable(feeder_df, parent_df, "F2")
@@ -22,7 +22,7 @@ class TestCreateTargetVariable:
             assert "promoted" in result.columns
 
     def test_empty_parent_df(self):
-        """Test returns feeder_df with promoted=NaN when parent_df is empty"""
+        """Test returns feeder_df with promoted=NaN when parent_df is empty."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame()
 
@@ -34,9 +34,9 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_promoted_initialized_to_zero(self, mock_get_race_cols, mock_calc_stats):
-        """Test promoted column is initialized to 0"""
+        """Test promoted column is initialized to 0."""
         feeder_df = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver2"], "year": [2020, 2020]}
+            {"Driver": ["Driver1", "Driver2"], "year": [2020, 2020]},
         )
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -52,9 +52,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.get_race_columns")
     @patch("app.core.predictor.CURRENT_YEAR", 2025)
     def test_participation_lookup_current_year_threshold(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test threshold is 0 for current year"""
+        """Test threshold is 0 for current year."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2024]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2025]})
 
@@ -68,9 +70,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_participation_lookup_past_year_threshold(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test threshold is 40% of races for past years"""
+        """Test threshold is 40% of races for past years."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -83,27 +87,29 @@ class TestCreateTargetVariable:
         assert result["promoted"].iloc[0] == 1
 
     def test_f1_series_checks_three_years(self):
-        """Test F1 series checks 1, 2, and 3 years ahead"""
+        """Test F1 series checks 1, 2, and 3 years ahead."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver1"], "year": [2023, 2023]}  # 3 years later
+            {"Driver": ["Driver1", "Driver1"], "year": [2023, 2023]},  # 3 years later
         )
 
-        with patch("app.core.predictor.get_race_columns") as mock_get_cols:
-            with patch("app.core.predictor.calculate_participation_stats") as mock_calc:
-                mock_get_cols.return_value = ["R1", "R2"]
-                mock_calc.return_value = [
-                    {"Driver": "Driver1", "participated_races": 2}
-                ]
+        with (
+            patch("app.core.predictor.get_race_columns") as mock_get_cols,
+            patch("app.core.predictor.calculate_participation_stats") as mock_calc,
+        ):
+            mock_get_cols.return_value = ["R1", "R2"]
+            mock_calc.return_value = [
+                {"Driver": "Driver1", "participated_races": 2},
+            ]
 
-                result = create_target_variable(feeder_df, parent_df, "F1")
+            result = create_target_variable(feeder_df, parent_df, "F1")
 
-                assert result["promoted"].iloc[0] == 1
+            assert result["promoted"].iloc[0] == 1
 
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_non_f1_series_checks_one_year(self, mock_get_race_cols, mock_calc_stats):
-        """Test non-F1 series only checks 1 year ahead"""
+        """Test non-F1 series only checks 1 year ahead."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -117,11 +123,13 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_only_last_feeder_season_processed(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test only last feeder season for each driver gets promotion flag"""
+        """Test only last feeder season for each driver gets promotion flag."""
         feeder_df = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver1", "Driver1"], "year": [2018, 2019, 2020]}
+            {"Driver": ["Driver1", "Driver1", "Driver1"], "year": [2018, 2019, 2020]},
         )
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -138,9 +146,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_future_beyond_max_parent_year_returns_nan(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test returns NaN when future years cannot be observed"""
+        """Test returns NaN when future years cannot be observed."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2023]})
         parent_df = pd.DataFrame({"Driver": ["Driver2"], "year": [2023]})
 
@@ -155,12 +165,14 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_no_promotion_when_not_in_parent_series(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test returns 0 when driver doesn't appear in parent series"""
+        """Test returns 0 when driver doesn't appear in parent series."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame(
-            {"Driver": ["Driver2", "Driver2"], "year": [2021, 2022]}
+            {"Driver": ["Driver2", "Driver2"], "year": [2021, 2022]},
         )
 
         mock_get_race_cols.return_value = ["R1", "R2"]
@@ -173,9 +185,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_promotion_when_participation_exceeds_threshold(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test promotion=1 when driver exceeds participation threshold"""
+        """Test promotion=1 when driver exceeds participation threshold."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -190,9 +204,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_no_promotion_when_below_threshold(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test promotion=0 when driver doesn't meet participation threshold"""
+        """Test promotion=0 when driver doesn't meet participation threshold."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -207,9 +223,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_skips_years_with_no_race_columns(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test skips parent years that have no race columns"""
+        """Test skips parent years that have no race columns."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
 
@@ -223,14 +241,16 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_multiple_drivers_different_outcomes(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test handles multiple drivers with different promotion outcomes"""
+        """Test handles multiple drivers with different promotion outcomes."""
         feeder_df = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver2", "Driver3"], "year": [2020, 2020, 2020]}
+            {"Driver": ["Driver1", "Driver2", "Driver3"], "year": [2020, 2020, 2020]},
         )
         parent_df = pd.DataFrame(
-            {"Driver": ["Driver1", "Driver1", "Driver2"], "year": [2021, 2021, 2021]}
+            {"Driver": ["Driver1", "Driver1", "Driver2"], "year": [2021, 2021, 2021]},
         )
 
         mock_get_race_cols.return_value = ["R1", "R2", "R3", "R4", "R5"]
@@ -248,9 +268,11 @@ class TestCreateTargetVariable:
     @patch("app.core.predictor.calculate_participation_stats")
     @patch("app.core.predictor.get_race_columns")
     def test_f1_series_breaks_when_year_exceeds_max(
-        self, mock_get_race_cols, mock_calc_stats
+        self,
+        mock_get_race_cols,
+        mock_calc_stats,
     ):
-        """Test F1 series breaks loop when checking year exceeds max_parent_year"""
+        """Test F1 series breaks loop when checking year exceeds max_parent_year."""
         feeder_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2020]})
         # max_parent_year = 2021, so checking offset=2 and offset=3 should break
         parent_df = pd.DataFrame({"Driver": ["Driver1"], "year": [2021]})
@@ -266,7 +288,7 @@ class TestCreateTargetVariable:
 
 
 class TestMain:
-    """Tests for main function"""
+    """Tests for main function."""
 
     @patch("app.core.predictor.predict_drivers")
     @patch("app.core.predictor.train_models")
@@ -287,7 +309,7 @@ class TestMain:
         mock_train,
         mock_predict,
     ):
-        """Test main function executes all steps in correct order"""
+        """Test main function executes all steps in correct order."""
         # Setup mocks
         mock_feeder_quali = MagicMock()
         mock_feeder_df = MagicMock()
@@ -317,10 +339,12 @@ class TestMain:
         mock_engineer.assert_called_once_with(mock_feeder_df)
         mock_train.assert_called_once_with(mock_features_df)
         mock_predict.assert_called_once_with(
-            mock_models, mock_features_df, mock_feature_cols, mock_scaler
+            mock_models,
+            mock_features_df,
+            mock_feature_cols,
+            mock_scaler,
         )
 
-    @patch("app.core.predictor.predict_drivers")
     @patch("app.core.predictor.train_models")
     @patch("app.core.predictor.engineer_features")
     @patch("app.core.predictor.create_target_variable")
@@ -339,9 +363,8 @@ class TestMain:
         mock_create_target,
         mock_engineer,
         mock_train,
-        mock_predict,
     ):
-        """Test main function prints progress messages"""
+        """Test main function prints progress messages."""
         # Setup basic mocks
         mock_load_quali.return_value = MagicMock()
         mock_load_data.return_value = MagicMock()
@@ -381,7 +404,7 @@ class TestMain:
         mock_train,
         mock_predict,
     ):
-        """Test main properly assigns promoted column to features_df"""
+        """Test main properly assigns promoted column to features_df."""
         mock_feeder_df = MagicMock()
         mock_feeder_df.__getitem__ = MagicMock(return_value=[0, 1, 0])
         mock_features_df = MagicMock()
@@ -418,7 +441,7 @@ class TestMain:
         mock_train,
         mock_predict,
     ):
-        """Test main uses F3 as feeder and F2 as parent series"""
+        """Test main uses F3 as feeder and F2 as parent series."""
         mock_load_quali.return_value = MagicMock()
         mock_load_data.return_value = MagicMock()
         mock_load_standings.return_value = MagicMock()

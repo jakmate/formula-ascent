@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 
@@ -12,9 +13,9 @@ router = APIRouter()
 @router.post("/refresh", response_model=RefreshResponse)
 async def refresh_data(
     background_tasks: BackgroundTasks,
-    cronjob_service: CronjobService = Depends(get_cronjob_service),
+    cronjob_service: Annotated[CronjobService, Depends(get_cronjob_service)],
 ):
-    """Trigger data refresh and model retraining"""
+    """Trigger data refresh and model retraining."""
     background_tasks.add_task(cronjob_service.scrape_and_train_task)
     return RefreshResponse(
         message="Data refresh and training started in background",
@@ -25,9 +26,9 @@ async def refresh_data(
 @router.post("/refresh/predictions", response_model=RefreshResponse)
 async def refresh_predictions(
     background_tasks: BackgroundTasks,
-    cronjob_service: CronjobService = Depends(get_cronjob_service),
+    cronjob_service: Annotated[CronjobService, Depends(get_cronjob_service)],
 ):
-    """Trigger predictions refresh and model retraining"""
+    """Trigger predictions refresh and model retraining."""
     background_tasks.add_task(cronjob_service.scrape_predictions)
     return RefreshResponse(
         message="Predictions refresh and training started in background",
@@ -38,9 +39,9 @@ async def refresh_predictions(
 @router.post("/refresh/schedule", response_model=RefreshResponse)
 async def refresh_schedule(
     background_tasks: BackgroundTasks,
-    cronjob_service: CronjobService = Depends(get_cronjob_service),
+    cronjob_service: Annotated[CronjobService, Depends(get_cronjob_service)],
 ):
-    """Trigger schedule refresh"""
+    """Trigger schedule refresh."""
     background_tasks.add_task(cronjob_service.scrape_schedule)
     return RefreshResponse(
         message="Schedule refresh started in background",

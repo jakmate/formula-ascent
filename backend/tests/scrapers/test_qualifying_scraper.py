@@ -241,7 +241,10 @@ class TestProcessTwoTableQualifying:
         group_b_head.find_next.return_value = Mock()
 
         result = process_two_table_qualifying(
-            group_a_head, group_b_head, "Round 1", "url"
+            group_a_head,
+            group_b_head,
+            "Round 1",
+            "url",
         )
 
         assert result is not None
@@ -319,7 +322,7 @@ class TestSaveQualifyingData:
                 "data": [["1", "1", "Driver", "Team", "1:19.429", "1"]],
                 "round_info": "Round 1",
                 "url": "https://test.com",
-            }
+            },
         ]
 
         with patch("app.scrapers.qualifying_scraper.DATA_DIR", "/data"):

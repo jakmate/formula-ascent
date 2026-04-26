@@ -12,7 +12,7 @@ from app.models.schedule import ScheduleRequest
 
 class ScheduleService:
     async def get_series_schedule(self, request: ScheduleRequest):
-        """Get schedule for a specific racing series with timezone conversion"""
+        """Get schedule for a specific racing series with timezone conversion."""
         schedule = await self._open_schedule_file(request)
 
         user_timezone = request.get_timezone()
@@ -42,7 +42,7 @@ class ScheduleService:
         return next_race
 
     def _find_next_race(self, schedule, now):
-        """Find the next race with future sessions"""
+        """Find the next race with future sessions."""
         upcoming_races = []
 
         for race in schedule:
@@ -67,7 +67,7 @@ class ScheduleService:
         return result
 
     def _get_future_sessions(self, race, now):
-        """Get all future sessions for a race"""
+        """Get all future sessions for a race."""
         future = []
         for name, info in race["sessions"].items():
             if start_str := info.get("start"):
@@ -80,32 +80,31 @@ class ScheduleService:
                                 "datetime": dt,
                                 "date_str": start_str,
                                 "is_tbc": info.get("time") == "TBC",
-                            }
+                            },
                         )
                 except (ValueError, TypeError):
                     continue
         return sorted(future, key=lambda x: x["datetime"])
 
     def _parse_datetime(self, date_string: str) -> datetime:
-        """Parse a date string that could be either YYYY-MM-DD or full ISO format"""
+        """Parse a date string that could be either YYYY-MM-DD or full ISO format."""
         if len(date_string) == 10:
             return datetime.strptime(date_string, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
-        else:
-            return self._parse_iso_and_localize(date_string)
+        return self._parse_iso_and_localize(date_string)
 
     def _parse_iso_and_localize(self, string: str) -> datetime:
-        """Parse an ISO timestamp, if naive localize as UTC"""
+        """Parse an ISO timestamp, if naive localize as UTC."""
         dt = datetime.fromisoformat(string)
         if dt.tzinfo is None:
             dt = pytz.UTC.localize(dt)
         return dt
 
     def _convert_schedule_timezone(self, schedule, target_timezone):
-        """Convert all datetime strings in schedule from UTC to target timezone"""
+        """Convert all datetime strings in schedule from UTC to target timezone."""
         target_tz = pytz.timezone(target_timezone)
 
         for race in schedule:
-            for _, session_info in race["sessions"].items():
+            for session_info in race["sessions"].values():
                 if session_info.get("time") == "TBC":
                     continue
 
@@ -119,10 +118,10 @@ class ScheduleService:
         return schedule
 
     def _convert_race_timezone(self, race, target_timezone):
-        """Convert datetime strings in a single race from UTC to target timezone"""
+        """Convert datetime strings in a single race from UTC to target timezone."""
         target_tz = pytz.timezone(target_timezone)
 
-        for _, session_info in race["sessions"].items():
+        for session_info in race["sessions"].values():
             if session_info.get("time") == "TBC":
                 continue
 
@@ -143,7 +142,7 @@ class ScheduleService:
         return race
 
     def _get_schedule_dir(self):
-        """Get schedule directory, falling back to previous year if current year is empty"""
+        """Gets schedule dir, if current year empty falls back to previous year."""
         # Check if current year directory exists and has any JSON files
         if SCHEDULE_DIR.exists():
             json_files = list(SCHEDULE_DIR.glob("*.json"))
@@ -170,5 +169,5 @@ class ScheduleService:
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
-        async with aiofiles.open(file_path, "r") as f:
+        async with aiofiles.open(file_path) as f:
             return json.loads(await f.read())
