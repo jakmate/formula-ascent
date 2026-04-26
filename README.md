@@ -10,11 +10,6 @@
 
 A machine learning application that predicts drivers' likelihood of advancing to parent series using historical performance data.
 
-## To Do
-
-### Academies scraper
-- Integrate into the workflow
-
 ## Deployment
 
 The application is containerized and deployed on:
