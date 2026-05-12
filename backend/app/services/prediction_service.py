@@ -124,7 +124,7 @@ class PredictionService:
             predictions.append(
                 PredictionResponse(
                     driver=row["Driver"],
-                    nationality=row.get("nationality"),
+                    nationality=row.get("nationality") if pd.notna(row.get("nationality")) else None,
                     position=int(row["pos"]),
                     points=float(row["points"]),
                     avg_quali_pos=float(row.get("avg_quali_pos", 0)),
@@ -133,7 +133,7 @@ class PredictionService:
                     podiums=int(row["podiums"]),
                     dnf_rate=float(row["dnf_rate"]),
                     experience=int(row["experience"]),
-                    dob=row.get("dob"),
+                    dob=row.get("dob") if pd.notna(row.get("dob")) else None,
                     age=float(row["age"])
                     if row.get("age") is not None and not pd.isna(row.get("age"))
                     else None,
