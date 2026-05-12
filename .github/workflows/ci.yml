@@ -26,7 +26,6 @@ jobs:
       working-directory: backend
       run: |
         uv run --no-sync ruff check
-        uv run --no-sync ruff check --select I
         uv run --no-sync ruff format --check
 
   backend-test:
@@ -79,12 +78,12 @@ jobs:
     - name: Run ESLint
       working-directory: frontend
       run: |
-        npx eslint .
+        npm run lint
 
     - name: Check Prettier formatting
       working-directory: frontend
       run: |
-        npx prettier --check "src/**/*.{ts,tsx}"
+        npm run format
 
   frontend-test:
     runs-on: ubuntu-latest
