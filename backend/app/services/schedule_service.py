@@ -1,9 +1,9 @@
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 import aiofiles
-import pytz
 from fastapi import HTTPException
 
 from app.config import SCHEDULE_DIR
@@ -24,7 +24,7 @@ class ScheduleService:
     async def get_next_race(self, request: ScheduleRequest):
         """Get the next upcoming race. If none, return last race of season."""
         schedule = await self._open_schedule_file(request)
-        now = datetime.now(pytz.UTC)
+        now = datetime.now(UTC)
 
         next_race = self._find_next_race(schedule, now)
 
@@ -89,19 +89,19 @@ class ScheduleService:
     def _parse_datetime(self, date_string: str) -> datetime:
         """Parse a date string that could be either YYYY-MM-DD or full ISO format."""
         if len(date_string) == 10:
-            return datetime.strptime(date_string, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
+            return datetime.strptime(date_string, "%Y-%m-%d").replace(tzinfo=UTC)
         return self._parse_iso_and_localize(date_string)
 
     def _parse_iso_and_localize(self, string: str) -> datetime:
         """Parse an ISO timestamp, if naive localize as UTC."""
         dt = datetime.fromisoformat(string)
         if dt.tzinfo is None:
-            dt = pytz.UTC.localize(dt)
+            dt = dt.replace(tzinfo=UTC)
         return dt
 
     def _convert_schedule_timezone(self, schedule, target_timezone):
         """Convert all datetime strings in schedule from UTC to target timezone."""
-        target_tz = pytz.timezone(target_timezone)
+        target_tz = ZoneInfo(target_timezone)
 
         for race in schedule:
             for session_info in race["sessions"].values():
@@ -119,7 +119,7 @@ class ScheduleService:
 
     def _convert_race_timezone(self, race, target_timezone):
         """Convert datetime strings in a single race from UTC to target timezone."""
-        target_tz = pytz.timezone(target_timezone)
+        target_tz = ZoneInfo(target_timezone)
 
         for session_info in race["sessions"].values():
             if session_info.get("time") == "TBC":

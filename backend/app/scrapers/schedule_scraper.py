@@ -3,8 +3,8 @@ import os
 import re
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
-import pytz
 from bs4 import BeautifulSoup, SoupStrainer
 from geopy.geocoders import Nominatim
 from timezonefinder import TimezoneFinder
@@ -182,12 +182,12 @@ def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
         # Convert to UTC if location is provided
         if location:
             tz_str = get_timezone_for_location(location)
-            tz = pytz.timezone(tz_str)
+            tz = ZoneInfo(tz_str)
 
             # Localize and convert to UTC
-            start_dt = tz.localize(start_dt).astimezone(pytz.utc)
+            start_dt = start_dt.replace(tzinfo=tz).astimezone(UTC)
             if end_time:
-                end_dt = tz.localize(end_dt).astimezone(pytz.utc)
+                end_dt = end_dt.replace(tzinfo=tz).astimezone(UTC)
 
         # Prepare result
         result = {"start": format_utc_datetime(start_dt)}
