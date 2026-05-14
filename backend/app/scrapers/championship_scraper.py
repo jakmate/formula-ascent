@@ -173,8 +173,7 @@ def process_table_row(cells, combined_headers, has_no_col, rowspan_tracker):
     num_race_columns = len(combined_headers) - 3
     race_cells = cells[cell_index : cell_index + num_race_columns]
 
-    for cell in race_cells:
-        row_data.append(remove_superscripts(cell, False))
+    row_data.extend(remove_superscripts(cell, False) for cell in race_cells)
 
     # Pad race columns if needed
     while len(row_data) < len(combined_headers) - 1:

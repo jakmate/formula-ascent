@@ -6,10 +6,7 @@ import numpy as np
 def get_race_columns(df):
     """Identify race result columns based on track code patterns and data presence."""
     # Only consider columns that have non-null data in this DataFrame subset
-    columns_with_data = []
-    for col in df.columns:
-        if df[col].notna().any():  # Column has at least one non-null value
-            columns_with_data.append(col)
+    columns_with_data = [col for col in df.columns if df[col].notna().any()]
 
     track_codes = set()
     for col in columns_with_data:

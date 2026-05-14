@@ -385,7 +385,6 @@ class TestMain:
         assert any("Training all models" in str(call) for call in print_calls)
         assert any("Making predictions" in str(call) for call in print_calls)
 
-    @patch("app.core.predictor.predict_drivers")
     @patch("app.core.predictor.train_models")
     @patch("app.core.predictor.engineer_features")
     @patch("app.core.predictor.create_target_variable")
@@ -402,7 +401,6 @@ class TestMain:
         mock_create_target,
         mock_engineer,
         mock_train,
-        mock_predict,
     ):
         """Test main properly assigns promoted column to features_df."""
         mock_feeder_df = MagicMock()
@@ -422,7 +420,6 @@ class TestMain:
         # Verify engineer_features was called with feeder_df
         mock_engineer.assert_called_once_with(mock_feeder_df)
 
-    @patch("app.core.predictor.predict_drivers")
     @patch("app.core.predictor.train_models")
     @patch("app.core.predictor.engineer_features")
     @patch("app.core.predictor.create_target_variable")
@@ -439,7 +436,6 @@ class TestMain:
         mock_create_target,
         mock_engineer,
         mock_train,
-        mock_predict,
     ):
         """Test main uses F3 as feeder and F2 as parent series."""
         mock_load_quali.return_value = MagicMock()

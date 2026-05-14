@@ -102,8 +102,7 @@ def expand_years_in_data(headers, data_rows):
         year_value = row[year_col_idx].strip()
         years = parse_year_range(year_value)
 
-        for year in years:
-            expanded_rows.append([driver_name, year])
+        expanded_rows.extend([[driver_name, year] for year in years])
 
     return ["Driver", "Year"], expanded_rows
 

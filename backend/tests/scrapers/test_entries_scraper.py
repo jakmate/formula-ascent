@@ -460,10 +460,9 @@ class TestProcessStandardRow:
             assert result[3] == ""
 
 
-@patch("app.scrapers.scraping_utils.create_output_file")
-@patch("builtins.open", new_callable=mock_open)
 class TestProcessEntries:
-    def test_no_table_found(self, mock_file, mock_create):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_no_table_found(self, mock_file):
         soup = BeautifulSoup("<div>No table</div>", "lxml")
 
         with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
@@ -471,7 +470,8 @@ class TestProcessEntries:
             process_entries(soup, 2020, 1)
             mock_file.assert_not_called()
 
-    def test_insufficient_rows(self, mock_file, mock_create):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_insufficient_rows(self, mock_file):
         html = '<table class="wikitable"><tr><th>Header</th></tr></table>'
         soup = BeautifulSoup(html, "lxml")
         table = soup.find("table")
@@ -481,6 +481,8 @@ class TestProcessEntries:
             process_entries(soup, 2020, 1)
             mock_file.assert_not_called()
 
+    @patch("app.scrapers.scraping_utils.create_output_file")
+    @patch("builtins.open", new_callable=mock_open)
     def test_successful_processing(self, mock_file, mock_create):
         html = """
         <table class="wikitable">
@@ -506,6 +508,8 @@ class TestProcessEntries:
                 mock_file.assert_called_once()
                 mock_writer.writerow.assert_called()  # At least header written
 
+    @patch("app.scrapers.scraping_utils.create_output_file")
+    @patch("builtins.open", new_callable=mock_open)
     def test_driver_column_not_found_no_error(self, mock_file, mock_create):
         html = """
         <table class="wikitable">
@@ -534,7 +538,8 @@ class TestProcessEntries:
                 mock_file.assert_called_once()
                 mock_writer.writerow.assert_called()
 
-    def test_f1_2014_plus_drivers_path(self, mock_file, mock_create):
+    @patch("app.scrapers.scraping_utils.create_output_file")
+    def test_f1_2014_plus_drivers_path(self, mock_create):
         html = """
         <table class="wikitable">
             <tr><th>Team</th><th>Constructor</th><th>Drivers</th></tr>

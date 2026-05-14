@@ -204,16 +204,12 @@ class TestGetAllDriversFromData:
 class TestScrapeDrivers:
     @patch("app.scrapers.driver_scraper.create_session")
     @patch("app.scrapers.driver_scraper.get_all_drivers_from_data")
-    @patch("app.scrapers.driver_scraper.os.makedirs")
-    @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
     def test_no_drivers_found(
         self,
         mock_save,
         mock_search,
-        mock_exists,
-        mock_makedirs,
         mock_get_drivers,
         mock_session,
     ):
@@ -227,7 +223,6 @@ class TestScrapeDrivers:
 
     @patch("app.scrapers.driver_scraper.create_session")
     @patch("app.scrapers.driver_scraper.get_all_drivers_from_data")
-    @patch("app.scrapers.driver_scraper.os.makedirs")
     @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
@@ -237,7 +232,6 @@ class TestScrapeDrivers:
         mock_save,
         mock_search,
         mock_exists,
-        mock_makedirs,
         mock_get_drivers,
         mock_session,
     ):
@@ -257,7 +251,6 @@ class TestScrapeDrivers:
 
     @patch("app.scrapers.driver_scraper.create_session")
     @patch("app.scrapers.driver_scraper.get_all_drivers_from_data")
-    @patch("app.scrapers.driver_scraper.os.makedirs")
     @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
@@ -267,7 +260,6 @@ class TestScrapeDrivers:
         mock_save,
         mock_search,
         mock_exists,
-        mock_makedirs,
         mock_get_drivers,
         mock_session,
     ):
@@ -292,7 +284,6 @@ class TestScrapeDrivers:
 
     @patch("app.scrapers.driver_scraper.create_session")
     @patch("app.scrapers.driver_scraper.get_all_drivers_from_data")
-    @patch("app.scrapers.driver_scraper.os.makedirs")
     @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
     @patch("app.scrapers.driver_scraper.save_profile")
@@ -304,7 +295,6 @@ class TestScrapeDrivers:
         mock_save,
         mock_search,
         mock_exists,
-        mock_makedirs,
         mock_get_drivers,
         mock_session,
     ):
@@ -342,20 +332,16 @@ class TestScrapeDrivers:
 
     @patch("app.scrapers.driver_scraper.create_session")
     @patch("app.scrapers.driver_scraper.get_all_drivers_from_data")
-    @patch("app.scrapers.driver_scraper.os.makedirs")
     @patch("app.scrapers.driver_scraper.os.path.exists")
     @patch("app.scrapers.driver_scraper.search_wikidata_drivers")
-    @patch("app.scrapers.driver_scraper.save_profile")
     @patch(
         "app.scrapers.driver_scraper.DRIVER_ALIASES",
         {"Test Driver": "Aliased Driver"},
     )
     def test_driver_alias_mapping(
         self,
-        mock_save,
         mock_search,
         mock_exists,
-        mock_makedirs,
         mock_get_drivers,
         mock_session,
     ):

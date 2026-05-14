@@ -31,7 +31,8 @@ cu128 = [
 [dependency-groups]
 dev = [
     {include-group = "lint"},
-    {include-group = "test"}
+    {include-group = "test"},
+    "pre-commit>=4.6.0",
 ]
 lint = [
     "ruff>=0.14.13"
@@ -57,7 +58,7 @@ ignore = [
   "ARG002",
   "PTH110", "PTH103", "PTH122", "PTH118", "PTH123", "PTH208", "PTH119", "PTH207", "PTH104",
   "E501",
-  "PERF401",
+  #"PERF401",
   "RUF001",
   "FBT002", "FBT003",
   "EM102", "EM101",
@@ -66,8 +67,10 @@ ignore = [
   "T201",
   "C901",
   "PLW0603",
-  "B008", "B904",
-  "NPY002"
+  "NPY002",
+  "D203", # causes incompatbility warning
+  "D213", # causes incompatbility warning
+  "COM812" # conflicts with formatter
 ]
 
 [tool.setuptools]

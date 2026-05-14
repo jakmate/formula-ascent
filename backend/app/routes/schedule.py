@@ -25,7 +25,7 @@ async def get_series_schedule(
         return await schedule_service.get_series_schedule(request)
     except Exception as e:
         LOGGER.error(f"Error getting schedule for {series}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/{series}/next")
@@ -45,4 +45,4 @@ async def get_next_race(
         return await schedule_service.get_next_race(request)
     except Exception as e:
         LOGGER.error(f"Error getting next race for {series}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

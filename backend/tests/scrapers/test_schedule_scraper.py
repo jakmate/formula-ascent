@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -308,12 +308,10 @@ class TestSaveSchedules:
     @patch("app.scrapers.schedule_scraper.os.path.exists")
     @patch("app.scrapers.schedule_scraper.json.load")
     @patch("app.scrapers.schedule_scraper.json.dump")
-    @patch("builtins.open", new_callable=mock_open)
     @patch("app.scrapers.schedule_scraper.is_race_completed_or_ongoing")
     def test_preserve_completed_races(
         self,
         mock_is_completed,
-        mock_file,
         mock_json_dump,
         mock_json_load,
         mock_exists,

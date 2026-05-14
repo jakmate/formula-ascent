@@ -24,4 +24,4 @@ async def get_predictions(
         return await prediction_service.get_predictions()
     except Exception as e:
         LOGGER.error(f"Error in get_predictions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

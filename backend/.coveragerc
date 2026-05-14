@@ -1,5 +1,5 @@
 [run]
-omit = 
+omit =
     .venv/*
     */site-packages/*
     */tests/*

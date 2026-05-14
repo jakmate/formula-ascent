@@ -1,0 +1,79 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_stages:
+  - pre-commit
+default_install_hook_types:
+  - commit-msg
+  - pre-commit
+  - pre-push
+  - prepare-commit-msg
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        stages: [pre-commit]
+      - id: check-ast
+        stages: [pre-commit]
+      - id: check-case-conflict
+        stages: [pre-commit]
+      - id: check-executables-have-shebangs
+        stages: [pre-commit]
+      - id: check-json
+        stages: [pre-commit]
+        exclude: ^backend/data/.*\.json$
+      - id: check-shebang-scripts-are-executable
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-symlinks
+        stages: [pre-commit]
+      - id: check-toml
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+      - id: debug-statements
+        stages: [pre-commit]
+      - id: destroyed-symlinks
+        stages: [pre-commit]
+      - id: detect-private-key
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+        exclude: ^backend/data/.*\.json$
+      - id: fix-encoding-pragma
+        stages: [pre-commit]
+        args: [--remove]
+      - id: mixed-line-ending
+        stages: [pre-commit]
+      - id: trailing-whitespace
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: ruff-formatting
+        name: ruff-formatting
+        language: system
+        pass_filenames: false
+        files: ^backend/.*\.py$
+        entry: cmd /c "cd backend && uv run ruff format ."
+
+      - id: ruff-check
+        name: ruff-check
+        language: system
+        pass_filenames: false
+        files: ^backend/.*\.py$
+        entry: cmd /c "cd backend && uv run ruff check --fix ."
+
+      - id: prettier-formatting
+        name: prettier-formatting
+        language: system
+        pass_filenames: false
+        files: ^frontend/.*\.(js|jsx|json|html|css|ts|tsx)$
+        entry: cmd /c "cd frontend && npm run format"
+
+      - id: eslint-check
+        name: eslint-check
+        language: system
+        pass_filenames: false
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        entry: cmd /c "cd frontend && npm run lint"

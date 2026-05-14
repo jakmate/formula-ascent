@@ -124,7 +124,9 @@ class PredictionService:
             predictions.append(
                 PredictionResponse(
                     driver=row["Driver"],
-                    nationality=row.get("nationality") if pd.notna(row.get("nationality")) else None,
+                    nationality=row.get("nationality")
+                    if pd.notna(row.get("nationality"))
+                    else None,
                     position=int(row["pos"]),
                     points=float(row["points"]),
                     avg_quali_pos=float(row.get("avg_quali_pos", 0)),
