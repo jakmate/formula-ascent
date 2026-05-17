@@ -184,8 +184,8 @@ class TestExtractTableData:
     @patch("app.scrapers.academy_scraper.remove_superscripts")
     def test_f1_graduates_table(self, mock_remove_superscripts, mock_table):
         """Test extraction from F1 graduates table with multiple header rows."""
-        mock_remove_superscripts.side_effect = (
-            lambda x, *_: x.text if hasattr(x, "text") else x
+        mock_remove_superscripts.side_effect = lambda x, *_: (
+            x.text if hasattr(x, "text") else x
         )
 
         # Create second header row for F1 graduates

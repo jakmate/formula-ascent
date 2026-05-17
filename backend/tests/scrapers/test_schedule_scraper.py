@@ -203,14 +203,14 @@ class TestScrapeF1Schedule:
         # Setup card mock
         mock_round = Mock()
         mock_round.text = "ROUND 1"
-        mock_card.select_one.side_effect = lambda sel: {
+        mock_card.select_one.side_effect = {
             ".typography-module_body-2-xs-bold__M03Ei": mock_round,
             ".typography-module_display-xl-bold__Gyl5W": Mock(text="Sakhir"),
             ".typography-module_body-xs-semibold__Fyfwn": Mock(
                 text="FORMULA 1 BAHRAIN GP 2025",
             ),
             ".typography-module_technical-xs-regular__-W0Gs": Mock(text="02 Mar"),
-        }.get(sel)
+        }.get
 
         mock_card.get.return_value = "/en/racing/2025/bahrain"
         mock_soup.find_all.return_value = [mock_card]

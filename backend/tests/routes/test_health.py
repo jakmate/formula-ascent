@@ -34,7 +34,7 @@ def test_health_check():
                 "last_training": "2023-01-01T12:00:00",
             }
 
-    app.dependency_overrides[get_app_state] = lambda: MockAppState()
+    app.dependency_overrides[get_app_state] = MockAppState
 
     health_path = app.url_path_for("health_check")
     response = client.get(health_path)
