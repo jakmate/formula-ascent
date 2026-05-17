@@ -173,7 +173,7 @@ class TestLoadModels:
         f = MagicMock()
         f.__str__ = lambda _: name
         f.__eq__ = lambda _, o: str(o) == name
-        f.endswith = lambda suffix: name.endswith(suffix)
+        f.endswith = name.endswith
         f.__contains__ = lambda _, x: x in name
         f.stem = Path(name).stem
         f.name = name
