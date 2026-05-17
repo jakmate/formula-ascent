@@ -54,11 +54,8 @@ ignore = [
   "ANN001", "ANN202", "ANN201",
   "TRY003", "TRY300",
   "SLF001",
-  "PT011", "PT012",
   "ARG002",
-  "PTH110", "PTH103", "PTH122", "PTH118", "PTH123", "PTH208", "PTH119", "PTH207", "PTH104",
   "E501",
-  #"PERF401",
   "RUF001",
   "FBT002", "FBT003",
   "EM102", "EM101",
@@ -67,7 +64,6 @@ ignore = [
   "T201",
   "C901",
   "PLW0603",
-  "NPY002",
   "D203", # causes incompatbility warning
   "D213", # causes incompatbility warning
   "COM812" # conflicts with formatter

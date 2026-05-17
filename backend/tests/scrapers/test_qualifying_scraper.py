@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 from bs4 import BeautifulSoup
@@ -38,7 +38,7 @@ class TestParseTimeToSeconds:
         assert parse_time_to_seconds("1.19.429") == pytest.approx(79.429)
 
     def test_invalid_format_raises_error(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unrecognized time format"):
             parse_time_to_seconds("59.123")
 
 
@@ -310,35 +310,47 @@ class TestProcessQualifyingData:
 
 
 class TestSaveQualifyingData:
-    @patch("builtins.open", create=True)
-    @patch("os.makedirs")
-    def test_save_qualifying_data(self, mock_makedirs, mock_open):
+    def _make_data_dir(self):
         mock_file = MagicMock()
-        mock_open.return_value.__enter__.return_value = mock_file
+        mock_file.open = mock_open()
 
+        mock_qual_dir = MagicMock()
+        mock_qual_dir.__truediv__ = MagicMock(return_value=mock_file)
+
+        mock_mid = MagicMock()
+        mock_mid.__truediv__ = MagicMock(return_value=mock_qual_dir)
+
+        mock_series_dir = MagicMock()
+        mock_series_dir.__truediv__ = MagicMock(return_value=mock_mid)
+
+        mock_dir = MagicMock()
+        mock_dir.__truediv__ = MagicMock(return_value=mock_series_dir)
+        return mock_dir, mock_qual_dir, mock_file
+
+    def test_save_qualifying_data(self):
+        mock_dir, mock_qual_dir, mock_file = self._make_data_dir()
         qualifying_results = [
             {
-                "headers": ["Pos.", "No.", "Driver", "Team", "Time", "Grid"],
-                "data": [["1", "1", "Driver", "Team", "1:19.429", "1"]],
+                "headers": ["Pos.", "Driver"],
+                "data": [["1", "Driver"]],
                 "round_info": "Round 1",
                 "url": "https://test.com",
-            },
+            }
         ]
 
-        with patch("app.scrapers.qualifying_scraper.DATA_DIR", "/data"):
+        with patch("app.scrapers.qualifying_scraper.DATA_DIR", mock_dir):
             save_qualifying_data(qualifying_results, 2024, 1)
 
-        mock_makedirs.assert_called_once()
-        mock_open.assert_called_once()
+        mock_qual_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
+        mock_file.open.assert_called()
 
-    @patch("os.makedirs")
-    def test_save_skips_none_results(self, mock_makedirs):
-        qualifying_results = [None, None]
+    def test_save_skips_none_results(self):
+        mock_dir, mock_qual_dir, _ = self._make_data_dir()
 
-        with patch("app.scrapers.qualifying_scraper.DATA_DIR", "/data"):
-            save_qualifying_data(qualifying_results, 2024, 1)
+        with patch("app.scrapers.qualifying_scraper.DATA_DIR", mock_dir):
+            save_qualifying_data([None, None], 2024, 1)
 
-        mock_makedirs.assert_called_once()
+        mock_qual_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
 
 class TestScrapeQuali:

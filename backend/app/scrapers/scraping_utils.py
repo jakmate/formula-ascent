@@ -1,4 +1,3 @@
-import os
 import time
 
 import requests
@@ -85,6 +84,6 @@ def remove_superscripts(cell, preserve_spaces=True):
 
 def create_output_file(series, year, filename):
     """Create output directory and file path."""
-    dir_path = os.path.join(DATA_DIR, f"F{series}", str(year))
-    os.makedirs(dir_path, exist_ok=True)
-    return os.path.join(dir_path, filename)
+    dir_path = DATA_DIR / f"F{series}" / str(year)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    return dir_path / filename

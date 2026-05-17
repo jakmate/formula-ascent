@@ -198,7 +198,7 @@ class TestLoadCurrentData:
 
 class TestParseSeries:
     def test_unknown_series(self, data_service):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError, match="unknown_series") as exc_info:
             data_service._parse_series("unknown_series")
 
         assert "Unknown series: unknown_series" in str(exc_info.value)

@@ -1,5 +1,4 @@
 import csv
-import os
 
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -262,13 +261,13 @@ def save_academy_data(academy_data, academies_dir):
     if not academy_data:
         return
 
-    os.makedirs(academies_dir, exist_ok=True)
+    academies_dir.mkdir(parents=True, exist_ok=True)
 
     # Clean name for filename
     safe_name = academy_data["name"].replace(" ", "_").replace("/", "_")
-    filepath = os.path.join(academies_dir, f"{safe_name}_drivers.csv")
+    filepath = academies_dir / f"{safe_name}_drivers.csv"
 
-    with open(filepath, "w", newline="", encoding="utf-8") as f:
+    with filepath.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Driver", "Year"])
         # Save current drivers
@@ -289,7 +288,7 @@ def scrape_academies(session=None):
     if session is None:
         session = create_session()
 
-    academies_dir = os.path.join(DATA_DIR, "academies")
+    academies_dir = DATA_DIR / "academies"
 
     url = "https://en.wikipedia.org/wiki/Driver_development_program"
 

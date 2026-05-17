@@ -1,5 +1,4 @@
 import csv
-import os
 
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -362,9 +361,9 @@ def save_qualifying_data(qualifying_results, year, series):
     if not qualifying_results:
         return
 
-    dir_path = os.path.join(DATA_DIR, f"F{series}", str(year), "qualifying")
+    dir_path = DATA_DIR / f"F{series}" / str(year) / "qualifying"
     base_filename = f"f{series}_{year}_qualifying"
-    os.makedirs(dir_path, exist_ok=True)
+    dir_path.mkdir(parents=True, exist_ok=True)
 
     # Save each race's qualifying data separately
     for i, result in enumerate(qualifying_results, 1):
@@ -372,9 +371,9 @@ def save_qualifying_data(qualifying_results, year, series):
             continue
 
         filename = f"{base_filename}_round_{i:02d}.csv"
-        full_path = os.path.join(dir_path, filename)
+        full_path = dir_path / filename
 
-        with open(full_path, "w", newline="", encoding="utf-8") as f:
+        with full_path.open("w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(result["headers"])
             writer.writerows(result["data"])

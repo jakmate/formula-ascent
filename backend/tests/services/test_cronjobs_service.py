@@ -119,10 +119,12 @@ class TestScrapeAndTrainTask:
         cronjobs_service.app_state.save_state.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.PredictionService")
     async def test_update_predictions(
         self,
         mock_prediction_service_class,
+        mock_scrape,
         cronjobs_service,
     ):
         # Mock prediction service

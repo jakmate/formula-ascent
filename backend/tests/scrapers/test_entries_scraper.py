@@ -1,4 +1,4 @@
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 from bs4 import BeautifulSoup
 
@@ -481,9 +481,10 @@ class TestProcessEntries:
             process_entries(soup, 2020, 1)
             mock_file.assert_not_called()
 
-    @patch("app.scrapers.scraping_utils.create_output_file")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_successful_processing(self, mock_file, mock_create):
+    @patch("app.scrapers.entries_scraper.create_output_file")
+    @patch("app.scrapers.entries_scraper.find_entries_table")
+    def test_successful_processing(self, mock_find, mock_create):
+        mock_create.return_value = MagicMock()
         html = """
         <table class="wikitable">
             <tr><th>Team</th><th>Driver</th></tr>
@@ -494,23 +495,18 @@ class TestProcessEntries:
         soup = BeautifulSoup(html, "lxml")
         table = soup.find("table")
 
-        mock_create.return_value = "/path/to/file.csv"
+        mock_find.return_value = table
+        with patch("csv.writer") as mock_writer_class:
+            mock_writer = Mock()
+            mock_writer_class.return_value = mock_writer
+            process_entries(soup, 2020, 2)
+            mock_writer.writerow.assert_called()  # At least header written
 
-        with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
-            mock_find.return_value = table
+    @patch("app.scrapers.entries_scraper.create_output_file")
+    @patch("app.scrapers.entries_scraper.find_entries_table")
+    def test_driver_column_not_found_no_error(self, mock_find, mock_create):
+        mock_create.return_value = MagicMock()
 
-            with patch("csv.writer") as mock_writer_class:
-                mock_writer = Mock()
-                mock_writer_class.return_value = mock_writer
-
-                process_entries(soup, 2020, 2)
-
-                mock_file.assert_called_once()
-                mock_writer.writerow.assert_called()  # At least header written
-
-    @patch("app.scrapers.scraping_utils.create_output_file")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_driver_column_not_found_no_error(self, mock_file, mock_create):
         html = """
         <table class="wikitable">
             <tr><th>Team</th><th>Chassis</th></tr>
@@ -522,24 +518,22 @@ class TestProcessEntries:
         soup = BeautifulSoup(html, "lxml")
         table = soup.find("table")
 
-        mock_create.return_value = "/path/to/file.csv"
+        mock_find.return_value = table
+        with patch("csv.writer") as mock_writer_class:
+            mock_writer = Mock()
+            mock_writer_class.return_value = mock_writer
 
-        with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
-            mock_find.return_value = table
+            # Should not raise ValueError
+            process_entries(soup, 2020, 1)
 
-            with patch("csv.writer") as mock_writer_class:
-                mock_writer = Mock()
-                mock_writer_class.return_value = mock_writer
+            # Processing should continue normally
+            mock_writer.writerow.assert_called()
 
-                # Should not raise ValueError
-                process_entries(soup, 2020, 1)
+    @patch("app.scrapers.entries_scraper.create_output_file")
+    @patch("app.scrapers.entries_scraper.find_entries_table")
+    def test_f1_2014_plus_drivers_path(self, mock_find, mock_create):
+        mock_create.return_value = MagicMock()
 
-                # Processing should continue normally
-                mock_file.assert_called_once()
-                mock_writer.writerow.assert_called()
-
-    @patch("app.scrapers.scraping_utils.create_output_file")
-    def test_f1_2014_plus_drivers_path(self, mock_create):
         html = """
         <table class="wikitable">
             <tr><th>Team</th><th>Constructor</th><th>Drivers</th></tr>
@@ -555,43 +549,39 @@ class TestProcessEntries:
         soup = BeautifulSoup(html, "lxml")
         table = soup.find("table")
 
-        mock_create.return_value = "/path/to/f1_2020_entries.csv"
+        mock_find.return_value = table
+        with patch("csv.writer") as mock_writer_class:
+            mock_writer = Mock()
+            mock_writer_class.return_value = mock_writer
 
-        with patch("app.scrapers.entries_scraper.find_entries_table") as mock_find:
-            mock_find.return_value = table
+            with (
+                patch(
+                    "app.scrapers.entries_scraper.process_f1_modern_drivers",
+                ) as mock_process_modern,
+                patch(
+                    "app.scrapers.entries_scraper.write_f1_modern_rows",
+                ) as mock_write_modern,
+            ):
+                mock_process_modern.return_value = [
+                    ["Hamilton", "Bottas"],
+                    ["44", "77"],
+                ]
 
-            with patch("csv.writer") as mock_writer_class:
-                mock_writer = Mock()
-                mock_writer_class.return_value = mock_writer
+                process_entries(soup, 2020, 1)  # series=1, year=2020 (>=2014)
 
-                with (
-                    patch(
-                        "app.scrapers.entries_scraper.process_f1_modern_drivers",
-                    ) as mock_process_modern,
-                    patch(
-                        "app.scrapers.entries_scraper.write_f1_modern_rows",
-                    ) as mock_write_modern,
-                ):
-                    mock_process_modern.return_value = [
-                        ["Hamilton", "Bottas"],
-                        ["44", "77"],
-                    ]
+                # Verify F1 modern processing functions were called
+                assert mock_process_modern.call_count > 0
+                assert mock_write_modern.call_count > 0
 
-                    process_entries(soup, 2020, 1)  # series=1, year=2020 (>=2014)
-
-                    # Verify F1 modern processing functions were called
-                    assert mock_process_modern.call_count > 0
-                    assert mock_write_modern.call_count > 0
-
-                    # Verify write_f1_modern_rows was called with correct arguments
-                    call_args = mock_write_modern.call_args
-                    assert call_args[0][0] == mock_writer  # writer
-                    assert isinstance(call_args[0][1], list)  # row_data
-                    assert call_args[0][2] == [
-                        ["Hamilton", "Bottas"],
-                        ["44", "77"],
-                    ]  # processed_cells
-                    assert isinstance(
-                        call_args[0][3],
-                        list,
-                    )  # sorted_unwanted_indices
+                # Verify write_f1_modern_rows was called with correct arguments
+                call_args = mock_write_modern.call_args
+                assert call_args[0][0] == mock_writer  # writer
+                assert isinstance(call_args[0][1], list)  # row_data
+                assert call_args[0][2] == [
+                    ["Hamilton", "Bottas"],
+                    ["44", "77"],
+                ]  # processed_cells
+                assert isinstance(
+                    call_args[0][3],
+                    list,
+                )  # sorted_unwanted_indices

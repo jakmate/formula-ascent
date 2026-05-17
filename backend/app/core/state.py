@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -50,14 +49,14 @@ class AppState:
             "last_trained_season": self.system_status["last_trained_season"],
             "models_available": self.system_status["models_available"],
         }
-        with open(STATE_FILE, "w") as f:
+        with STATE_FILE.open("w") as f:
             json.dump(state, f, default=str)
 
     def load_state(self):
         """Load state from disk."""
         try:
-            if os.path.exists(STATE_FILE):
-                with open(STATE_FILE) as f:
+            if STATE_FILE.exists():
+                with STATE_FILE.open() as f:
                     state = json.load(f)
 
                 self.system_status["last_scrape_full"] = (
@@ -90,7 +89,7 @@ class AppState:
         except json.JSONDecodeError as e:
             LOGGER.error(f"Corrupted state file: {e}. Reinitializing state.")
             # Backup corrupted file
-            os.rename(STATE_FILE, f"{STATE_FILE}.backup")
+            STATE_FILE.rename(f"{STATE_FILE}.backup")
             return False
 
         except Exception as e:

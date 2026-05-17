@@ -211,7 +211,7 @@ def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
         "current_points": "",
     }
 
-    with open(file_path, "w", newline="", encoding="utf-8") as f:
+    with file_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(combined_headers)
 

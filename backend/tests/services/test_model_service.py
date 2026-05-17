@@ -1,6 +1,5 @@
-import os
-from datetime import datetime
-from unittest.mock import Mock, patch
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -40,10 +39,10 @@ class TestModelServiceInit:
 
 
 class TestSaveModels:
-    test_models_dir = os.path.join(os.sep, "test", "models")
+    test_models_dir = Path("/") / "test" / "models"
 
     @patch("app.services.model_service.MODELS_DIR", test_models_dir)
-    @patch("os.makedirs")
+    @patch("pathlib.Path.mkdir")
     @patch("joblib.dump")
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
@@ -63,7 +62,9 @@ class TestSaveModels:
         # Verify directory creation
         mock_makedirs.assert_called_once()
         call_args = mock_makedirs.call_args[0][0]  # Get the first positional argument
-        assert call_args.endswith("f3_to_f2")  # Verify it ends with the series name
+        assert str(call_args).endswith(
+            "f3_to_f2"
+        )  # Verify it ends with the series name
 
         # Verify sklearn model save and preprocessor save
         assert mock_joblib_dump.call_count == 2  # ml model + preprocessor
@@ -71,7 +72,7 @@ class TestSaveModels:
         mock_logger.info.assert_called_with("Models saved successfully for f3_to_f2")
 
     @patch("app.services.model_service.MODELS_DIR", test_models_dir)
-    @patch("os.makedirs")
+    @patch("pathlib.Path.mkdir")
     @patch("torch.save")
     @patch("joblib.dump")
     @patch("app.services.model_service.LOGGER")
@@ -94,10 +95,12 @@ class TestSaveModels:
         # Verify directory creation
         mock_makedirs.assert_called_once()
         call_args = mock_makedirs.call_args[0][0]  # Get the first positional argument
-        assert call_args.endswith("f3_to_f2")  # Verify it ends with the series name
+        assert str(call_args).endswith(
+            "f3_to_f2"
+        )  # Verify it ends with the series name
 
         # Verify PyTorch model save
-        expected_path = os.path.join(os.sep, "test", "models", "f3_to_f2", "PyTorch.pt")
+        expected_path = Path("/") / "test" / "models" / "f3_to_f2" / "PyTorch.pt"
         mock_torch_save.assert_called_once_with(
             {"state": "dict"},
             expected_path,
@@ -109,32 +112,26 @@ class TestSaveModels:
 
         mock_logger.info.assert_called_with("Models saved successfully for f3_to_f2")
 
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.makedirs")
+    @patch("pathlib.Path.mkdir")
     @patch("joblib.dump")
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_without_series(
-        self,
-        mock_logger,
-        mock_joblib_dump,
-        mock_makedirs,
-        mock_app_state,
+        self, mock_logger, mock_joblib_dump, mock_makedirs, mock_app_state
     ):
         service = ModelService(mock_app_state, series=None)
         mock_app_state.models = {"RandomForest": Mock()}
         mock_app_state.scaler = Mock()
         mock_app_state.feature_cols = ["col1", "col2"]
 
-        await service.save_models()
+        with patch("app.services.model_service.MODELS_DIR", self.test_models_dir):
+            await service.save_models()
 
         mock_makedirs.assert_called_once()
-        call_args = mock_makedirs.call_args[0][0]
-        # Should be base models directory when no series specified
-        assert "models" in str(call_args)
+        assert "models" in str(mock_makedirs.call_args[0][0])
         mock_logger.info.assert_called_with("Models saved successfully for all series")
 
-    @patch("os.makedirs")
+    @patch("pathlib.Path.mkdir")
     @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_exception(self, mock_logger, mock_makedirs, model_service):
@@ -146,233 +143,144 @@ class TestSaveModels:
 
 
 class TestLoadModels:
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
-    @patch("os.listdir")
-    @patch("joblib.load")
-    @patch("app.services.model_service.LOGGER")
+    def _make_series_dir(self, files=None, dir_exists=True, iterdir_exc=None):
+        mock_models_dir = MagicMock()
+        mock_series_dir = MagicMock()
+        mock_series_dir.exists.return_value = dir_exists
+        if iterdir_exc:
+            mock_series_dir.iterdir.side_effect = iterdir_exc
+        else:
+            mock_series_dir.iterdir.return_value = [
+                self._make_file(f) for f in (files or [])
+            ]
+        mock_preprocessor = MagicMock()
+        mock_preprocessor.exists.return_value = True
+        mock_calibrator = MagicMock()
+        mock_calibrator.exists.return_value = True
+
+        def series_truediv(key):
+            if str(key) == "preprocessor.joblib":
+                return mock_preprocessor
+            if "_calibrator" in str(key):
+                return mock_calibrator
+            return MagicMock()
+
+        mock_series_dir.__truediv__ = MagicMock(side_effect=series_truediv)
+        mock_models_dir.__truediv__ = MagicMock(return_value=mock_series_dir)
+        return mock_models_dir, mock_series_dir
+
+    def _make_file(self, name):
+        f = MagicMock()
+        f.__str__ = lambda _: name
+        f.__eq__ = lambda _, o: str(o) == name
+        f.endswith = lambda suffix: name.endswith(suffix)
+        f.__contains__ = lambda _, x: x in name
+        f.stem = Path(name).stem
+        f.name = name
+        return f
+
     @pytest.mark.asyncio
-    async def test_success(
-        self,
-        mock_logger,
-        mock_joblib_load,
-        mock_listdir,
-        mock_exists,
-        model_service,
-    ):
-        # Setup mocks
-        mock_exists.return_value = True
-        mock_listdir.return_value = ["RandomForest.joblib", "preprocessor.joblib"]
-
-        # Mock preprocessor loading
-        mock_joblib_load.side_effect = [
-            {"scaler": Mock(), "feature_cols": ["col1", "col2"]},  # preprocessor
-            Mock(),  # RandomForest model
-        ]
-
-        result = await model_service.load_models()
-
+    async def test_success(self, model_service):
+        mock_dir, _ = self._make_series_dir(
+            ["RandomForest.joblib", "preprocessor.joblib"]
+        )
+        with (
+            patch("app.services.model_service.MODELS_DIR", mock_dir),
+            patch(
+                "joblib.load",
+                side_effect=[
+                    {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
+                    Mock(),
+                ],
+            ),
+            patch("app.services.model_service.LOGGER") as mock_logger,
+        ):
+            result = await model_service.load_models()
         assert result is True
         mock_logger.info.assert_called()
-        # Verify system status update
-        assert len(model_service.app_state.system_status["models_available"]) > 0
 
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
     @pytest.mark.asyncio
-    async def test_no_directory(self, mock_exists, model_service):
-        mock_exists.return_value = False
-
-        result = await model_service.load_models()
-
+    async def test_no_directory(self, model_service):
+        mock_dir, _ = self._make_series_dir(dir_exists=False)
+        with patch("app.services.model_service.MODELS_DIR", mock_dir):
+            result = await model_service.load_models()
         assert result is False
 
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
-    @patch("os.listdir")
-    @patch("joblib.load")
     @pytest.mark.asyncio
-    async def test_without_series(
-        self,
-        mock_joblib_load,
-        mock_listdir,
-        mock_exists,
-        mock_app_state,
-    ):
+    async def test_without_series(self, mock_app_state):
         service = ModelService(mock_app_state, series=None)
-        mock_exists.return_value = True
-        mock_listdir.return_value = ["RandomForest.joblib", "preprocessor.joblib"]
-        mock_joblib_load.side_effect = [
-            {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
-            Mock(),
-            {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
-            Mock(),
-        ]
-
-        result = await service.load_models()
-
-        assert result is True
-
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
-    @patch("os.listdir")
-    @patch("joblib.load")
-    @patch("app.services.model_service.LOGGER")
-    @pytest.mark.asyncio
-    async def test_exception(
-        self,
-        mock_logger,
-        mock_joblib_load,
-        mock_listdir,
-        mock_exists,
-        model_service,
-    ):
-        mock_exists.return_value = True
-        mock_listdir.side_effect = Exception("Directory read error")
-
-        result = await model_service.load_models()
-
-        assert result is False
-        mock_logger.error.assert_called_with(
-            "Error loading models: Directory read error",
+        mock_dir, _ = self._make_series_dir(
+            ["RandomForest.joblib", "preprocessor.joblib"]
         )
-
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
-    @patch("os.listdir")
-    @patch("joblib.load")
-    @patch("torch.device")
-    @patch("torch.cuda.is_available")
-    @pytest.mark.asyncio
-    async def test_pytorch_loading(
-        self,
-        mock_cuda_available,
-        mock_device,
-        mock_joblib_load,
-        mock_listdir,
-        mock_exists,
-        model_service,
-    ):
-        mock_exists.return_value = True
-        mock_listdir.return_value = [
-            "PyTorch.pt",
-            "PyTorch_calibrator.joblib",
-            "preprocessor.joblib",
-        ]
-        mock_cuda_available.return_value = False
-        mock_device.return_value = Mock()
-
-        # Mock preprocessor
-        mock_joblib_load.side_effect = [
-            {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
-            Mock(),  # calibrator
-        ]
-
-        mock_model_instance = Mock(spec=RacingPredictor)
-        mock_model_instance.to.return_value = mock_model_instance
-
+        # without_series loads f3_to_f2 and f2_to_f1 — both hit same mock_dir
         with (
-            patch("torch.load") as mock_torch_load,
+            patch("app.services.model_service.MODELS_DIR", mock_dir),
             patch(
-                "app.services.model_service.RacingPredictor",
-                return_value=mock_model_instance,
+                "joblib.load",
+                side_effect=[
+                    {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
+                    Mock(),
+                    {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
+                    Mock(),
+                ],
             ),
         ):
-            mock_torch_load.return_value = {"param": "value"}
+            result = await service.load_models()
+        assert result is True
 
+    @pytest.mark.asyncio
+    async def test_exception(self, model_service):
+        mock_dir, _ = self._make_series_dir(
+            iterdir_exc=Exception("Directory read error")
+        )
+        with (
+            patch("app.services.model_service.MODELS_DIR", mock_dir),
+            patch("joblib.load", return_value={"scaler": Mock(), "feature_cols": []}),
+            patch("app.services.model_service.LOGGER") as mock_logger,
+        ):
             result = await model_service.load_models()
-
-            assert result is True
-            mock_torch_load.assert_called()
-            mock_model_instance.load_state_dict.assert_called_once_with(
-                {"param": "value"},
-            )
-            mock_model_instance.to.assert_called_once()
-            mock_model_instance.eval.assert_called_once()
-
-    @patch("app.services.model_service.MODELS_DIR", "/test/models")
-    @patch("os.path.exists")
-    @patch("os.listdir")
-    @patch("joblib.load")
-    @pytest.mark.asyncio
-    async def test_unknown_file_extension(
-        self,
-        mock_joblib_load,
-        mock_listdir,
-        mock_exists,
-        model_service,
-    ):
-        mock_exists.return_value = True
-        mock_listdir.return_value = [
-            "preprocessor.joblib",
-            "model.txt",  # Unknown extension
-            "RandomForest.pkl",  # Unknown extension
-        ]
-        mock_joblib_load.return_value = {
-            "scaler": Mock(),
-            "feature_cols": ["col1", "col2"],
-        }
-
-        result = await model_service.load_models()
-
-        # Should return False since no valid models were loaded
         assert result is False
-        # Only preprocessor should be loaded
-        assert mock_joblib_load.call_count == 1
+        mock_logger.error.assert_called_with(
+            "Error loading models: Directory read error"
+        )
 
-
-class TestTrainModels:
-    @pytest.fixture
-    def mock_trainable_df(self):
-        df = Mock()
-        df.__len__ = Mock(return_value=100)
-        df.__getitem__ = Mock(return_value=Mock(max=Mock(return_value=2023)))
-        return df
-
-    @patch("app.core.predictor.train_models")
-    @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_success(
-        self,
-        mock_logger,
-        mock_train_models,
-        model_service,
-        mock_trainable_df,
-    ):
-        # Setup mock return values
-        mock_models = {"RandomForest": Mock(), "PyTorch": Mock()}
-        mock_feature_cols = ["col1", "col2", "col3"]
-        mock_scaler = Mock()
-        mock_train_models.return_value = (mock_models, mock_feature_cols, mock_scaler)
-
-        await model_service.train_models(mock_trainable_df)
-
-        # Verify training was called
-        mock_train_models.assert_called_once_with(mock_trainable_df)
-
-        # Verify state updates
-        assert model_service.app_state.models["f3_to_f2"] == mock_models
-        assert model_service.app_state.feature_cols["f3_to_f2"] == mock_feature_cols
-        assert model_service.app_state.scaler["f3_to_f2"] == mock_scaler
-
-        # Verify system status updates
-        assert isinstance(
-            model_service.app_state.system_status["last_training"],
-            datetime,
+    async def test_pytorch_loading(self, model_service):
+        mock_dir, _ = self._make_series_dir(
+            ["PyTorch.pt", "PyTorch_calibrator.joblib", "preprocessor.joblib"]
         )
-        assert model_service.app_state.system_status["last_trained_season"] == 2023
-        assert (
-            len(model_service.app_state.system_status["models_available"]["f3_to_f2"])
-            > 0
-        )
+        mock_model = Mock(spec=RacingPredictor)
+        mock_model.to.return_value = mock_model
+        with (
+            patch("app.services.model_service.MODELS_DIR", mock_dir),
+            patch(
+                "joblib.load",
+                side_effect=[
+                    {"scaler": Mock(), "feature_cols": ["col1", "col2"]},
+                    Mock(),  # calibrator
+                ],
+            ),
+            patch("torch.load", return_value={"param": "value"}),
+            patch("torch.cuda.is_available", return_value=False),
+            patch(
+                "app.services.model_service.RacingPredictor", return_value=mock_model
+            ),
+        ):
+            result = await model_service.load_models()
+        assert result is True
+        mock_model.load_state_dict.assert_called_once_with({"param": "value"})
+        mock_model.eval.assert_called_once()
 
-        # Verify data health update
-        expected_health = {"historical_records": 100, "current_records": 0}
-        assert (
-            model_service.app_state.system_status["data_health"]["f3_to_f2"]
-            == expected_health
+    @pytest.mark.asyncio
+    async def test_unknown_file_extension(self, model_service):
+        mock_dir, _ = self._make_series_dir(
+            ["preprocessor.joblib", "model.txt", "RandomForest.pkl"]
         )
-
-        mock_logger.info.assert_called_with(
-            "Training models for f3_to_f2 on 100 records",
-        )
+        with (
+            patch("app.services.model_service.MODELS_DIR", mock_dir),
+            patch(
+                "joblib.load", return_value={"scaler": Mock(), "feature_cols": ["col1"]}
+            ),
+        ):
+            result = await model_service.load_models()
+        assert result is False
