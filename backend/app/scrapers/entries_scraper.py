@@ -268,7 +268,7 @@ def process_entries(soup, year, series):
     filename = f"f{series}_{year}_entries.csv"
     full_path = create_output_file(series, year, filename)
 
-    with open(full_path, "w", newline="", encoding="utf-8") as f:
+    with full_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(clean_headers_list)
 

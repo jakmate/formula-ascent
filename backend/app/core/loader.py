@@ -1,7 +1,5 @@
 import json
-import os
 import re
-from pathlib import Path
 
 import pandas as pd
 
@@ -25,7 +23,7 @@ def get_file_pattern(file_type, series, year, round_num=None):
 
 def get_series_directories(series):
     """Get all directories for a series and their patterns."""
-    series_path = Path(DATA_DIR) / series
+    series_path = DATA_DIR / series
     if not series_path.exists():
         LOGGER.warning(f"Series directory not found: {series_path}")
         return []
@@ -142,11 +140,11 @@ def load_driver_data(df):
 
     # Load cached profiles
     profiles = {}
-    if os.path.exists(PROFILES_DIR):
+    if PROFILES_DIR.exists():
         for driver in df["Driver"].unique():
-            profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
+            profile_file = PROFILES_DIR / get_driver_filename(driver)
             try:
-                with open(profile_file, encoding="utf-8") as f:
+                with profile_file.open(encoding="utf-8") as f:
                     profile_data = json.load(f)
                     profiles[driver] = (
                         profile_data
@@ -217,7 +215,7 @@ def merge_team_data(driver_df, team_df):
 
 def load_academies_data():
     """Load all driver academy/development program data."""
-    academies_dir = Path(DATA_DIR) / "academies"
+    academies_dir = DATA_DIR / "academies"
 
     if not academies_dir.exists():
         LOGGER.warning(f"Academies directory not found: {academies_dir}")

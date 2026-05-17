@@ -38,8 +38,8 @@ class TestGetFilePattern:
 
 
 class TestGetSeriesDirectories:
-    @patch("app.core.loader.Path")
-    def test_returns_year_directories(self, mock_path):
+    @patch("app.core.loader.DATA_DIR")
+    def test_returns_year_directories(self, mock_data_dir):
         mock_series_path = MagicMock()
         mock_series_path.exists.return_value = True
 
@@ -53,23 +53,24 @@ class TestGetSeriesDirectories:
 
         mock_file = MagicMock()
         mock_file.is_dir.return_value = False
+        mock_file.name = "readme.txt"
 
         mock_series_path.iterdir.return_value = [
             mock_dir_2023,
             mock_dir_2022,
             mock_file,
         ]
-        mock_path.return_value.__truediv__.return_value = mock_series_path
+        mock_data_dir.__truediv__.return_value = mock_series_path
 
         result = get_series_directories("F3")
         assert len(result) == 2
 
-    @patch("app.core.loader.Path")
+    @patch("app.core.loader.DATA_DIR")
     @patch("app.core.loader.LOGGER")
-    def test_nonexistent_series_directory(self, mock_logger, mock_path):
+    def test_nonexistent_series_directory(self, mock_logger, mock_data_dir):
         mock_series_path = MagicMock()
         mock_series_path.exists.return_value = False
-        mock_path.return_value.__truediv__.return_value = mock_series_path
+        mock_data_dir.__truediv__.return_value = mock_series_path
 
         result = get_series_directories("F3")
         assert result == []
@@ -269,13 +270,15 @@ class TestGetDriverFilename:
 
 
 class TestLoadDriverData:
-    @patch("app.core.loader.os.path.exists")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_loads_profile_data(self, mock_file, mock_exists):
-        mock_exists.return_value = True
-        mock_file.return_value.read.return_value = json.dumps(
-            {"dob": "1990-01-01", "nationality": "British", "scraped": True},
+    @patch("app.core.loader.PROFILES_DIR")
+    def test_loads_profile_data(self, mock_profiles_dir):
+        mock_profiles_dir.exists.return_value = True
+        mock_file = mock_open(
+            read_data=json.dumps(
+                {"dob": "1990-01-01", "nationality": "British", "scraped": True}
+            )
         )
+        mock_profiles_dir.__truediv__.return_value.open = mock_file
 
         df = pd.DataFrame({"Driver": ["Lewis Hamilton"]})
         result = load_driver_data(df)
@@ -283,29 +286,25 @@ class TestLoadDriverData:
         assert "dob" in result.columns
         assert "nationality" in result.columns
 
-    @patch("app.core.loader.os.path.exists")
-    def test_handles_missing_profiles_dir(self, mock_exists):
-        mock_exists.return_value = False
+    @patch("app.core.loader.PROFILES_DIR")
+    def test_handles_missing_profiles_dir(self, mock_profiles_dir):
+        mock_profiles_dir.exists.return_value = False
+
         df = pd.DataFrame({"Driver": ["Driver1"]})
         result = load_driver_data(df)
-
         assert result["dob"].isna().all()
 
-    @patch("app.core.loader.os.path.exists")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_handles_json_decode_or_other_exception(self, mock_file, mock_exists):
-        # Simulate json.load raising an exception so code falls back to default_profile
-        mock_exists.return_value = True
+    @patch("app.core.loader.PROFILES_DIR")
+    def test_handles_json_decode_or_other_exception(self, mock_profiles_dir):
+        mock_profiles_dir.exists.return_value = True
+        mock_file_handle = MagicMock()
+        mock_file_handle.__enter__ = lambda s: s
+        mock_file_handle.__exit__ = MagicMock(return_value=False)
+        mock_file_handle.read.side_effect = ValueError("bad json")
+        mock_profiles_dir.__truediv__.return_value.open.return_value = mock_file_handle
 
-        # Make json.load raise; raise when file read attempted
-        mock_file.return_value.__enter__.return_value.read.side_effect = ValueError(
-            "bad json",
-        )
-
-        # to ensure json.load actually runs and raises, patch json.load explicitly
-        with patch("json.load", side_effect=ValueError("bad json")):
-            df = pd.DataFrame({"Driver": ["Driver1"]})
-            result = load_driver_data(df)
+        df = pd.DataFrame({"Driver": ["Driver1"]})
+        result = load_driver_data(df)
 
         assert "dob" in result.columns
         assert result["dob"].isna().all()

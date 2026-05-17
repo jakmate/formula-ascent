@@ -75,9 +75,9 @@ def build_headers(race_headers, round_headers, year, series, file_suffix):
             race_rounds = [f"R{r + 1}" for r in range(colspan)]
 
         race_rounds.sort(
-            key=lambda x: int(x.replace("R", ""))
-            if x.replace("R", "").isdigit()
-            else 999,
+            key=lambda x: (
+                int(x.replace("R", "")) if x.replace("R", "").isdigit() else 999
+            ),
         )
 
         for round_name in race_rounds:
@@ -211,7 +211,7 @@ def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
         "current_points": "",
     }
 
-    with open(file_path, "w", newline="", encoding="utf-8") as f:
+    with file_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(combined_headers)
 

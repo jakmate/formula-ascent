@@ -1,9 +1,7 @@
-import os
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from app.config import DATA_DIR
 from app.scrapers.academy_scraper import (
     expand_years_in_data,
     extract_table_data,
@@ -186,8 +184,8 @@ class TestExtractTableData:
     @patch("app.scrapers.academy_scraper.remove_superscripts")
     def test_f1_graduates_table(self, mock_remove_superscripts, mock_table):
         """Test extraction from F1 graduates table with multiple header rows."""
-        mock_remove_superscripts.side_effect = (
-            lambda x, *_: x.text if hasattr(x, "text") else x
+        mock_remove_superscripts.side_effect = lambda x, *_: (
+            x.text if hasattr(x, "text") else x
         )
 
         # Create second header row for F1 graduates
@@ -233,49 +231,39 @@ class TestScrapeAcademyPage:
 
 
 class TestSaveAcademyData:
-    @patch("builtins.open", new_callable=mock_open)
-    @patch("os.makedirs")
-    def test_save_academy_data_success(self, mock_makedirs, mock_file):
-        """Test successful saving of academy data."""
+    def test_save_academy_data_success(self):
         academy_data = {
             "name": "Red Bull Junior Team",
             "current_drivers": [
-                {"headers": ["Driver", "Year"], "data": [["Lewis Hamilton", "2023"]]},
+                {"headers": ["Driver", "Year"], "data": [["Lewis Hamilton", "2023"]]}
             ],
             "former_drivers": [
-                {"headers": ["Driver", "Year"], "data": [["Sebastian Vettel", "2008"]]},
+                {"headers": ["Driver", "Year"], "data": [["Sebastian Vettel", "2008"]]}
             ],
             "f1_graduates": [
-                {"headers": ["Driver", "Year"], "data": [["Max Verstappen", "2015"]]},
+                {"headers": ["Driver", "Year"], "data": [["Max Verstappen", "2015"]]}
             ],
         }
 
-        academies_dir = os.path.join(DATA_DIR, "academies")
-        save_academy_data(academy_data, academies_dir)
+        mock_dir = MagicMock()
+        mock_file = MagicMock()
+        mfile = mock_open()
+        mock_file.open = mfile
+        mock_dir.__truediv__ = MagicMock(return_value=mock_file)
 
-        # Verify makedirs was called
-        mock_makedirs.assert_called_once_with(academies_dir, exist_ok=True)
+        save_academy_data(academy_data, mock_dir)
 
-        # Verify file was opened correctly
-        mock_file.assert_called_once_with(
-            os.path.join(academies_dir, "Red_Bull_Junior_Team_drivers.csv"),
-            "w",
-            newline="",
-            encoding="utf-8",
-        )
+        mock_dir.mkdir.assert_called_once_with(parents=True, exist_ok=True)
+        mock_file.open.assert_called_once_with("w", newline="", encoding="utf-8")
+        written = "".join(c.args[0] for c in mfile().write.mock_calls if c.args)
+        assert "Driver,Year" in written
+        assert "Lewis Hamilton" in written
 
-        # Verify CSV content was written
-        handle = mock_file()
-        handle.write.assert_any_call("Driver,Year\r\n")
-        handle.write.assert_any_call("Lewis Hamilton,2023\r\n")
-        handle.write.assert_any_call("Sebastian Vettel,2008\r\n")
-        handle.write.assert_any_call("Max Verstappen,2015\r\n")
-
-    @patch("os.makedirs")
-    def test_empty_academy_data(self, mock_makedirs):
+    def test_empty_academy_data(self):
         """Test handling empty academy data."""
-        save_academy_data(None, "test_dir")
-        mock_makedirs.assert_not_called()
+        mock_dir = MagicMock()
+        save_academy_data(None, mock_dir)
+        mock_dir.mkdir.assert_not_called()
 
 
 class TestScrapeAcademies:

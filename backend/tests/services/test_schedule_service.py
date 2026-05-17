@@ -71,7 +71,7 @@ class TestGetSeriesSchedule:
         mock_aiofiles_open,
     ):
         with (
-            patch("os.path.exists", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
             mock_aiofiles_open(sample_schedule),
         ):
             result = await schedule_service.get_series_schedule(
@@ -83,7 +83,7 @@ class TestGetSeriesSchedule:
 
     @pytest.mark.asyncio
     async def test_file_not_found(self, schedule_service):
-        with patch("os.path.exists", return_value=False):
+        with patch("pathlib.Path.exists", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 await schedule_service.get_series_schedule(ScheduleRequest(series="f1"))
 
@@ -98,7 +98,7 @@ class TestGetSeriesSchedule:
         mock_aiofiles_open,
     ):
         with (
-            patch("os.path.exists", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
             mock_aiofiles_open(sample_schedule),
         ):
             result = await schedule_service.get_series_schedule(
@@ -128,7 +128,10 @@ class TestGetSeriesSchedule:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_series_schedule(
                 ScheduleRequest(series="f1", timezone="America/New_York"),
             )
@@ -154,7 +157,10 @@ class TestGetSeriesSchedule:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_series_schedule(
                 ScheduleRequest(series="f1", timezone="America/New_York"),
             )
@@ -164,7 +170,7 @@ class TestGetSeriesSchedule:
 class TestGetNextRace:
     @pytest.mark.asyncio
     async def test_file_not_found_raises_404(self, schedule_service):
-        with patch("os.path.exists", return_value=False):
+        with patch("pathlib.Path.exists", return_value=False):
             with pytest.raises(HTTPException) as exc:
                 await schedule_service.get_next_race(ScheduleRequest(series="f1"))
             assert exc.value.status_code == 404
@@ -181,7 +187,7 @@ class TestGetNextRace:
         sample_schedule[1]["sessions"]["race"]["start"] = "2030-04-13T07:40:00"
 
         with (
-            patch("os.path.exists", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
             mock_aiofiles_open(sample_schedule),
         ):
             result = await schedule_service.get_next_race(
@@ -213,7 +219,10 @@ class TestGetNextRace:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_next_race(
                 ScheduleRequest(series="f1"),
             )
@@ -230,7 +239,7 @@ class TestGetNextRace:
     ):
         # All sessions in the past
         with (
-            patch("os.path.exists", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
             mock_aiofiles_open(sample_schedule),
         ):
             result = await schedule_service.get_next_race(
@@ -248,7 +257,7 @@ class TestGetNextRace:
         schedule_service,
         mock_aiofiles_open,
     ):
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open([]):
+        with patch("pathlib.Path.exists", return_value=True), mock_aiofiles_open([]):
             result = await schedule_service.get_next_race(
                 ScheduleRequest(series="f1"),
             )
@@ -267,7 +276,10 @@ class TestGetNextRace:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_next_race(
                 ScheduleRequest(series="f1"),
             )
@@ -293,7 +305,10 @@ class TestGetNextRace:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_next_race(
                 ScheduleRequest(series="f1"),
             )
@@ -311,7 +326,7 @@ class TestGetNextRace:
         sample_schedule[0]["sessions"]["practice"]["end"] = "2030-03-14T01:45:00"
 
         with (
-            patch("os.path.exists", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
             mock_aiofiles_open(sample_schedule),
         ):
             result = await schedule_service.get_next_race(
@@ -341,7 +356,10 @@ class TestGetNextRace:
             },
         ]
 
-        with patch("os.path.exists", return_value=True), mock_aiofiles_open(schedule):
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            mock_aiofiles_open(schedule),
+        ):
             result = await schedule_service.get_next_race(
                 ScheduleRequest(series="f1", timezone="America/New_York"),
             )

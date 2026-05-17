@@ -1,8 +1,7 @@
-import glob
 import json
-import os
 import re
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -107,7 +106,7 @@ def extract_dob_from_result(result):
 
 def save_profile(filename, profile):
     """Save profile to JSON file."""
-    with open(filename, "w", encoding="utf-8") as f:
+    with filename.open("w", encoding="utf-8") as f:
         json.dump(profile, f, indent=2, ensure_ascii=False)
 
 
@@ -138,16 +137,14 @@ def get_all_drivers_from_data():
     }
 
     for series, pattern in series_map.items():
-        series_dirs = glob.glob(f"data/{series}/*")
-
-        for year_dir in series_dirs:
-            year = os.path.basename(year_dir)
+        for year_dir in (Path("data") / series).glob("*"):
+            year = year_dir.name
             if not year.isdigit():
                 continue
 
-            entries_file = os.path.join(year_dir, pattern.format(year=year))
+            entries_file = Path(year_dir) / pattern.format(year=year)
 
-            if os.path.exists(entries_file):
+            if entries_file.exists():
                 try:
                     df = pd.read_csv(entries_file)
                     if "Driver" in df.columns:
@@ -174,7 +171,7 @@ def scrape_drivers(session=None):
     print(f"Found {len(all_drivers)} unique drivers")
 
     # Ensure profiles directory exists
-    os.makedirs(PROFILES_DIR, exist_ok=True)
+    PROFILES_DIR.mkdir(parents=True, exist_ok=True)
 
     try:
         # Create mapping of original name -> search name
@@ -189,8 +186,8 @@ def scrape_drivers(session=None):
         existing_drivers = []
 
         for driver in driver_search_map:
-            profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
-            if os.path.exists(profile_file):
+            profile_file = PROFILES_DIR / get_driver_filename(driver)
+            if profile_file.exists():
                 existing_drivers.append(driver)
             else:
                 new_drivers.append(driver)
@@ -233,7 +230,7 @@ def scrape_drivers(session=None):
                         "scraped_date": datetime.now().isoformat(),
                     }
 
-                profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
+                profile_file = PROFILES_DIR / get_driver_filename(driver)
                 save_profile(profile_file, profile)
 
         # Check existing drivers for updates
@@ -252,8 +249,8 @@ def scrape_drivers(session=None):
 
             updated_count = 0
             for driver in existing_drivers:
-                profile_file = os.path.join(PROFILES_DIR, get_driver_filename(driver))
-                with open(profile_file, encoding="utf-8") as f:
+                profile_file = PROFILES_DIR / get_driver_filename(driver)
+                with profile_file.open(encoding="utf-8") as f:
                     existing_profile = json.load(f)
 
                 result = existing_results.get(driver)

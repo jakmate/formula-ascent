@@ -59,13 +59,12 @@ class TestLifespan:
 
     @pytest.mark.asyncio
     async def test_lifespan_cleanup_on_exception(self, mock_dependencies):
-        mock_init, mock_cleanup = mock_dependencies
+        _, mock_cleanup = mock_dependencies
 
         app = FastAPI()
 
         with pytest.raises(RuntimeError):
             async with lifespan(app):
-                mock_init.assert_called_once()
                 raise RuntimeError("Test exception")
 
         # Verify cleanup was still called

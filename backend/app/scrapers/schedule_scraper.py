@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urljoin
@@ -24,7 +23,7 @@ FIA_MAIN_STRAINER = SoupStrainer(
 )
 FIA_SESSION_STRAINER = SoupStrainer("div", class_="pin")
 
-os.makedirs(SCHEDULE_DIR, exist_ok=True)
+SCHEDULE_DIR.mkdir(parents=True, exist_ok=True)
 TRACK_TIMEZONES = {
     "Sakhir": "Asia/Bahrain",
     "Barcelona": "Europe/Madrid",
@@ -592,11 +591,11 @@ def scrape_schedules(session=None):
 
     for name, scraper in series_scrapers.items():
         try:
-            file_path = os.path.join(SCHEDULE_DIR, f"{name}.json")
+            file_path = SCHEDULE_DIR / f"{name}.json"
             existing_schedule = []
 
-            if os.path.exists(file_path):
-                with open(file_path) as f:
+            if file_path.exists():
+                with file_path.open() as f:
                     try:
                         existing_schedule = json.load(f)
                     except json.JSONDecodeError:
@@ -616,7 +615,7 @@ def scrape_schedules(session=None):
 
             # Save only if there are changes
             if new_schedule != existing_schedule:
-                with open(file_path, "w") as f:
+                with file_path.open("w") as f:
                     json.dump(new_schedule, f, indent=2)
                 print(f"Updated {name.upper()} schedule: {len(new_schedule)} races")
             else:

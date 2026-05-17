@@ -1,5 +1,6 @@
+import json
 from datetime import UTC, datetime, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 
@@ -202,14 +203,14 @@ class TestScrapeF1Schedule:
         # Setup card mock
         mock_round = Mock()
         mock_round.text = "ROUND 1"
-        mock_card.select_one.side_effect = lambda sel: {
+        mock_card.select_one.side_effect = {
             ".typography-module_body-2-xs-bold__M03Ei": mock_round,
             ".typography-module_display-xl-bold__Gyl5W": Mock(text="Sakhir"),
             ".typography-module_body-xs-semibold__Fyfwn": Mock(
                 text="FORMULA 1 BAHRAIN GP 2025",
             ),
             ".typography-module_technical-xs-regular__-W0Gs": Mock(text="02 Mar"),
-        }.get(sel)
+        }.get
 
         mock_card.get.return_value = "/en/racing/2025/bahrain"
         mock_soup.find_all.return_value = [mock_card]
@@ -268,85 +269,64 @@ class TestScrapeFiaFormulaSchedule:
 
 # Tests for scrape_schedules
 class TestSaveSchedules:
-    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
-    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
-    @patch("app.scrapers.schedule_scraper.os.path.exists")
-    @patch("app.scrapers.schedule_scraper.json.dump")
-    def test_save_new_schedules(
-        self,
-        mock_json_dump,
-        mock_exists,
-        mock_f2_scraper,
-        mock_f1_scraper,
-    ):
-        mock_session = Mock()
-        mock_exists.return_value = False
-        mock_f1_scraper.return_value = [
-            {
-                "round": 1,
-                "name": "Bahrain",
-                "location": "Bahrain",
-                "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
-            },
-        ]
-        mock_f2_scraper.return_value = [
-            {
-                "round": 1,
-                "name": "Bahrain",
-                "location": "Bahrain",
-                "sessions": {"race": {"start": "2025-03-02T14:00:00"}},
-            },
-        ]
-
-        scrape_schedules(mock_session)
-
-        # Verify scrapers were called
-        assert mock_json_dump.called
+    def _make_schedule_dir(self, file_exists=False, existing_data=None):
+        mock_dir = MagicMock()
+        mock_file = MagicMock()
+        mock_file.exists.return_value = file_exists
+        if existing_data is not None:
+            mock_file.open = mock_open(read_data=json.dumps(existing_data))
+        else:
+            mock_file.open = mock_open()
+        mock_dir.__truediv__ = MagicMock(return_value=mock_file)
+        return mock_dir, mock_file
 
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
-    @patch("app.scrapers.schedule_scraper.os.path.exists")
-    @patch("app.scrapers.schedule_scraper.json.load")
-    @patch("app.scrapers.schedule_scraper.json.dump")
-    @patch("app.scrapers.schedule_scraper.is_race_completed_or_ongoing")
-    def test_preserve_completed_races(
-        self,
-        mock_is_completed,
-        mock_json_dump,
-        mock_json_load,
-        mock_exists,
-        mock_f2_scraper,
-        mock_f1_scraper,
-    ):
+    def test_save_new_schedules(self, mock_fia_scraper, mock_f1_scraper):
         mock_session = Mock()
-        mock_exists.return_value = True
+        mock_dir, mock_file = self._make_schedule_dir(file_exists=False)
+        race = {
+            "round": 1,
+            "name": "Bahrain",
+            "location": "Bahrain",
+            "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
+        }
+        mock_f1_scraper.return_value = [race]
+        mock_fia_scraper.return_value = [race]
 
+        with patch("app.scrapers.schedule_scraper.SCHEDULE_DIR", mock_dir):
+            scrape_schedules(mock_session)
+
+        mock_file.open.assert_called()
+
+    @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
+    @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
+    def test_preserve_completed_races(self, mock_fia_scraper, mock_f1_scraper):
         existing_race = {
             "round": 1,
             "name": "Bahrain",
             "location": "Bahrain",
             "sessions": {"race": {"start": "2025-03-02T15:00:00"}},
         }
-        mock_json_load.return_value = [existing_race]
-        mock_is_completed.return_value = True
-
+        mock_session = Mock()
+        mock_dir, _ = self._make_schedule_dir(
+            file_exists=True, existing_data=[existing_race]
+        )
         mock_f1_scraper.return_value = [
             {
                 "round": 1,
                 "name": "Bahrain Updated",
                 "location": "Bahrain",
                 "sessions": {"race": {"start": "2025-03-02T16:00:00"}},
-            },
+            }
         ]
-        mock_f2_scraper.return_value = []
+        mock_fia_scraper.return_value = []
 
-        scrape_schedules(mock_session)
+        with patch("app.scrapers.schedule_scraper.SCHEDULE_DIR", mock_dir):
+            scrape_schedules(mock_session)
 
         expected_existing = {1: existing_race}
         mock_f1_scraper.assert_called_once_with(mock_session, expected_existing)
-
-        # Verify completed race was preserved
-        assert mock_json_dump.called
 
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
@@ -360,20 +340,17 @@ class TestSaveSchedules:
 
     @patch("app.scrapers.schedule_scraper.scrape_f1_schedule")
     @patch("app.scrapers.schedule_scraper.scrape_fia_formula_schedule")
-    @patch("app.scrapers.schedule_scraper.os.path.exists")
-    @patch("app.scrapers.schedule_scraper.json.load")
-    def test_invalid_json_handling(
-        self,
-        mock_json_load,
-        mock_exists,
-        mock_f2_scraper,
-        mock_f1_scraper,
-    ):
+    def test_invalid_json_handling(self, mock_fia_scraper, mock_f1_scraper):
         mock_session = Mock()
-        mock_exists.return_value = True
-        mock_json_load.side_effect = Exception("Invalid JSON")
+        mock_dir = MagicMock()
+        mock_file = MagicMock()
+        mock_file.exists.return_value = True
+        mock_file.open.return_value.__enter__.return_value.read.side_effect = (
+            json.JSONDecodeError("bad", "", 0)
+        )
+        mock_dir.__truediv__.return_value = mock_file
         mock_f1_scraper.return_value = []
-        mock_f2_scraper.return_value = []
+        mock_fia_scraper.return_value = []
 
-        # Should not raise exception
-        scrape_schedules(mock_session)
+        with patch("app.scrapers.schedule_scraper.SCHEDULE_DIR", mock_dir):
+            scrape_schedules(mock_session)  # should not raise

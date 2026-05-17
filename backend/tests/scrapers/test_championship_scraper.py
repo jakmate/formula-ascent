@@ -1,4 +1,4 @@
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 from bs4 import BeautifulSoup
 
@@ -309,46 +309,32 @@ def test_process_table_row_kimi_antonelli():
 
 
 # write_championship_csv tests (rowspan persistence across rows)
-@patch("app.scrapers.championship_scraper.open", new_callable=mock_open)
-def test_write_championship_csv_rowspan_across_rows(mock_file):
+def test_write_championship_csv_rowspan_across_rows():
     headers = ["Pos", "Driver", "Race1", "Points"]
+    row1 = make_soup(
+        "<tr><td rowspan='2'>1</td><td rowspan='2'>Driver A</td><td>R1</td><td rowspan='2'>50</td></tr>"
+    ).find("tr")
+    row2 = make_soup("<tr><td>DNF</td></tr>").find("tr")
 
-    # Row 1: provides pos/team/points with rowspan=2
-    row1_html = """
-    <tr>
-      <td rowspan="2">1</td>
-      <td rowspan="2">Driver A</td>
-      <td>R1</td>
-      <td rowspan="2">50</td>
-    </tr>
-    """
-    # Row 2: only race cell (pos/team/points are covered by rowspan)
-    row2_html = """
-    <tr>
-      <td>DNF</td>
-    </tr>
-    """
+    mock_path = MagicMock()
+    mfile = mock_open()
+    mock_path.open = mfile
 
-    row1 = make_soup(row1_html).find("tr")
-    row2 = make_soup(row2_html).find("tr")
-    data_rows = [row1, row2]
+    write_championship_csv(mock_path, headers, [row1, row2], False)
 
-    write_championship_csv("dummy.csv", headers, data_rows, False)
-
-    mock_file.assert_called_once_with("dummy.csv", "w", newline="", encoding="utf-8")
-    handle = mock_file()
-    # csv.writer writes lines - ensure header + two data rows exist
-    handle.write.assert_any_call("Pos,Driver,Race1,Points\r\n")
-    # Check first data row written
-    # We assert at least one line contains Driver A
-    written = "".join(call.args[0] for call in handle.write.mock_calls if call.args)
+    mock_path.open.assert_called_once_with("w", newline="", encoding="utf-8")
+    written = "".join(call.args[0] for call in mfile().write.mock_calls if call.args)
     assert "Driver A" in written
     assert "50" in written
 
 
 # process_championship tests (full + error path)
+@patch("app.scrapers.championship_scraper.create_output_file")
 @patch("app.scrapers.championship_scraper.write_championship_csv")
-def test_process_championship_full(mock_write):
+def test_process_championship_full(mock_write, mock_create):
+    mock_path = MagicMock()
+    mock_create.return_value = mock_path
+
     html = """
     <h3 id="World_Drivers'_Championship_standings"></h3>
     <table class="wikitable">
@@ -365,7 +351,8 @@ def test_process_championship_full(mock_write):
     assert mock_write.called
     args, _ = mock_write.call_args
     file_path, headers, data_rows, _ = args
-    assert "f1_2020_drivers.csv" in file_path
+    assert file_path == mock_path
+    assert "f1_2020_drivers.csv" in mock_create.call_args[0]
     assert headers == ["Pos", "Driver", "Race1 R1", "Points"]
     assert len(data_rows) == 2
 

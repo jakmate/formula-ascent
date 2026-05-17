@@ -1,6 +1,6 @@
 import asyncio
-import os
 from datetime import datetime
+from pathlib import Path
 
 import joblib
 import torch
@@ -19,10 +19,8 @@ class ModelService:
         """Save models to disk."""
         try:
             # Create series-specific directory
-            series_dir = (
-                os.path.join(MODELS_DIR, self.series) if self.series else MODELS_DIR
-            )
-            await asyncio.to_thread(os.makedirs, series_dir, exist_ok=True)
+            series_dir = MODELS_DIR / self.series if self.series else MODELS_DIR
+            await asyncio.to_thread(Path.mkdir, series_dir, exist_ok=True)
 
             models_to_save = (
                 self.app_state.models[self.series]
@@ -35,20 +33,20 @@ class ModelService:
                     await asyncio.to_thread(
                         torch.save,
                         model.state_dict(),
-                        os.path.join(series_dir, f"{name}.pt"),
+                        series_dir / f"{name}.pt",
                         _use_new_zipfile_serialization=True,
                     )
                     if hasattr(model, "calibrator") and model.calibrator is not None:
                         await asyncio.to_thread(
                             joblib.dump,
                             model.calibrator,
-                            os.path.join(series_dir, f"{name}_calibrator.joblib"),
+                            series_dir / f"{name}_calibrator.joblib",
                         )
                 else:
                     await asyncio.to_thread(
                         joblib.dump,
                         model,
-                        os.path.join(series_dir, f"{name}.joblib"),
+                        series_dir / f"{name}.joblib",
                     )
 
             preprocessor_data = {
@@ -62,7 +60,7 @@ class ModelService:
             await asyncio.to_thread(
                 joblib.dump,
                 preprocessor_data,
-                os.path.join(series_dir, "preprocessor.joblib"),
+                series_dir / "preprocessor.joblib",
             )
 
             LOGGER.info(f"Models saved successfully for {self.series or 'all series'}")
@@ -78,15 +76,15 @@ class ModelService:
             series_to_load = [self.series] if self.series else ["f3_to_f2", "f2_to_f1"]
 
             for series in series_to_load:
-                series_dir = os.path.join(MODELS_DIR, series)
-                if not os.path.exists(series_dir):
+                series_dir = MODELS_DIR / series
+                if not series_dir.exists():
                     continue
 
                 # Load preprocessor
                 await self._load_preprocessor(series, series_dir)
 
                 # Load models
-                for model_file in os.listdir(series_dir):
+                for model_file in series_dir.iterdir():
                     loaded = await self._load_model_file(series, series_dir, model_file)
                     models_loaded = models_loaded or loaded
 
@@ -106,9 +104,9 @@ class ModelService:
             LOGGER.error(f"Error loading models: {e}")
             return False
 
-    async def _load_preprocessor(self, series: str, series_dir: str) -> None:
-        preprocessor_path = os.path.join(series_dir, "preprocessor.joblib")
-        if os.path.exists(preprocessor_path):
+    async def _load_preprocessor(self, series: str, series_dir: Path) -> None:
+        preprocessor_path = series_dir / "preprocessor.joblib"
+        if preprocessor_path.exists():
             preprocessor = await asyncio.to_thread(joblib.load, preprocessor_path)
             self.app_state.scaler[series] = preprocessor["scaler"]
             self.app_state.feature_cols[series] = preprocessor["feature_cols"]
@@ -116,14 +114,14 @@ class ModelService:
     async def _load_model_file(
         self,
         series: str,
-        series_dir: str,
+        series_dir: Path,
         model_file: str,
     ) -> bool:
         if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
             return False
 
-        name = os.path.splitext(model_file)[0]
-        model_path = os.path.join(series_dir, model_file)
+        name = Path(model_file).stem
+        model_path = series_dir / model_file
 
         if model_file.endswith(".joblib"):
             model = await asyncio.to_thread(joblib.load, model_path)
@@ -141,8 +139,8 @@ class ModelService:
             model.load_state_dict(state_dict)
             model = model.to(device)
             model.eval()
-            calibrator_path = os.path.join(series_dir, f"{name}_calibrator.joblib")
-            if os.path.exists(calibrator_path):
+            calibrator_path = series_dir / f"{name}_calibrator.joblib"
+            if calibrator_path.exists():
                 model.calibrator = await asyncio.to_thread(joblib.load, calibrator_path)
             self.app_state.models[series][name] = model
             return True

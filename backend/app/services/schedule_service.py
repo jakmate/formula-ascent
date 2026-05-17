@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
@@ -165,8 +164,8 @@ class ScheduleService:
         return SCHEDULE_DIR
 
     async def _open_schedule_file(self, request: ScheduleRequest):
-        file_path = os.path.join(self._get_schedule_dir(), f"{request.series}.json")
-        if not os.path.exists(file_path):
+        file_path = self._get_schedule_dir() / f"{request.series}.json"
+        if not file_path.exists():
             raise HTTPException(status_code=404, detail="Schedule data not found")
 
         async with aiofiles.open(file_path) as f:
