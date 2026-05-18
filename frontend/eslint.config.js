@@ -13,7 +13,7 @@ export default defineConfig(
     extends: [js.configs.recommended, tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2024,
+      ecmaVersion: 2025,
       globals: globals.browser,
     },
     plugins: {
