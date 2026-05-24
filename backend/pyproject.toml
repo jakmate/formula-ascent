@@ -9,7 +9,7 @@ dependencies = [
     "fastapi[standard-no-fastapi-cloud-cli]>=0.136.3",
     "geopy>=2.4.1",
     "imbalanced-learn>=0.14.1",
-    "joblib>=1.5.2",
+    "joblib>=1.5.3",
     "lightgbm>=4.6.0",
     "lxml>=6.1.1",
     "markupsafe<3.0.4",
