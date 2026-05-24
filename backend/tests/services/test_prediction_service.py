@@ -7,7 +7,7 @@ import pytest
 
 from app.config import SEED
 from app.core.state import AppState
-from app.models.predictions import ModelResults, PredictionResponse, PredictionsResponse
+from app.models.predictions import ModelResults, PredictionResponse
 from app.services.data_service import DataService
 from app.services.prediction_service import PredictionService
 
@@ -81,7 +81,7 @@ class TestInit:
         assert service.prediction_cache == {}
 
 
-class TestGetPredictions:
+class TestGetPredictionForModel:
     @pytest.mark.asyncio
     async def test_success(
         self,
@@ -99,44 +99,16 @@ class TestGetPredictions:
         )
         mock_rf_model.calibrator = None
 
-        mock_pytorch_model = prediction_service.app_state.models["f3_to_f2"]["PyTorch"]
-        mock_pytorch_model.eval = Mock()
-        mock_pytorch_model.calibrator = None
+        result = await prediction_service.get_prediction_for_model("RandomForest")
 
-        # Mock scaler
-        prediction_service.app_state.scaler[
-            "f3_to_f2"
-        ].transform.return_value = rng.random((3, 5))
-
-        # Mock PyTorch forward pass
-        with (
-            patch("torch.no_grad"),
-            patch("torch.FloatTensor"),
-            patch("torch.cuda.is_available", return_value=False),
-        ):
-            mock_output = Mock()
-            mock_output.cpu.return_value.numpy.return_value.flatten.return_value = (
-                np.array([0.65, 0.55, 0.45])
-            )
-            mock_pytorch_model.return_value = mock_output
-
-            with patch("torch.sigmoid", return_value=mock_output):
-                result = await prediction_service.get_predictions()
-
-        # Assertions
-        assert isinstance(result, PredictionsResponse)
-        assert len(result.models) == 2
-        assert "RandomForest" in result.models
-        assert "PyTorch" in result.models
-        assert isinstance(result.predictions["RandomForest"], ModelResults)
-        assert len(result.predictions["RandomForest"].predictions) == 3
+        assert isinstance(result, ModelResults)
+        assert result.model_name == "RandomForest"
+        assert len(result.predictions) == 3
 
     @pytest.mark.asyncio
-    async def test_no_models_raises_error(self, prediction_service):
-        prediction_service.app_state.models["f3_to_f2"] = {}
-
-        with pytest.raises(ValueError, match="No models available for series f3_to_f2"):
-            await prediction_service.get_predictions()
+    async def test_model_not_available_raises_error(self, prediction_service):
+        with pytest.raises(ValueError, match="Model BadModel not available"):
+            await prediction_service.get_prediction_for_model("BadModel")
 
     @pytest.mark.asyncio
     async def test_no_feature_cols_raises_error(
@@ -148,8 +120,8 @@ class TestGetPredictions:
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
         prediction_service.app_state.feature_cols["f3_to_f2"] = []
 
-        with pytest.raises(ValueError, match="No feature columns available"):
-            await prediction_service.get_predictions()
+        with pytest.raises(ValueError, match="No feature columns"):
+            await prediction_service.get_prediction_for_model("RandomForest")
 
     @pytest.mark.asyncio
     async def test_uses_cache(
@@ -158,46 +130,36 @@ class TestGetPredictions:
         mock_data_service,
         sample_dataframe,
     ):
-        # First call - should cache
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
-
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
         mock_rf_model.predict_proba.return_value = np.array(
             [[0.3, 0.7], [0.4, 0.6], [0.5, 0.5]],
         )
         mock_rf_model.calibrator = None
 
-        prediction_service.app_state.models["f3_to_f2"] = {
-            "RandomForest": mock_rf_model,
-        }
+        await prediction_service.get_prediction_for_model("RandomForest")
+        await prediction_service.get_prediction_for_model("RandomForest")
 
-        await prediction_service.get_predictions()
-        first_call_count = mock_data_service.load_current_data.call_count
-
-        # Second call - should use cache
-        await prediction_service.get_predictions()
-        second_call_count = mock_data_service.load_current_data.call_count
-
-        assert first_call_count == 1
-        assert second_call_count == 1  # No additional call
+        assert mock_data_service.load_current_data.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_get_predictions_handles_model_error(
+    async def test_returns_sorted_predictions(
         self,
         prediction_service,
         mock_data_service,
         sample_dataframe,
     ):
         mock_data_service.load_current_data = AsyncMock(return_value=sample_dataframe)
-
         mock_rf_model = prediction_service.app_state.models["f3_to_f2"]["RandomForest"]
-        mock_rf_model.predict_proba.side_effect = Exception("Model error")
+        mock_rf_model.predict_proba.return_value = np.array(
+            [[0.3, 0.7], [0.6, 0.4], [0.5, 0.5]],
+        )
+        mock_rf_model.calibrator = None
 
-        result = await prediction_service.get_predictions()
+        result = await prediction_service.get_prediction_for_model("RandomForest")
 
-        assert isinstance(result, PredictionsResponse)
-        assert result.predictions["RandomForest"].predictions == []
-        assert result.predictions["RandomForest"].accuracy_metrics["error_count"] == 1
+        percentages = [p.empirical_percentage for p in result.predictions]
+        assert percentages == sorted(percentages, reverse=True)
 
 
 class TestGetModelPredictions:

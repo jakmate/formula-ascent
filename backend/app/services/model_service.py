@@ -85,7 +85,7 @@ class ModelService:
 
                 # Load models
                 for model_file in series_dir.iterdir():
-                    loaded = await self._load_model_file(series, series_dir, model_file)
+                    loaded = await self._load_model_file(series, model_file)
                     models_loaded = models_loaded or loaded
 
                 # Update models_available for this series
@@ -114,32 +114,30 @@ class ModelService:
     async def _load_model_file(
         self,
         series: str,
-        series_dir: Path,
-        model_file: str,
+        model_file: Path,
     ) -> bool:
-        if model_file == "preprocessor.joblib" or "_calibrator" in model_file:
+        filename = model_file.name
+        if filename == "preprocessor.joblib" or "_calibrator" in filename:
             return False
 
-        name = Path(model_file).stem
-        model_path = series_dir / model_file
-
-        if model_file.endswith(".joblib"):
-            model = await asyncio.to_thread(joblib.load, model_path)
+        name = model_file.stem
+        if filename.endswith(".joblib"):
+            model = await asyncio.to_thread(joblib.load, model_file)
             self.app_state.models[series][name] = model
             return True
-        if model_file.endswith(".pt"):
+        if filename.endswith(".pt"):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model = RacingPredictor(len(self.app_state.feature_cols[series]))
             state_dict = await asyncio.to_thread(
                 torch.load,
-                model_path,
+                model_file,
                 map_location=device,
                 weights_only=True,
             )
             model.load_state_dict(state_dict)
             model = model.to(device)
             model.eval()
-            calibrator_path = series_dir / f"{name}_calibrator.joblib"
+            calibrator_path = model_file.parent / f"{name}_calibrator.joblib"
             if calibrator_path.exists():
                 model.calibrator = await asyncio.to_thread(joblib.load, calibrator_path)
             self.app_state.models[series][name] = model
