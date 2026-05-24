@@ -1,9 +1,9 @@
 from fastapi import Request
 
-from backend.app.core.state import AppState
-from backend.app.services.cronjobs_service import CronjobService
-from backend.app.services.data_service import DataService
-from backend.app.services.model_service import ModelService
+from app.core.state import AppState
+from app.services.cronjobs_service import CronjobService
+from app.services.data_service import DataService
+from app.services.model_service import ModelService
 
 
 def get_app_state(request: Request) -> AppState:

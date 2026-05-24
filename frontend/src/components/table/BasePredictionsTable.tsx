@@ -29,7 +29,6 @@ export const BasePredictionsTable = ({
   getDescription,
 }: BasePredictionsTableProps) => {
   const {
-    predictions,
     selectedModel,
     setSelectedModel,
     models,
@@ -144,7 +143,7 @@ export const BasePredictionsTable = ({
               </div>
               <div className="flex items-center gap-1">
                 <UserRound className="w-4 h-4" />
-                Drivers: {predictions[selectedModel]?.predictions?.length || 0}
+                Drivers: {currentPredictions.length}
               </div>
             </div>
           )

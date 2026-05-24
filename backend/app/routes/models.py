@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.state import AppState
 from app.dependencies import get_app_state
-from backend.app.models.system import SystemStatus
+from app.models.system import SystemStatus
 
 router = APIRouter()
 

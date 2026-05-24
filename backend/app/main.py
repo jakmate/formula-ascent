@@ -6,11 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import LOGGER
+from app.core.state import AppState
 from app.routes.router import api_router
-from backend.app.core.state import AppState
-from backend.app.services.cronjobs_service import CronjobService
-from backend.app.services.data_service import DataService
-from backend.app.services.model_service import ModelService
+from app.services.cronjobs_service import CronjobService
+from app.services.data_service import DataService
+from app.services.model_service import ModelService
 
 
 @asynccontextmanager
