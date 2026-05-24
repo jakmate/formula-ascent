@@ -249,13 +249,17 @@ class TestInitializeSystem:
         mock_prediction_service = AsyncMock()
         mock_pred_service_class.return_value = mock_prediction_service
 
+        data_service.app_state.models = {
+            "f3_to_f2": {"RandomForest": Mock(), "LightGBM": Mock()},
+            "f2_to_f1": {"RandomForest": Mock(), "LightGBM": Mock()},
+        }
+
         # Setup app_state mock
         data_service.app_state.save_state = Mock()
 
         await data_service.initialize_system()
 
         # Verify logging
-        assert mock_logger.info.call_count >= 2  # Called for each series
         mock_logger.info.assert_any_call("Initializing system for f3_to_f2...")
         mock_logger.info.assert_any_call("Initializing system for f2_to_f1...")
 
@@ -264,7 +268,7 @@ class TestInitializeSystem:
         assert mock_model_service.save_models.call_count == 2
 
         # Verify predictions were updated
-        assert mock_prediction_service.update_predictions.call_count == 2
+        assert mock_prediction_service.get_prediction_for_model.call_count == 4
 
         # Verify state was saved
         data_service.app_state.save_state.assert_called_once()

@@ -2,8 +2,6 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.models.system import SystemStatus
-
 
 class PredictionResponse(BaseModel):
     driver: str
@@ -29,9 +27,3 @@ class ModelResults(BaseModel):
     model_name: str
     predictions: list[PredictionResponse]
     accuracy_metrics: dict[str, float]
-
-
-class PredictionsResponse(BaseModel):
-    models: list[str]
-    predictions: dict[str, ModelResults]
-    system_status: SystemStatus

@@ -123,7 +123,8 @@ class DataService:
                 from app.services.prediction_service import PredictionService
 
                 prediction_service = PredictionService(self.app_state, series, self)
-                await prediction_service.update_predictions(features_df)
+                for model_name in self.app_state.models[series]:
+                    await prediction_service.get_prediction_for_model(model_name)
             except Exception as e:
                 LOGGER.error(f"Failed to initialize {series}: {e}")
 

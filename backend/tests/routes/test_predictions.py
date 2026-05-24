@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from fastapi import HTTPException
 
-from app.routes.predictions import get_predictions
+from app.routes.predictions import get_prediction
 
 
 class TestGetPredictions:
@@ -24,11 +24,14 @@ class TestGetPredictions:
 
         with patch("app.routes.predictions.PredictionService") as mock_service_class:
             mock_service = Mock()
-            mock_service.get_predictions = AsyncMock(return_value=expected_response)
+            mock_service.get_prediction_for_model = AsyncMock(
+                return_value=expected_response
+            )
             mock_service_class.return_value = mock_service
 
-            result = await get_predictions(
+            result = await get_prediction(
                 "f2_to_f1",
+                "LightGBM",
                 mock_app_state,
                 mock_data_service,
             )
@@ -44,22 +47,38 @@ class TestGetPredictions:
             )
 
             # Async method was awaited
-            mock_service.get_predictions.assert_awaited_once()
+            mock_service.get_prediction_for_model.assert_awaited_once_with("LightGBM")
 
     @pytest.mark.asyncio
-    async def test_prediction_service_exception(
-        self,
-        mock_app_state,
-        mock_data_service,
-    ):
-        """Test exceptions are handled properly."""
+    async def test_value_error_raises_404(self, mock_app_state, mock_data_service):
         with patch("app.routes.predictions.PredictionService") as mock_service_class:
             mock_service = Mock()
-            mock_service.get_predictions = AsyncMock(side_effect=Exception("boom"))
+            mock_service.get_prediction_for_model = AsyncMock(
+                side_effect=ValueError("Model X not available for series f2_to_f1")
+            )
             mock_service_class.return_value = mock_service
 
             with pytest.raises(HTTPException) as exc_info:
-                await get_predictions("f2_to_f1", mock_app_state, mock_data_service)
+                await get_prediction("f2_to_f1", "X", mock_app_state, mock_data_service)
+
+            assert exc_info.value.status_code == 404
+            assert "not available" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_unexpected_exception_raises_500(
+        self, mock_app_state, mock_data_service
+    ):
+        with patch("app.routes.predictions.PredictionService") as mock_service_class:
+            mock_service = Mock()
+            mock_service.get_prediction_for_model = AsyncMock(
+                side_effect=Exception("boom")
+            )
+            mock_service_class.return_value = mock_service
+
+            with pytest.raises(HTTPException) as exc_info:
+                await get_prediction(
+                    "f2_to_f1", "LightGBM", mock_app_state, mock_data_service
+                )
 
             assert exc_info.value.status_code == 500
             assert exc_info.value.detail == "boom"

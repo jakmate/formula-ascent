@@ -5,7 +5,7 @@ updates:
   - package-ecosystem: "uv"
     directory: "/backend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase-if-necessary
 
     open-pull-requests-limit: 5
@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase-if-necessary
 
     open-pull-requests-limit: 5
