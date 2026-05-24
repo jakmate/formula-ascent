@@ -60,10 +60,8 @@ ignore = [
   "FBT002", "FBT003",
   "EM102", "EM101",
   "BLE001",
-  "DTZ001", "DTZ005", "DTZ007",
   "T201",
   "C901",
-  "PLW0603",
   "D203", # causes incompatbility warning
   "D213", # causes incompatbility warning
   "COM812" # conflicts with formatter

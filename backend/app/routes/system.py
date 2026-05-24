@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends
@@ -19,7 +19,7 @@ async def refresh_data(
     background_tasks.add_task(cronjob_service.scrape_and_train_task)
     return RefreshResponse(
         message="Data refresh and training started in background",
-        estimated_completion=datetime.now() + timedelta(minutes=2),
+        estimated_completion=datetime.now(UTC) + timedelta(minutes=2),
     )
 
 
@@ -32,7 +32,7 @@ async def refresh_predictions(
     background_tasks.add_task(cronjob_service.scrape_predictions)
     return RefreshResponse(
         message="Predictions refresh and training started in background",
-        estimated_completion=datetime.now() + timedelta(minutes=1),
+        estimated_completion=datetime.now(UTC) + timedelta(minutes=1),
     )
 
 
@@ -45,5 +45,5 @@ async def refresh_schedule(
     background_tasks.add_task(cronjob_service.scrape_schedule)
     return RefreshResponse(
         message="Schedule refresh started in background",
-        estimated_completion=datetime.now() + timedelta(minutes=1),
+        estimated_completion=datetime.now(UTC) + timedelta(minutes=1),
     )

@@ -47,7 +47,10 @@ def test_map_url_2023_plus():
 
 # find_championship_table tests
 def test_find_championship_table_found():
-    html = '<h3 id="World_Drivers\'_Championship_standings"></h3><table class="wikitable"></table>'
+    html = (
+        '<h3 id="World_Drivers\'_Championship_standings"></h3>'
+        '<table class="wikitable"></table>'
+    )
     soup = make_soup(html)
     table, error = find_championship_table(soup, "Drivers'", 1, 2020)
     assert table is not None
@@ -220,7 +223,7 @@ def test_process_table_row_rowspan_and_missing_points():
     r1 = make_soup('<td rowspan="2">1</td>').find("td")
     r2 = make_soup('<td rowspan="2">Team A</td>').find("td")
     race_cell = make_soup("<td>R</td>").find("td")
-    # only three cells in this row; points missing -> should go into missing-points branch
+    # only three cells in this row; points missing go into missing-points branch
     cells = [r1, r2, race_cell]
     headers = [
         "Pos",
@@ -312,7 +315,8 @@ def test_process_table_row_kimi_antonelli():
 def test_write_championship_csv_rowspan_across_rows():
     headers = ["Pos", "Driver", "Race1", "Points"]
     row1 = make_soup(
-        "<tr><td rowspan='2'>1</td><td rowspan='2'>Driver A</td><td>R1</td><td rowspan='2'>50</td></tr>"
+        "<tr><td rowspan='2'>1</td><td rowspan='2'>Driver A</td>"
+        "<td>R1</td><td rowspan='2'>50</td></tr>"
     ).find("tr")
     row2 = make_soup("<tr><td>DNF</td></tr>").find("tr")
 

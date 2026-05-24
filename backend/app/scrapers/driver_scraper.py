@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -227,7 +227,7 @@ def scrape_drivers(session=None):
                         "wikidata_id": result["person"]["value"].split("/")[-1],
                         "wikidata_url": result["person"]["value"],
                         "scraped": True,
-                        "scraped_date": datetime.now().isoformat(),
+                        "scraped_date": datetime.now(UTC).isoformat(),
                     }
 
                 profile_file = PROFILES_DIR / get_driver_filename(driver)
@@ -263,7 +263,7 @@ def scrape_drivers(session=None):
                         "wikidata_id": result["person"]["value"].split("/")[-1],
                         "wikidata_url": result["person"]["value"],
                         "scraped": True,
-                        "scraped_date": datetime.now().isoformat(),
+                        "scraped_date": datetime.now(UTC).isoformat(),
                     }
                     save_profile(profile_file, profile)
                     updated_count += 1

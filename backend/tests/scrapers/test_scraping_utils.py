@@ -21,8 +21,8 @@ class TestCreateSession:
         assert "User-Agent" in headers
         assert "Mozilla/5.0" in headers["User-Agent"]
         assert (
-            headers["Accept"]
-            == "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            headers["Accept"] == "text/html,application/xhtml+xml,"
+            "application/xml;q=0.9,image/webp,*/*;q=0.8"
         )
         assert headers["Accept-Language"] == "en-US,en;q=0.5"
         assert headers["Accept-Encoding"] == "gzip, deflate"

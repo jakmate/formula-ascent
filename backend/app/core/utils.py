@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -54,8 +54,8 @@ def calculate_age(df):
                     ages.append(np.nan)
                     continue
 
-                dob = datetime.strptime(str(row["dob"]), "%Y-%m-%d")
-                season_start = datetime(int(row["year"]), 1, 1)
+                dob = datetime.strptime(str(row["dob"]), "%Y-%m-%d").replace(tzinfo=UTC)
+                season_start = datetime(int(row["year"]), 1, 1, tzinfo=UTC)
                 age = round((season_start - dob).days / 365.25, 1)
                 ages.append(age)
             except (ValueError, TypeError):

@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 import torch
@@ -49,7 +49,7 @@ class PredictionService:
             self.prediction_cache[cache_key] = {
                 "current_df": current_df,
                 "x_current": x_current,
-                "timestamp": datetime.now(),
+                "timestamp": datetime.now(UTC),
             }
             LOGGER.info(f"Feature preparation took {time.time() - data_start:.2f}s")
         else:
@@ -179,7 +179,7 @@ class PredictionService:
                             "model": model_name,
                             "series": self.series,
                             "predictions": result,
-                            "timestamp": datetime.now(),
+                            "timestamp": datetime.now(UTC),
                         },
                     )
                 except Exception as e:

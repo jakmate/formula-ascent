@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
@@ -162,7 +162,7 @@ class ModelService:
         self.app_state.feature_cols[self.series] = feature_cols
         self.app_state.scaler[self.series] = scaler
 
-        self.app_state.system_status["last_training"] = datetime.now()
+        self.app_state.system_status["last_training"] = datetime.now(UTC)
         self.app_state.system_status["last_trained_season"] = trainable_df["year"].max()
 
         # Update available models for this series

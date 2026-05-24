@@ -1,72 +1,22 @@
-from app.config import LOGGER
-from app.core.state import AppState
-from app.services.cronjobs_service import CronjobService
-from app.services.data_service import DataService
-from app.services.model_service import ModelService
+from fastapi import Request
 
-# Global application state
-app_state: AppState | None = None
-model_service: ModelService | None = None
-data_service: DataService | None = None
-cronjob_service: CronjobService | None = None
-
-# Global data cache
-data_cache = {}
+from backend.app.core.state import AppState
+from backend.app.services.cronjobs_service import CronjobService
+from backend.app.services.data_service import DataService
+from backend.app.services.model_service import ModelService
 
 
-async def initialize_app_state():
-    """Initialize application state and services."""
-    global app_state, model_service, data_service, cronjob_service
-
-    # Initialize state
-    app_state = AppState()
-    app_state.load_state()
-
-    # Initialize services
-    model_service = ModelService(app_state)
-    data_service = DataService(app_state, data_cache)
-    cronjob_service = CronjobService(app_state, model_service, data_service)
-
-    # Try to load pre-trained models
-    if not await model_service.load_models():
-        LOGGER.info("No models found. Initializing system...")
-        await data_service.initialize_system()
-
-    # Start cronjob
-    await cronjob_service.start()
+def get_app_state(request: Request) -> AppState:
+    return request.app.state.app_state
 
 
-async def cleanup_app_state():
-    """Clean up application state and services."""
-    if cronjob_service:
-        await cronjob_service.stop()
-    if app_state:
-        app_state.save_state()
+def get_model_service(request: Request) -> ModelService:
+    return request.app.state.model_service
 
 
-def get_app_state() -> AppState:
-    """Get application state dependency."""
-    if app_state is None:
-        raise RuntimeError("Application state not initialized")
-    return app_state
+def get_data_service(request: Request) -> DataService:
+    return request.app.state.data_service
 
 
-def get_model_service() -> ModelService:
-    """Get model service dependency."""
-    if model_service is None:
-        raise RuntimeError("Model service not initialized")
-    return model_service
-
-
-def get_data_service() -> DataService:
-    """Get data service dependency."""
-    if data_service is None:
-        raise RuntimeError("Data service not initialized")
-    return data_service
-
-
-def get_cronjob_service() -> CronjobService:
-    """Get cronjob service dependency."""
-    if cronjob_service is None:
-        raise RuntimeError("Cronjob service not initialized")
-    return cronjob_service
+def get_cronjob_service(request: Request) -> CronjobService:
+    return request.app.state.cronjob_service

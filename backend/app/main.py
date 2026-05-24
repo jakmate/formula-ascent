@@ -6,24 +6,41 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import LOGGER
-from app.dependencies import cleanup_app_state, initialize_app_state
 from app.routes.router import api_router
+from backend.app.core.state import AppState
+from backend.app.services.cronjobs_service import CronjobService
+from backend.app.services.data_service import DataService
+from backend.app.services.model_service import ModelService
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     """Application startup and shutdown handling."""
-    try:
-        LOGGER.info("Starting application...")
+    LOGGER.info("Starting application...")
 
-        # Initialize application state
-        await initialize_app_state()
+    app.state.app_state = AppState()
+    app.state.app_state.load_state()
 
-        yield
-    finally:
-        LOGGER.info("Shutting down application...")
-        await cleanup_app_state()
-        LOGGER.info("Application shutdown complete")
+    app.state.model_service = ModelService(app.state.app_state)
+    app.state.data_service = DataService(app.state.app_state, {})
+    app.state.cronjob_service = CronjobService(
+        app.state.app_state,
+        app.state.model_service,
+        app.state.data_service,
+    )
+
+    if not await app.state.model_service.load_models():
+        LOGGER.info("No models found. Initializing system...")
+        await app.state.data_service.initialize_system()
+
+    await app.state.cronjob_service.start()
+
+    yield
+
+    LOGGER.info("Shutting down application...")
+    await app.state.cronjob_service.stop()
+    app.state.app_state.save_state()
+    LOGGER.info("Application shutdown complete")
 
 
 def create_app() -> FastAPI:

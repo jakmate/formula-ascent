@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -56,7 +56,7 @@ class TestAppStateInit:
 class TestSaveState:
     def test_save_state_with_datetime_values(self):
         state = AppState()
-        test_time = datetime(2024, 1, 1, 12, 0, 0)
+        test_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
         state.system_status["last_scrape_full"] = test_time
         state.system_status["last_scrape_predictions"] = test_time
@@ -78,7 +78,7 @@ class TestSaveState:
         written_data = "".join(call.args[0] for call in handle.write.call_args_list)
         saved_data = json.loads(written_data)
 
-        assert saved_data["last_scrape_full"] == "2024-01-01T12:00:00"
+        assert saved_data["last_scrape_full"] == "2024-01-01T12:00:00+00:00"
         assert saved_data["last_trained_season"] == "2024"
 
     def test_save_state_with_none_values(self):
@@ -114,8 +114,12 @@ class TestLoadState:
             result = state.load_state()
 
         assert result is True
-        assert state.system_status["last_scrape_full"] == datetime(2024, 1, 1, 12, 0, 0)
-        assert state.system_status["last_training"] == datetime(2024, 1, 1, 13, 0, 0)
+        assert state.system_status["last_scrape_full"] == datetime(
+            2024, 1, 1, 12, 0, 0, tzinfo=UTC
+        )
+        assert state.system_status["last_training"] == datetime(
+            2024, 1, 1, 13, 0, 0, tzinfo=UTC
+        )
         assert state.system_status["models_available"] == {
             "f3_to_f2": ["f3_to_f2_model1"],
             "f2_to_f1": ["f2_to_f1_model2"],
@@ -145,7 +149,7 @@ class TestLoadState:
         assert result is True
         assert state.system_status["last_scrape_full"] is None
 
-    def test_load_state_json_decode_error(self, tmp_path):
+    def test_load_state_json_decode_error(self):
         state = AppState()
         mock_path = self._make_mock_path(read_data="invalid json")
         with (
@@ -173,8 +177,8 @@ class TestLoadState:
     def test_load_state_datetime_parsing(self):
         state = AppState()
         state_data = {
-            "last_scrape_full": "2024-06-15T14:30:45",
-            "last_training": "2024-06-15T15:45:30",
+            "last_scrape_full": "2024-06-15T14:30:45+00:00",
+            "last_training": "2024-06-15T15:45:30+00:00",
             "last_trained_season": "2024",
             "models_available": [],
         }
@@ -184,7 +188,7 @@ class TestLoadState:
 
         assert result is True
         assert state.system_status["last_scrape_full"] == datetime(
-            2024, 6, 15, 14, 30, 45
+            2024, 6, 15, 14, 30, 45, tzinfo=UTC
         )
 
     def test_load_state_adds_missing_models_available_keys(self):
@@ -219,7 +223,7 @@ class TestStateIntegration:
 
     def test_save_load_roundtrip(self):
         state1 = AppState()
-        test_time = datetime(2024, 1, 1, 12, 0, 0)
+        test_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
         state1.system_status["last_scrape_full"] = test_time
         state1.system_status["last_training"] = test_time
         state1.system_status["last_trained_season"] = "2024"

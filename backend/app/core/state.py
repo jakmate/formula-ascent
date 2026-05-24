@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -60,12 +60,14 @@ class AppState:
                     state = json.load(f)
 
                 self.system_status["last_scrape_full"] = (
-                    datetime.fromisoformat(state["last_scrape_full"])
+                    datetime.fromisoformat(state["last_scrape_full"]).replace(
+                        tzinfo=UTC
+                    )
                     if state.get("last_scrape_full")
                     else None
                 )
                 self.system_status["last_training"] = (
-                    datetime.fromisoformat(state["last_training"])
+                    datetime.fromisoformat(state["last_training"]).replace(tzinfo=UTC)
                     if state["last_training"]
                     else None
                 )

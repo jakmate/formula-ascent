@@ -1,23 +1,23 @@
 Pos,Driver,ALB SR,ALB FR,MIA FR,MIA SR,MTL SR,MTL FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR,RBR SR,SIL SR,SIL FR,SPA FR,SPA SR,HUN SR,HUN FR,MNZ FR,MNZ SR,MAD SR,MAD FR,BAK FR,BAK SR,LUS SR,LUS FR,YAS FR,YAS SR,Points
-1,Nikola Tsolov,17,1,1,Ret,,,,,,,,,,,,,,,,,,,,,,,,,35
-2,Gabriele Minì,6,8,7,1,,,,,,,,,,,,,,,,,,,,,,,,,34
-3,Rafael Câmara,11,2,10,3,,,,,,,,,,,,,,,,,,,,,,,,,34
-4,Laurens van Hoepen,7,3,2,11,,,,,,,,,,,,,,,,,,,,,,,,,26
-5,Ritomo Miyata,5,5,12,6,,,,,,,,,,,,,,,,,,,,,,,,,22
-6,Noel León,2,14,9,4,,,,,,,,,,,,,,,,,,,,,,,,,21
-7,Dino Beganovic,20,Ret,8,2,,,,,,,,,,,,,,,,,,,,,,,,,21
-8,Joshua Dürksen,1,10,5,10,,,,,,,,,,,,,,,,,,,,,,,,,16
-9,Tasanapol Inthraphuvasak,4,6,Ret,15,,,,,,,,,,,,,,,,,,,,,,,,,13
-10,Alex Dunne,3,Ret,3,Ret,,,,,,,,,,,,,,,,,,,,,,,,,12
-11,Oliver Goethe,18,4,11,Ret,,,,,,,,,,,,,,,,,,,,,,,,,12
-12,Kush Maini,12,16,Ret,5,,,,,,,,,,,,,,,,,,,,,,,,,12
-13,Colton Herta,16,7,15,8,,,,,,,,,,,,,,,,,,,,,,,,,10
-14,Mari Boya,Ret,13,17,7,,,,,,,,,,,,,,,,,,,,,,,,,6
-15,Nico Varrone,21,17,4,13,,,,,,,,,,,,,,,,,,,,,,,,,5
-16,Martinius Stenshorne,10,Ret,6,Ret,,,,,,,,,,,,,,,,,,,,,,,,,4
-17,Sebastián Montoya,9,9,16,9,,,,,,,,,,,,,,,,,,,,,,,,,4
-18,Roman Bilinski,8,12,14,DNS,,,,,,,,,,,,,,,,,,,,,,,,,1
-19,Rafael Villagómez,13,11,Ret,Ret,,,,,,,,,,,,,,,,,,,,,,,,,0
-20,Emerson Fittipaldi Jr.,14,15,Ret,12,,,,,,,,,,,,,,,,,,,,,,,,,0
-21,John Bennett,15,18,13,14,,,,,,,,,,,,,,,,,,,,,,,,,0
-22,Cian Shields,19,19,18,Ret,,,,,,,,,,,,,,,,,,,,,,,,,0
+1,Gabriele Minì,6,8,7,1,2,,,,,,,,,,,,,,,,,,,,,,,,42
+2,Rafael Câmara,11,2,10,3,7,,,,,,,,,,,,,,,,,,,,,,,,36
+3,Nikola Tsolov,17,1,1,Ret,14,,,,,,,,,,,,,,,,,,,,,,,,35
+4,Laurens van Hoepen,7,3,2,11,4,,,,,,,,,,,,,,,,,,,,,,,,33
+5,Noel León,2,14,9,4,1,,,,,,,,,,,,,,,,,,,,,,,,32
+6,Dino Beganovic,20,Ret,8,2,6,,,,,,,,,,,,,,,,,,,,,,,,24
+7,Ritomo Miyata,5,5,12,6,11,,,,,,,,,,,,,,,,,,,,,,,,22
+8,Joshua Dürksen,1,10,5,10,Ret,,,,,,,,,,,,,,,,,,,,,,,,16
+9,Tasanapol Inthraphuvasak,4,6,Ret,15,WD,WD,,,,,,,,,,,,,,,,,,,,,,,13
+10,Alex Dunne,3,Ret,3,Ret,13,,,,,,,,,,,,,,,,,,,,,,,,12
+11,Oliver Goethe,18,4,11,Ret,10,,,,,,,,,,,,,,,,,,,,,,,,12
+12,Kush Maini,12,16,Ret,5,12,,,,,,,,,,,,,,,,,,,,,,,,12
+13,Martinius Stenshorne,10,Ret,6,Ret,3,,,,,,,,,,,,,,,,,,,,,,,,10
+14,Colton Herta,16,7,15,8,9,,,,,,,,,,,,,,,,,,,,,,,,10
+15,Mari Boya,Ret,13,17,7,15,,,,,,,,,,,,,,,,,,,,,,,,6
+16,Nico Varrone,21,17,4,13,16,,,,,,,,,,,,,,,,,,,,,,,,5
+17,Emerson Fittipaldi Jr.,14,15,Ret,12,5,,,,,,,,,,,,,,,,,,,,,,,,4
+18,Sebastián Montoya,9,9,16,9,17,,,,,,,,,,,,,,,,,,,,,,,,4
+19,Roman Bilinski,8,12,14,DNS,8,,,,,,,,,,,,,,,,,,,,,,,,2
+20,Rafael Villagómez,13,11,Ret,Ret,Ret,,,,,,,,,,,,,,,,,,,,,,,,0
+21,John Bennett,15,18,13,14,Ret,,,,,,,,,,,,,,,,,,,,,,,,0
+22,Cian Shields,19,19,18,Ret,Ret,,,,,,,,,,,,,,,,,,,,,,,,0
