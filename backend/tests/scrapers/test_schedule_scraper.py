@@ -63,7 +63,7 @@ class TestGetTimezoneForLocation:
 # Tests for format_utc_datetime
 class TestFormatUtcDatetime:
     def test_format_utc_datetime(self):
-        dt = datetime(2025, 3, 15, 14, 30, 0)
+        dt = datetime(2025, 3, 15, 14, 30, 0, tzinfo=UTC)
         result = format_utc_datetime(dt)
         assert result == "2025-03-15T14:30:00"
 
@@ -98,30 +98,30 @@ class TestIsRaceCompletedOrOngoing:
 # Tests for parse_time_to_datetime
 class TestParseTimeToDatetime:
     def test_tbc_time_no_day(self):
-        base_date = datetime(2025, 3, 15)
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)
         result = parse_time_to_datetime("TBC", base_date)
         assert result == {"start": "2025-03-15", "time": "TBC"}
 
     def test_tbc_time_with_day(self):
-        base_date = datetime(2025, 3, 15)  # Saturday
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)  # Saturday
         result = parse_time_to_datetime("TBC", base_date, day_name="Friday")
         assert result["start"] == "2025-03-14"
         assert result["time"] == "TBC"
 
     def test_single_time(self):
-        base_date = datetime(2025, 3, 15)
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)
         result = parse_time_to_datetime("14:30", base_date, location="Monaco")
         assert "start" in result
         assert "2025-03-15" in result["start"]
 
     def test_time_range(self):
-        base_date = datetime(2025, 3, 15)
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)
         result = parse_time_to_datetime("14:30-15:30", base_date, location="Monaco")
         assert "start" in result
         assert "end" in result
 
     def test_time_with_day_name_adjustment(self):
-        base_date = datetime(2025, 3, 15)  # Saturday
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)  # Saturday
         result = parse_time_to_datetime(
             "10:00",
             base_date,
@@ -132,18 +132,18 @@ class TestParseTimeToDatetime:
         assert "2025-03-14" in result["start"]
 
     def test_invalid_time_format(self):
-        base_date = datetime(2025, 3, 15)
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)
         result = parse_time_to_datetime("invalid", base_date)
         assert result is None
 
     def test_none_time(self):
-        base_date = datetime(2025, 3, 15)
+        base_date = datetime(2025, 3, 15, tzinfo=UTC)
         result = parse_time_to_datetime(None, base_date)
         assert result is None
 
     def test_day_name_adjustment_backward(self):
         # Base date is Monday (0)
-        base_date = datetime(2025, 3, 17)  # Monday
+        base_date = datetime(2025, 3, 17, tzinfo=UTC)  # Monday
         day_name = "Friday"  # 4
         time_str = "10:00"
 
@@ -155,7 +155,7 @@ class TestParseTimeToDatetime:
 
     def test_tbc_day_name_adjustment_backward(self):
         # Base date is Monday (0)
-        base_date = datetime(2025, 3, 17)  # Monday
+        base_date = datetime(2025, 3, 17, tzinfo=UTC)  # Monday
         day_name = "Friday"  # 4
         time_str = "TBC"
 
@@ -178,7 +178,8 @@ class TestScrapeF1Schedule:
             <span class="typography-module_display-xl-bold__Gyl5W">Sakhir</span>
             <span class="typography-module_body-xs-semibold__Fyfwn">
             FORMULA 1 BAHRAIN GRAND PRIX 2025</span>
-            <span class="typography-module_technical-xs-regular__-W0Gs">28 Feb - 02 Mar</span>
+            <span class="typography-module_technical-xs-regular__-W0Gs">
+            28 Feb - 02 Mar</span>
         </a>
         """
         mock_session.get.return_value = mock_response

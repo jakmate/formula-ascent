@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -40,9 +40,9 @@ class CronjobService:
         try:
             LOGGER.info("Starting data scraping task...")
             await asyncio.get_event_loop().run_in_executor(None, scrape_current_year)
-            self.app_state.system_status["last_scrape_full"] = datetime.now()
-            self.app_state.system_status["last_scrape_predictions"] = datetime.now()
-            self.app_state.system_status["last_scrape_schedule"] = datetime.now()
+            self.app_state.system_status["last_scrape_full"] = datetime.now(UTC)
+            self.app_state.system_status["last_scrape_predictions"] = datetime.now(UTC)
+            self.app_state.system_status["last_scrape_schedule"] = datetime.now(UTC)
             LOGGER.info("Data scraping completed")
 
             if (
@@ -73,7 +73,7 @@ class CronjobService:
 
     def _is_season_complete(self):
         """Check if current season is complete based on date."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         return now.month > SEASON_END_MONTH and now.year == CURRENT_YEAR
 
     async def scrape_predictions(self):
@@ -84,7 +84,7 @@ class CronjobService:
                 None,
                 lambda: scrape_wiki(start_year=CURRENT_YEAR),
             )
-            self.app_state.system_status["last_scrape_predictions"] = datetime.now()
+            self.app_state.system_status["last_scrape_predictions"] = datetime.now(UTC)
             LOGGER.info("Predictions scraping completed")
 
             # Update predictions without training
@@ -105,7 +105,7 @@ class CronjobService:
         try:
             LOGGER.info("Starting schedule scraping task...")
             await asyncio.get_event_loop().run_in_executor(None, scrape_schedules)
-            self.app_state.system_status["last_scrape_schedule"] = datetime.now()
+            self.app_state.system_status["last_scrape_schedule"] = datetime.now(UTC)
             LOGGER.info("Schedule scraping completed")
         except Exception as e:
             LOGGER.error(f"Schedule scrape task failed: {e}")

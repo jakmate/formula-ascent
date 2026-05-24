@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -26,7 +26,7 @@ class TestRefreshData:
     async def test_refresh_data_success(self, mock_cronjob_service, background_tasks):
         """Test successful data refresh trigger."""
         with patch("app.routes.system.datetime") as mock_datetime:
-            fixed_time = datetime(2024, 1, 1, 12, 0, 0)
+            fixed_time = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
             mock_datetime.now.return_value = fixed_time
 
             result = await refresh_data(
@@ -57,7 +57,7 @@ class TestRefreshPredictions:
         mock_cronjob_service,
         background_tasks,
     ):
-        fixed_time = datetime(2025, 1, 1, 12, 0, 0)
+        fixed_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
 
@@ -92,7 +92,7 @@ class TestRefreshSchedule:
         mock_cronjob_service,
         background_tasks,
     ):
-        fixed_time = datetime(2025, 6, 1, 9, 30, 0)
+        fixed_time = datetime(2025, 6, 1, 9, 30, 0, tzinfo=UTC)
         with patch("app.routes.system.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_time
 

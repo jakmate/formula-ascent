@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response, status
@@ -30,7 +30,7 @@ async def health_check(app_state: Annotated[AppState, Depends(get_app_state)]):
 
     return HealthResponse(
         status="healthy",
-        timestamp=datetime.now(),
+        timestamp=datetime.now(UTC),
         models_loaded=models_loaded,
         last_training=app_state.system_status.get("last_training"),
     )

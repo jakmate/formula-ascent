@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -155,10 +155,10 @@ def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
         start_time = end_time = None
         if "-" in time_str:
             start_str, end_str = time_str.split("-", 1)
-            start_time = datetime.strptime(start_str.strip(), "%H:%M").time()
-            end_time = datetime.strptime(end_str.strip(), "%H:%M").time()
+            start_time = time.fromisoformat(start_str.strip())
+            end_time = time.fromisoformat(end_str.strip())
         else:
-            start_time = datetime.strptime(time_str.strip(), "%H:%M").time()
+            start_time = time.fromisoformat(time_str.strip())
 
         # Start with base date
         result_date = base_date.date()
@@ -255,12 +255,12 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                     date_obj = datetime.strptime(
                         f"{last_date} {CURRENT_YEAR}",
                         "%d %b %Y",
-                    )
+                    ).replace(tzinfo=UTC)
                 else:
                     date_obj = datetime.strptime(
                         f"{date_str} {CURRENT_YEAR}",
                         "%d %b %Y",
-                    )
+                    ).replace(tzinfo=UTC)
 
                 # Get race URL
                 race_url = card.get("href")
@@ -293,7 +293,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 session_date = datetime.strptime(
                                     f"{day} {month} {CURRENT_YEAR}",
                                     "%d %b %Y",
-                                )
+                                ).replace(tzinfo=UTC)
                             else:
                                 # Fallback to race's main date if not session date
                                 session_date = date_obj
@@ -328,14 +328,8 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                                 # Handle time range (e.g., "09:30 - 10:30")
                                 start_str, end_str = time_str.split("-", 1)
                                 try:
-                                    start_time = datetime.strptime(
-                                        start_str.strip(),
-                                        "%H:%M",
-                                    ).time()
-                                    end_time = datetime.strptime(
-                                        end_str.strip(),
-                                        "%H:%M",
-                                    ).time()
+                                    start_time = time.fromisoformat(start_str.strip())
+                                    end_time = time.fromisoformat(end_str.strip())
 
                                     start_dt = datetime.combine(
                                         session_date.date(),
@@ -359,10 +353,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                             elif time_str:
                                 # Handle single time (e.g., Race start time "12:00")
                                 try:
-                                    start_time = datetime.strptime(
-                                        time_str.strip(),
-                                        "%H:%M",
-                                    ).time()
+                                    start_time = time.fromisoformat(time_str.strip())
                                     start_dt = datetime.combine(
                                         session_date.date(),
                                         start_time,
@@ -481,7 +472,10 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                     month = date_p.select_one(".month").text.strip()
                     date_str = f"{end_date} {month} {CURRENT_YEAR}"
 
-                    race_date = datetime.strptime(date_str, "%d %B %Y")
+                    race_date = datetime.strptime(
+                        date_str,
+                        "%d %B %Y",
+                    ).replace(tzinfo=UTC)
                 else:
                     continue
 

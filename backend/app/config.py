@@ -1,8 +1,8 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
-CURRENT_YEAR = datetime.now().year
+CURRENT_YEAR = datetime.now(UTC).year
 SEASON_END_MONTH = 12
 SEED = 69
 NOT_PARTICIPATED_CODES = ["nan", "DNS", "WD", "DNQ", "DNA", "C", "EX"]

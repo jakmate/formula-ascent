@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import numpy as np
@@ -23,8 +23,8 @@ def mock_app_state():
     }
     state.scaler = {"f3_to_f2": Mock()}
     state.system_status = {
-        "last_scrape": datetime(2024, 10, 1, 12, 0, 0),
-        "last_training": datetime(2024, 10, 1, 10, 0, 0),
+        "last_scrape": datetime(2024, 10, 1, 12, 0, 0, tzinfo=UTC),
+        "last_training": datetime(2024, 10, 1, 10, 0, 0, tzinfo=UTC),
         "models_available": {"f3_to_f2": ["RandomForest", "PyTorch"]},
         "data_health": {"f3_to_f2": {"records": 1000, "missing": 0}},
     }

@@ -157,10 +157,12 @@ class TestExtractQualiTableData:
                 <th>Pos</th><th>No</th><th>Name</th><th>Constructor</th><th>Time/Gap</th><th>Grid</th>
             </tr>
             <tr>
-                <td>1</td><td>1</td><td>Driver 1</td><td>Team 1</td><td>1:19.429</td><td>1</td>
+                <td>1</td><td>1</td><td>Driver 1</td>
+                <td>Team 1</td><td>1:19.429</td><td>1</td>
             </tr>
             <tr>
-                <td>2</td><td>2</td><td>Driver 2</td><td>Team 2</td><td>+0.016</td><td>2</td>
+                <td>2</td><td>2</td><td>Driver 2</td>
+                <td>Team 2</td><td>+0.016</td><td>2</td>
             </tr>
         </table>
         """
@@ -178,7 +180,8 @@ class TestExtractQualiTableData:
                 <th>Pos</th><th>No</th><th>Name</th><th>Constructor</th><th>Time</th><th>Grid</th>
             </tr>
             <tr>
-                <td>1</td><td>1</td><td>Driver 1</td><td>Team 1</td><td>1.19.429</td><td>1</td>
+                <td>1</td><td>1</td><td>Driver 1</td>
+                <td>Team 1</td><td>1.19.429</td><td>1</td>
             </tr>
         </table>
         """

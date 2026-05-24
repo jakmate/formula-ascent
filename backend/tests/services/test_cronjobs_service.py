@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -69,8 +69,8 @@ class TestScrapeAndTrainTask:
     @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.datetime")
     async def test_with_no_training(self, mock_datetime, mock_scrape, cronjobs_service):
-        # Mock datetime.now()
-        mock_now = datetime(2023, 6, 15)
+        # Mock datetime.now(UTC)
+        mock_now = datetime(2023, 6, 15, tzinfo=UTC)
         mock_datetime.now.return_value = mock_now
 
         # Mock season not complete
@@ -165,7 +165,7 @@ class TestIsSeasonCompleteTrue:
     @patch("app.services.cronjobs_service.SEASON_END_MONTH", 11)
     def test_true(self, cronjobs_service):
         with patch("app.services.cronjobs_service.datetime") as mock_datetime:
-            mock_datetime.now.return_value = datetime(2023, 12, 15)
+            mock_datetime.now.return_value = datetime(2023, 12, 15, tzinfo=UTC)
 
             result = cronjobs_service._is_season_complete()
             assert result is True
@@ -174,7 +174,7 @@ class TestIsSeasonCompleteTrue:
     @patch("app.services.cronjobs_service.SEASON_END_MONTH", 11)
     def test_false_early_month(self, cronjobs_service):
         with patch("app.services.cronjobs_service.datetime") as mock_datetime:
-            mock_datetime.now.return_value = datetime(2023, 9, 15)
+            mock_datetime.now.return_value = datetime(2023, 9, 15, tzinfo=UTC)
 
             result = cronjobs_service._is_season_complete()
             assert result is False
@@ -183,7 +183,7 @@ class TestIsSeasonCompleteTrue:
     @patch("app.services.cronjobs_service.SEASON_END_MONTH", 11)
     def test_false_wrong_year(self, cronjobs_service):
         with patch("app.services.cronjobs_service.datetime") as mock_datetime:
-            mock_datetime.now.return_value = datetime(2024, 12, 15)
+            mock_datetime.now.return_value = datetime(2024, 12, 15, tzinfo=UTC)
 
             result = cronjobs_service._is_season_complete()
             assert result is False
@@ -195,7 +195,7 @@ class TestScrapePredictions:
     @patch("app.services.cronjobs_service.CURRENT_YEAR", 2024)
     @patch("app.services.cronjobs_service.datetime")
     async def test_success(self, mock_datetime, mock_scrape_wiki, cronjobs_service):
-        mock_now = datetime(2024, 6, 15)
+        mock_now = datetime(2024, 6, 15, tzinfo=UTC)
         mock_datetime.now.return_value = mock_now
 
         with patch("app.services.cronjobs_service.PredictionService") as mock_ps_class:
@@ -238,7 +238,7 @@ class TestScrapeSchedule:
         mock_scrape_schedules,
         cronjobs_service,
     ):
-        mock_now = datetime(2024, 6, 15)
+        mock_now = datetime(2024, 6, 15, tzinfo=UTC)
         mock_datetime.now.return_value = mock_now
 
         await cronjobs_service.scrape_schedule()
