@@ -44,6 +44,8 @@ TRACK_TIMEZONES = {
 TRACK_COUNTRIES = {
     "Sakhir": "Bahrain",
     "Barcelona": "Spain",
+    "Barcelona-Catalunya": "Spain",
+    "Madrid": "Spain",
     "Imola": "Italy",
     "Monaco": "Monaco",
     "Spielberg": "Austria",
@@ -61,6 +63,7 @@ TRACK_COUNTRIES = {
     "Miami": "United States",
     "Emilia-Romagna": "Italy",
     "Abu Dhabi": "United Arab Emirates",
+    "Montr\u00e9al": "Canada",
 }
 SESSION_MAPPING = {
     "practice 1": "fp1",

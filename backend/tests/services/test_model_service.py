@@ -60,11 +60,7 @@ class TestSaveModels:
         await model_service.save_models()
 
         # Verify directory creation
-        mock_makedirs.assert_called_once()
-        call_args = mock_makedirs.call_args[0][0]  # Get the first positional argument
-        assert str(call_args).endswith(
-            "f3_to_f2"
-        )  # Verify it ends with the series name
+        mock_makedirs.assert_called_once_with(parents=True, exist_ok=True)
 
         # Verify sklearn model save and preprocessor save
         assert mock_joblib_dump.call_count == 2  # ml model + preprocessor
@@ -93,11 +89,7 @@ class TestSaveModels:
         await model_service.save_models()
 
         # Verify directory creation
-        mock_makedirs.assert_called_once()
-        call_args = mock_makedirs.call_args[0][0]  # Get the first positional argument
-        assert str(call_args).endswith(
-            "f3_to_f2"
-        )  # Verify it ends with the series name
+        mock_makedirs.assert_called_once_with(parents=True, exist_ok=True)
 
         # Verify PyTorch model save
         expected_path = Path("/") / "test" / "models" / "f3_to_f2" / "PyTorch.pt"
@@ -127,8 +119,7 @@ class TestSaveModels:
         with patch("app.services.model_service.MODELS_DIR", self.test_models_dir):
             await service.save_models()
 
-        mock_makedirs.assert_called_once()
-        assert "models" in str(mock_makedirs.call_args[0][0])
+        mock_makedirs.assert_called_once_with(parents=True, exist_ok=True)
         mock_logger.info.assert_called_with("Models saved successfully for all series")
 
     @patch("pathlib.Path.mkdir")

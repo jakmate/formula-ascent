@@ -27,14 +27,14 @@ class TestGetDriverFilename:
 
 class TestExtractNationalityFromResult:
     def test_with_nationality_label(self):
-        result = {"nationalityLabel": {"value": "United Kingdom"}}
+        result = {
+            "_all_nationalityLabels": {"United Kingdom"},
+            "_all_citizenshipLabels": set(),
+        }
         assert extract_nationality_from_result(result) == "United Kingdom"
 
     def test_with_citizenship_only(self):
-        result = {
-            "nationalityLabel": {"value": ""},
-            "citizenshipLabel": {"value": "France"},
-        }
+        result = {"_all_nationalityLabels": set(), "_all_citizenshipLabels": {"France"}}
         assert extract_nationality_from_result(result) == "France"
 
     def test_no_nationality_data(self):

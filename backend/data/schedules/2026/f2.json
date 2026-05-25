@@ -44,7 +44,7 @@
   {
     "round": 3,
     "name": "Montr\u00e9al",
-    "location": "Montr\u00e9al",
+    "location": "Canada",
     "sessions": {
       "practice": {
         "start": "2026-05-22T14:05:00",
@@ -228,7 +228,7 @@
   {
     "round": 11,
     "name": "Madrid",
-    "location": "Madrid",
+    "location": "Spain",
     "sessions": {
       "practice": {
         "start": "2026-09-11",

@@ -20,7 +20,7 @@ class ModelService:
         try:
             # Create series-specific directory
             series_dir = MODELS_DIR / self.series if self.series else MODELS_DIR
-            await asyncio.to_thread(Path.mkdir, series_dir, exist_ok=True)
+            await asyncio.to_thread(series_dir.mkdir, parents=True, exist_ok=True)
 
             models_to_save = (
                 self.app_state.models[self.series]
