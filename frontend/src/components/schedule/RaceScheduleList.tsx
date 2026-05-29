@@ -77,8 +77,6 @@ export const RaceScheduleList = ({
     }
   };
 
-  let nextUpcomingFound = false;
-
   if (!races || races.length === 0) {
     return (
       <div className="text-center text-white/70 py-8">
@@ -87,6 +85,11 @@ export const RaceScheduleList = ({
       </div>
     );
   }
+
+  const firstUpcomingIndex = races.findIndex((race) => {
+    const raceDate = race.sessions.race?.start;
+    return raceDate ? !isPastRace(raceDate) : false;
+  });
 
   return (
     <div className="space-y-2 mb-4">
@@ -100,9 +103,7 @@ export const RaceScheduleList = ({
           const raceDate = raceSession?.start;
           const isTBC = raceSession?.time === 'TBC';
           const past = raceDate ? isPastRace(raceDate) : false;
-          const isUpcoming = !past && !nextUpcomingFound;
-
-          if (isUpcoming) nextUpcomingFound = true;
+          const isUpcoming = index === firstUpcomingIndex;
 
           return (
             <div

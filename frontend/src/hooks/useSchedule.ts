@@ -107,7 +107,10 @@ export const useSchedule = () => {
 
   // Fetch when selectedSeries changes
   useEffect(() => {
-    fetchSchedule(selectedSeries);
+    const run = async () => {
+      await fetchSchedule(selectedSeries);
+    };
+    run();
   }, [selectedSeries, fetchSchedule]);
 
   // Update URL fragment when series changes

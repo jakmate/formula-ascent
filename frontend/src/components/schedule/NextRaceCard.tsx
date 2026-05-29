@@ -97,7 +97,8 @@ export const NextRaceCard = ({ nextRace, userTimezone }: NextRaceCardProps) => {
 
       updateCountdown();
     } else if (nextRace?.seasonCompleted) {
-      setCountdown('SEASON COMPLETED');
+      const apply = () => setCountdown('SEASON COMPLETED');
+      apply();
     }
   }, [currentTime, nextRace]);
 
