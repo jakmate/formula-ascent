@@ -120,7 +120,10 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
   // Fetch predictions when selectedModel or modelsList changes
   useEffect(() => {
     if (selectedModel && modelsList.includes(selectedModel)) {
-      fetchModelPredictions(series, selectedModel);
+      const run = async () => {
+        await fetchModelPredictions(series, selectedModel);
+      };
+      run();
     }
   }, [selectedModel, modelsList, series, fetchModelPredictions]);
 
