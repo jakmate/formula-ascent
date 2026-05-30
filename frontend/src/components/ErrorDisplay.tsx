@@ -3,7 +3,7 @@ interface ErrorDisplayProps {
 }
 
 export const ErrorDisplay = ({ error }: ErrorDisplayProps) => (
-  <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6 text-red-200 backdrop-blur-sm">
+  <div className="bg-[#151515] border-l-4 border-[#FF0033] p-4 mb-6 text-[#E0E0E0] font-mono">
     {error}
   </div>
 );

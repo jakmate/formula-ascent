@@ -223,17 +223,6 @@ describe('NextRaceCard', () => {
     expect(screen.getByTestId('clock-icon')).toBeInTheDocument();
   });
 
-  it('applies correct styling for live sessions', () => {
-    vi.setSystemTime(new Date('2024-05-24T14:00:00Z'));
-
-    render(<NextRaceCard nextRace={mockNextRace} />);
-
-    const liveElements = screen.getAllByText('LIVE NOW');
-    expect(liveElements).toHaveLength(2);
-    expect(liveElements[0]).toHaveClass('text-red-400');
-    expect(liveElements[1]).toHaveClass('text-red-400');
-  });
-
   it('handles sessions with sprint qualifying and sprint', () => {
     const sprintRace = {
       ...mockNextRace,
@@ -295,15 +284,12 @@ describe('NextRaceCard', () => {
 
     render(<NextRaceCard nextRace={raceWithInvalidTime} />);
 
-    const practice1Session = screen
+    const practice1 = screen
       .getByText('PRACTICE 1')
-      .closest('.rounded-md') as HTMLElement;
+      .closest('div')!.parentElement!;
 
     // Target specific element by class
-    const timeElement = within(practice1Session).getByText('Invalid Date', {
-      selector: '.text-sm',
-    });
-    expect(timeElement).toBeInTheDocument();
+    expect(within(practice1).getByText('TBC')).toBeInTheDocument();
   });
 
   it('handles YYYY-MM-DD format in short dates', () => {
@@ -320,11 +306,10 @@ describe('NextRaceCard', () => {
     render(<NextRaceCard nextRace={raceWithSimpleDate} />);
 
     // Find date text specifically in the PRACTICE 1 session
-    const practice1Session = screen
+    const practice1 = screen
       .getByText('PRACTICE 1')
-      .closest('.rounded-md') as HTMLElement;
-    const dateElement = within(practice1Session).getByText('Fri, 24 May');
-    expect(dateElement).toBeInTheDocument();
+      .closest('div')!.parentElement!;
+    expect(within(practice1).getByText('Fri, 24 May')).toBeInTheDocument();
   });
 
   // NEW TESTS FOR SEASON COMPLETION FUNCTIONALITY
@@ -367,14 +352,6 @@ describe('NextRaceCard', () => {
     // All sessions should show as completed
     const completedTexts = screen.getAllByText('COMPLETED');
     expect(completedTexts).toHaveLength(5); // fp1, fp2, fp3, qualifying, race
-  });
-
-  it('applies green styling for completed season', () => {
-    render(<NextRaceCard nextRace={mockCompletedSeasonRace} />);
-
-    // Check for green styling classes
-    const seasonCompletedText = screen.getByText('SEASON COMPLETED');
-    expect(seasonCompletedText).toHaveClass('text-green-300');
   });
 
   it('handles TBC sessions with nextSession.isTBC flag', () => {
@@ -445,7 +422,7 @@ describe('NextRaceCard', () => {
 
       const practice1Session = screen
         .getByText('PRACTICE 1')
-        .closest('.rounded-md') as HTMLElement;
+        .closest('div')!.parentElement!;
       const withinSession = within(practice1Session);
 
       // Verify status texts

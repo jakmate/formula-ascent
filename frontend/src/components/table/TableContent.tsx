@@ -12,9 +12,9 @@ export const TableContent = ({ predictions }: TableContentProps) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-900/50">
-          <tr className="text-sm lg:text-base text-left text-white/90">
+      <table className="w-full border-collapse">
+        <thead className="bg-[#0A0A0A] border-b border-[#2A2A2A]">
+          <tr className="text-sm lg:text-base text-left text-[#E0E0E0] font-mono">
             <TableHeader
               field="driver"
               sortConfig={sortConfig}
@@ -69,7 +69,7 @@ export const TableContent = ({ predictions }: TableContentProps) => {
               sortConfig={sortConfig}
               onSort={handleSort}
             >
-              F2 Probability
+              Promotion Prob.
             </TableHeader>
           </tr>
         </thead>

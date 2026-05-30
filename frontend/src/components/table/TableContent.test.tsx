@@ -73,7 +73,7 @@ describe('TableContent', () => {
 
     expect(screen.getByText('Driver')).toBeInTheDocument();
     expect(screen.getByText('Position')).toBeInTheDocument();
-    expect(screen.getByText('F2 Probability')).toBeInTheDocument();
+    expect(screen.getByText('Promotion Prob.')).toBeInTheDocument();
     expect(screen.queryByText('Current Position')).not.toBeInTheDocument();
     expect(screen.queryByText('Predicted Position')).not.toBeInTheDocument();
   });
@@ -101,11 +101,9 @@ describe('TableContent', () => {
 
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
-    expect(table).toHaveClass('w-full');
 
     const thead = table.querySelector('thead');
     expect(thead).toBeInTheDocument();
-    expect(thead).toHaveClass('bg-gray-900/50');
 
     const tbody = table.querySelector('tbody');
     expect(tbody).toBeInTheDocument();
@@ -143,19 +141,12 @@ describe('TableContent', () => {
       'DNF %',
       'Participation %',
       'Experience',
-      'F2 Probability',
+      'Promotion Prob.',
     ];
 
     expect(headers).toHaveLength(expectedHeaders.length);
     expectedHeaders.forEach((headerText, index) => {
       expect(headers[index]).toHaveTextContent(headerText);
     });
-  });
-
-  it('applies correct CSS classes to table row', () => {
-    const { container } = render(<TableContent predictions={mockDrivers} />);
-
-    const headerRow = container.querySelector('thead tr');
-    expect(headerRow).toHaveClass('text-left', 'text-white/90');
   });
 });

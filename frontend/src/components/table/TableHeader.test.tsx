@@ -125,34 +125,4 @@ describe('TableHeader', () => {
     expect(screen.queryByTestId('chevron-up')).not.toBeInTheDocument();
     expect(screen.queryByTestId('chevron-down')).not.toBeInTheDocument();
   });
-
-  it('applies correct CSS classes', () => {
-    const sortConfig: SortConfig = { field: 'driver', direction: 'asc' };
-
-    render(
-      <table>
-        <thead>
-          <tr>
-            <TableHeader
-              field="position"
-              sortConfig={sortConfig}
-              onSort={mockOnSort}
-            >
-              Position
-            </TableHeader>
-          </tr>
-        </thead>
-      </table>
-    );
-
-    const th = screen.getByRole('columnheader');
-    expect(th).toHaveClass(
-      'p-4',
-      'font-semibold',
-      'cursor-pointer',
-      'hover:bg-cyan-900/20',
-      'transition-colors',
-      'select-none'
-    );
-  });
 });

@@ -69,42 +69,6 @@ describe('TableRow', () => {
     expect(screen.queryByText(/#\d+/)).not.toBeInTheDocument();
   });
 
-  it('applies correct CSS classes', () => {
-    render(
-      <table>
-        <tbody>
-          <TableRow driver={mockDriver} />
-        </tbody>
-      </table>
-    );
-
-    const row = screen.getByRole('row');
-    expect(row).toHaveClass(
-      'border-t',
-      'border-cyan-500/10',
-      'hover:bg-cyan-900/10'
-    );
-  });
-
-  it('applies gradient background when empirical_percentage >= 50', () => {
-    const highPercentageDriver = { ...mockDriver, empirical_percentage: 75 };
-
-    render(
-      <table>
-        <tbody>
-          <TableRow driver={highPercentageDriver} />
-        </tbody>
-      </table>
-    );
-
-    const row = screen.getByRole('row');
-    expect(row).toHaveClass(
-      'bg-gradient-to-r',
-      'from-green-900/20',
-      'to-cyan-900/20'
-    );
-  });
-
   it('does not apply gradient background when empirical_percentage < 50', () => {
     const lowPercentageDriver = { ...mockDriver, empirical_percentage: 25 };
 

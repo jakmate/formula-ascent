@@ -24,15 +24,21 @@ export const Schedule = () => {
         rightContent={
           <div className="flex flex-col sm:flex-row gap-3">
             <label className="flex flex-col gap-2">
-              <span className="text-sm text-gray-300 sr-only">Series</span>
+              <span className="text-sm text-[#888888] sr-only font-mono">
+                Series
+              </span>
               <select
                 value={selectedSeries}
                 onChange={(e) => setSelectedSeries(e.target.value)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
+                className="px-4 py-2 bg-[#151515] border border-[#2A2A2A] text-[#E0E0E0] font-mono focus:outline-none focus:border-[#00FF66]"
               >
                 {series.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-gray-900">
+                  <option
+                    key={s.value}
+                    value={s.value}
+                    className="bg-[#0A0A0A] text-[#E0E0E0]"
+                  >
                     {s.label}
                   </option>
                 ))}
@@ -42,7 +48,7 @@ export const Schedule = () => {
             <button
               onClick={refreshSchedule}
               disabled={loading}
-              className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 disabled:opacity-50 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+              className="px-6 py-2 bg-[#2A2A2A] hover:bg-[#00FF66] hover:text-[#0A0A0A] disabled:opacity-50 text-[#00FF66] font-mono transition-colors duration-100 flex items-center gap-2 border border-[#2A2A2A]"
             >
               <RefreshCw
                 className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -57,14 +63,15 @@ export const Schedule = () => {
 
       {nextRace && <NextRaceCard nextRace={nextRace} />}
 
-      <div className="bg-gray-800/40 backdrop-blur-lg rounded-xl border border-cyan-500/30 overflow-hidden shadow-lg shadow-cyan-500/10">
-        <h2 className="text-lg md:text-xl font-semibold text-white p-6 border-b border-cyan-500/20">
+      {/* Flat panel: no blur, no radius, no gradient, no cyan border */}
+      <div className="bg-[#151515] border border-[#2A2A2A]">
+        <h2 className="text-lg md:text-xl font-mono font-semibold text-[#E0E0E0] p-6 border-b border-[#2A2A2A]">
           Full Season Schedule
         </h2>
 
         {loading ? (
-          <div className="p-12 text-center text-white">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-400" />
+          <div className="p-12 text-center text-[#E0E0E0] font-mono">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-[#00FF66]" />
             <p>Loading schedule...</p>
           </div>
         ) : (

@@ -10,18 +10,15 @@ export const Navbar = ({ activeView }: NavbarProps) => {
   const isActive = (view: string) => activeView === view;
 
   return (
-    <nav className="bg-gray-900/80 backdrop-blur-xl border-b border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+    <nav className="bg-[#151515] border-b border-[#2A2A2A]">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Icon
-                iconNode={motorRacingHelmet}
-                className="w-8 h-8 text-cyan-300 z-10 relative"
-              />
-              <div className="absolute inset-0 bg-purple-400 rounded-full blur-sm opacity-40"></div>
-            </div>
-            <h1 className="text-2xl pl-4 font-bold text-white hidden sm:block">
+            <Icon
+              iconNode={motorRacingHelmet}
+              className="w-8 h-8 text-[#00FF66]"
+            />
+            <h1 className="text-2xl pl-4 font-bold text-[#E0E0E0] hidden sm:block font-mono">
               Formula Ascent
             </h1>
           </div>
@@ -30,10 +27,10 @@ export const Navbar = ({ activeView }: NavbarProps) => {
             <Link
               to="/predictions"
               aria-label="View Promotions"
-              className={`px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+              className={`px-3 sm:px-6 py-2 font-medium transition-colors duration-100 flex items-center gap-2 font-mono ${
                 isActive('predictions')
-                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg shadow-cyan-500/20'
-                  : 'text-cyan-300 hover:text-white hover:bg-gray-800/50'
+                  ? 'bg-[#2A2A2A] text-[#00FF66] border-l-2 border-[#00FF66]'
+                  : 'text-[#E0E0E0] hover:bg-[#2A2A2A] hover:text-white'
               }`}
             >
               <TrendingUp className="w-4 h-4" aria-hidden="true" />
@@ -43,10 +40,10 @@ export const Navbar = ({ activeView }: NavbarProps) => {
             <Link
               to="/schedule"
               aria-label="View Schedule"
-              className={`px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+              className={`px-3 sm:px-6 py-2 font-medium transition-colors duration-100 flex items-center gap-2 font-mono ${
                 isActive('schedule')
-                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg shadow-cyan-500/20'
-                  : 'text-cyan-300 hover:text-white hover:bg-gray-800/50'
+                  ? 'bg-[#2A2A2A] text-[#00FF66] border-l-2 border-[#00FF66]'
+                  : 'text-[#E0E0E0] hover:bg-[#2A2A2A] hover:text-white'
               }`}
             >
               <Calendar className="w-4 h-4" aria-hidden="true" />
@@ -58,7 +55,7 @@ export const Navbar = ({ activeView }: NavbarProps) => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Buy me a coffee - Support the project"
-              className="px-3 sm:px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-cyan-300 hover:text-white hover:bg-gray-800/50"
+              className="px-3 sm:px-6 py-2 font-medium transition-colors duration-100 flex items-center gap-2 text-[#E0E0E0] hover:bg-[#2A2A2A] hover:text-white font-mono"
             >
               <Coffee className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Coffee</span>

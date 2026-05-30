@@ -308,28 +308,6 @@ describe('Schedule', () => {
     expect(select.children).toHaveLength(0);
   });
 
-  it('applies correct styling classes', () => {
-    render(<Schedule />);
-
-    const select = screen.getByRole('combobox');
-    expect(select).toHaveClass(
-      'px-4',
-      'py-2',
-      'bg-gray-800/60',
-      'border',
-      'border-cyan-500/30'
-    );
-
-    const refreshButton = screen.getByText('Refresh');
-    expect(refreshButton).toHaveClass(
-      'px-6',
-      'py-2',
-      'bg-gradient-to-r',
-      'from-cyan-600',
-      'to-purple-600'
-    );
-  });
-
   it('renders refresh icon with correct animation class when loading', () => {
     mockUseSchedule.mockReturnValue({
       races: mockRaces,

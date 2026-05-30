@@ -14,24 +14,21 @@ export const TableHeader = ({
   onSort,
   children,
 }: TableHeaderProps) => {
+  const isActive = sortConfig.field === field;
+
   const getSortIcon = () => {
-    if (isActive) {
-      if (sortConfig.direction === 'asc') {
-        return <ChevronUp className="w-4 h-4 inline ml-1" />;
-      } else {
-        return <ChevronDown className="w-4 h-4 inline ml-1" />;
-      }
-    } else {
-      return null;
+    if (!isActive) return null;
+    if (sortConfig.direction === 'asc') {
+      return <ChevronUp className="w-4 h-4 ml-1 text-[#00FF66]" />;
     }
+    return <ChevronDown className="w-4 h-4 ml-1 text-[#00FF66]" />;
   };
 
-  const isActive = sortConfig.field === field;
   const SortIcon = getSortIcon();
 
   return (
     <th
-      className="p-4 font-semibold cursor-pointer hover:bg-cyan-900/20 transition-colors select-none"
+      className="p-4 font-mono font-semibold text-[#E0E0E0] cursor-pointer select-none border-b border-[#2A2A2A] hover:bg-[#2A2A2A]"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center">

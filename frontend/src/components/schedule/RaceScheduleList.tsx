@@ -47,11 +47,9 @@ export const RaceScheduleList = ({
 
   const isPastRace = (raceDate: string) => {
     if (!raceDate) return false;
-
     try {
       const now = new Date();
       const date = new Date(raceDate);
-
       if (raceDate.length === 10) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -69,18 +67,18 @@ export const RaceScheduleList = ({
 
   const getRaceCardClasses = (past: boolean, isUpcoming: boolean) => {
     if (past) {
-      return 'bg-gray-900/60 border-gray-700 opacity-70';
+      return 'bg-[#0A0A0A] border-[#2A2A2A] opacity-60';
     } else if (isUpcoming) {
-      return 'bg-gradient-to-br from-cyan-900/30 to-purple-900/30 border-cyan-500/50 shadow-lg shadow-cyan-500/20';
+      return 'bg-[#151515] border-[#00FF66]';
     } else {
-      return 'bg-gray-800/60 border-cyan-500/30';
+      return 'bg-[#151515] border-[#2A2A2A]';
     }
   };
 
   if (!races || races.length === 0) {
     return (
-      <div className="text-center text-white/70 py-8">
-        <Calendar className="w-12 h-12 mx-auto mb-4 text-white/50" />
+      <div className="text-center text-[#888888] font-mono py-8">
+        <Calendar className="w-12 h-12 mx-auto mb-4 text-[#2A2A2A]" />
         <p>No races found for this series</p>
       </div>
     );
@@ -93,7 +91,7 @@ export const RaceScheduleList = ({
 
   return (
     <div className="space-y-2 mb-4">
-      <div className="text-center text-white/50 text-sm">
+      <div className="text-center text-[#888888] text-sm font-mono">
         Times shown in {userTimezone.replace('_', ' ')}
       </div>
 
@@ -108,35 +106,32 @@ export const RaceScheduleList = ({
           return (
             <div
               key={race.slug || index}
-              className={`
-                backdrop-blur-lg rounded-xl border p-4 transition-all duration-200
-                ${getRaceCardClasses(past, isUpcoming)} hover:shadow-cyan-500/20 hover:border-cyan-400/50
-              `}
+              className={`border p-4 transition-colors duration-100 ${getRaceCardClasses(past, isUpcoming)}`}
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white/70 text-sm font-medium">
+                  <span className="text-[#888888] text-sm font-mono">
                     Round {race.round}
                   </span>
                   <div>
                     {past && (
-                      <span className="text-xs bg-red-800/70 text-white px-2 py-1 rounded">
+                      <span className="text-xs bg-[#151515] text-[#FF0033] border border-[#FF0033] px-2 py-1 font-mono">
                         COMPLETED
                       </span>
                     )}
                     {isUpcoming && (
-                      <span className="text-xs bg-green-700 text-white px-2 py-1 rounded">
+                      <span className="text-xs bg-[#151515] text-[#00FF66] border border-[#00FF66] px-2 py-1 font-mono">
                         NEXT RACE
                       </span>
                     )}
                   </div>
                 </div>
 
-                <h3 className="text-white font-semibold mb-2">
+                <h3 className="text-[#E0E0E0] font-mono font-semibold mb-2">
                   {race.name} {getGrandPrixText(selectedSeries)}
                 </h3>
 
-                <div className="flex items-center mb-3 text-white/70">
+                <div className="flex items-center mb-3 text-[#888888] font-mono">
                   <MapPin className="w-4 h-4 mr-1" />
                   <span className="text-sm">{race.location}</span>
                   <div className="ml-2">{getFlagComponent(race.location)}</div>
@@ -144,10 +139,10 @@ export const RaceScheduleList = ({
 
                 {raceDate && (
                   <div className="mt-auto">
-                    <div className="text-white font-medium">
+                    <div className="text-[#E0E0E0] font-mono">
                       {formatDate(raceDate)}
                     </div>
-                    <div className="text-white/70 text-sm">
+                    <div className="text-[#888888] text-sm font-mono">
                       {isTBC ? 'TBC' : formatTime(raceDate)}
                     </div>
                   </div>

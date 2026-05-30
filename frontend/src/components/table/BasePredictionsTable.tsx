@@ -44,14 +44,14 @@ export const BasePredictionsTable = ({
   const getPredictionsDisplay = () => {
     if (loading && currentPredictions.length === 0) {
       return (
-        <div className="p-12 text-center text-white">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-400" />
+        <div className="p-12 text-center text-[#E0E0E0] font-mono">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-[#00FF66]" />
           <p>Loading predictions...</p>
         </div>
       );
     } else if (currentPredictions.length === 0) {
       return (
-        <div className="p-12 text-center text-white">
+        <div className="p-12 text-center text-[#E0E0E0] font-mono">
           <p>No predictions available. Select a model and refresh data.</p>
         </div>
       );
@@ -68,18 +68,20 @@ export const BasePredictionsTable = ({
         rightContent={
           <div className="flex flex-col md:flex-row gap-3">
             <label className="flex flex-col gap-2">
-              <span className="text-sm text-gray-300 sr-only">Series</span>
+              <span className="text-sm text-[#888888] sr-only font-mono">
+                Series
+              </span>
               <select
                 value={series}
                 onChange={(e) => setSeries(e.target.value as SeriesType)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
+                className="px-4 py-2 bg-[#151515] border border-[#2A2A2A] text-[#E0E0E0] font-mono focus:outline-none focus:border-[#00FF66]"
               >
                 {seriesOptions.map((option) => (
                   <option
                     key={option.value}
                     value={option.value}
-                    className="text-white bg-gray-900"
+                    className="bg-[#0A0A0A] text-[#E0E0E0]"
                   >
                     {option.label}
                   </option>
@@ -88,19 +90,23 @@ export const BasePredictionsTable = ({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm text-gray-300 sr-only">Model</span>
+              <span className="text-sm text-[#888888] sr-only font-mono">
+                Model
+              </span>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 shadow-sm"
+                className="px-4 py-2 bg-[#151515] border border-[#2A2A2A] text-[#E0E0E0] font-mono focus:outline-none focus:border-[#00FF66]"
               >
-                <option value="">Select Model</option>
+                <option value="" className="bg-[#0A0A0A]">
+                  Select Model
+                </option>
                 {models.map((model) => (
                   <option
                     key={model}
                     value={model}
-                    className="text-white bg-gray-900"
+                    className="bg-[#0A0A0A] text-[#E0E0E0]"
                   >
                     {model}
                   </option>
@@ -111,7 +117,7 @@ export const BasePredictionsTable = ({
             <button
               onClick={refreshPredictions}
               disabled={loading}
-              className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 disabled:opacity-50 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30"
+              className="px-6 py-2 bg-[#2A2A2A] hover:bg-[#00FF66] hover:text-[#0A0A0A] disabled:opacity-50 text-[#00FF66] font-mono transition-colors duration-100 flex items-center gap-2 border border-[#2A2A2A]"
             >
               <RefreshCw
                 className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
@@ -122,7 +128,7 @@ export const BasePredictionsTable = ({
         }
         bottomContent={
           status && (
-            <div className="flex flex-wrap gap-4 text-cyan-300">
+            <div className="flex flex-wrap gap-4 text-[#00FF66] font-mono text-sm">
               {status.last_scrape_predictions && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -152,7 +158,7 @@ export const BasePredictionsTable = ({
 
       {error && <ErrorDisplay error={error} />}
 
-      <div className="bg-gray-800/40 backdrop-blur-lg rounded-xl border border-cyan-500/30 overflow-hidden shadow-lg shadow-cyan-500/10">
+      <div className="bg-[#151515] border border-[#2A2A2A] overflow-hidden">
         {getPredictionsDisplay()}
       </div>
     </div>

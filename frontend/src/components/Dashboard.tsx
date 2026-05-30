@@ -20,8 +20,8 @@ const Dashboard = () => {
   }, [location.pathname, navigate]);
 
   return (
-    <div className="min-h-screen bg-gray-900 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-gray-900 to-black">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHBhdGggZD0iTTAgMGg1MHY1MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDBoNXY1TDAgNXpNNTAgNTB2LTVsLTUgNXpNNTAgMHY1bDUtNXpNMCA1MGw1LTV2NWgtNXoiIHN0cm9rZT0iIzAwZmZmZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+')] opacity-5"></div>
+    <div className="min-h-screen bg-[#0A0A0A]">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTQwIDBIMHY0MCIgc3Ryb2tlPSIjMkEyQTJBIiBzdHJva2Utd2lkdGg9IjAiLz48cGF0aCBkPSJNMCAwaDQwdjQwSDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAgMGgxdjFIMHpNMzkgMzloMXYxaC0xeiIgZmlsbD0iIzJBMkEyQSIvPjwvc3ZnPg==')] opacity-20 pointer-events-none"></div>
 
       <Navbar activeView={activeView} />
 

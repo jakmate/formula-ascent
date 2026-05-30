@@ -87,21 +87,4 @@ describe('Header', () => {
     expect(screen.getByTestId('right')).toBeInTheDocument();
     expect(screen.getByTestId('bottom')).toBeInTheDocument();
   });
-
-  it('applies correct container styles', () => {
-    const { container } = render(<Header title="Title" />);
-    const headerDiv = container.firstChild as HTMLElement;
-
-    expect(headerDiv).toHaveClass(
-      'bg-gray-800/40',
-      'backdrop-blur-lg',
-      'rounded-xl',
-      'p-6',
-      'mb-6',
-      'border',
-      'border-cyan-500/30',
-      'shadow-lg',
-      'shadow-cyan-500/10'
-    );
-  });
 });

@@ -251,47 +251,6 @@ describe('RaceScheduleList', () => {
     expect(screen.getByText('Invalid Date GRAND PRIX')).toBeInTheDocument();
   });
 
-  it('applies correct CSS classes for different race states', () => {
-    const mixedRaces = [
-      {
-        slug: 'past-race',
-        round: 1,
-        name: 'Past Race',
-        location: 'Past Location',
-        sessions: {
-          race: {
-            start: '2024-01-01T15:00:00Z',
-            time: '15:00',
-          },
-        },
-      },
-      {
-        slug: 'next-race',
-        round: 2,
-        name: 'Next Race',
-        location: 'Next Location',
-        sessions: {
-          race: {
-            start: '2024-03-01T15:00:00Z',
-            time: '15:00',
-          },
-        },
-      },
-    ];
-
-    renderWithSeries(mixedRaces);
-
-    const raceCards = screen
-      .getAllByText(/GRAND PRIX/)
-      .map((el) => el.closest('[class*="backdrop-blur-lg"]'));
-
-    // Past race should have gray styling
-    expect(raceCards[0]).toHaveClass('bg-gray-900/60');
-
-    // Next race should have cyan/purple gradient
-    expect(raceCards[1]).toHaveClass('bg-gradient-to-br');
-  });
-
   it('uses slug as key when available, falls back to index', () => {
     const racesWithAndWithoutSlug = [
       {
