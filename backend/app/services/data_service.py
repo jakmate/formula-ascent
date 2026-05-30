@@ -5,6 +5,11 @@ from fastapi import HTTPException
 
 from app.config import CURRENT_YEAR, LOGGER
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
+from app.core.predictor import (
+    calculate_qualifying_features,
+    create_target_variable,
+    engineer_features,
+)
 from app.core.state import AppState
 
 
@@ -43,12 +48,6 @@ class DataService:
             )
 
         processing_start = time.time()
-        from app.core.predictor import (
-            calculate_qualifying_features,
-            create_target_variable,
-            engineer_features,
-        )
-
         feeder_quali_df = load_qualifying_data(feeder_series)
         feeder_df = calculate_qualifying_features(feeder_df, feeder_quali_df)
         feeder_df = create_target_variable(feeder_df, parent_df, parent_series)
@@ -67,7 +66,8 @@ class DataService:
         # Cache the processed data
         self.data_cache[cache_key] = current_df
         LOGGER.info(
-            f"Total processing for {series}: {time.time() - start_time:.2f}s - cached {len(current_df)} records",
+            f"Total processing for {series}: {time.time() - start_time:.2f}s"
+            f" - cached {len(current_df)} records",
         )
 
         return current_df
@@ -79,56 +79,6 @@ class DataService:
         if series == "f2_to_f1":
             return "F2", "F1"
         raise ValueError(f"Unknown series: {series}")
-
-    async def initialize_system(self):
-        """Initial data loading and processing."""
-        from app.services.model_service import ModelService
-
-        for series in ["f3_to_f2", "f2_to_f1"]:
-            try:
-                LOGGER.info(f"Initializing system for {series}...")
-                feeder_series, parent_series = self._parse_series(series)
-
-                feeder_df = load_data(feeder_series)
-                parent_df = load_standings_data(parent_series, "drivers")
-                feeder_quali_df = load_qualifying_data(feeder_series)
-
-                from app.core.predictor import (
-                    calculate_qualifying_features,
-                    create_target_variable,
-                    engineer_features,
-                )
-
-                feeder_df = calculate_qualifying_features(feeder_df, feeder_quali_df)
-                feeder_df = create_target_variable(feeder_df, parent_df, parent_series)
-                features_df = engineer_features(feeder_df)
-                features_df["promoted"] = feeder_df["promoted"]
-
-                # Cache the full processed data during initialization
-                cache_key = f"full_data_{series}"
-                self.data_cache[cache_key] = features_df
-
-                trainable_df = features_df[features_df["year"] < CURRENT_YEAR]
-
-                if not trainable_df.empty:
-                    model_service = ModelService(self.app_state, series)
-                    await model_service.train_models(trainable_df)
-                    await model_service.save_models()
-                else:
-                    LOGGER.warning(
-                        f"No historical data available for training {series}",
-                    )
-
-                # Generate current predictions
-                from app.services.prediction_service import PredictionService
-
-                prediction_service = PredictionService(self.app_state, series, self)
-                for model_name in self.app_state.models[series]:
-                    await prediction_service.get_prediction_for_model(model_name)
-            except Exception as e:
-                LOGGER.error(f"Failed to initialize {series}: {e}")
-
-        self.app_state.save_state()
 
     def clear_cache(self, series: str | None = None):
         """Clear cached data for specific series or all."""

@@ -702,10 +702,12 @@ def train_models(df):
     y_train_sub, y_val = y_train.iloc[train_idx], y_train.iloc[val_idx]
 
     print(
-        f"Training subset: {len(x_train_sub)} samples, {y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})",
+        f"Training subset: {len(x_train_sub)} samples, "
+        f"{y_train_sub.sum()} promotions ({y_train_sub.mean():.2%})",
     )
     print(
-        f"Validation: {len(x_val)} samples, {y_val.sum()} promotions ({y_val.mean():.2%})",
+        f"Validation: {len(x_val)} samples, {y_val.sum()} "
+        f"promotions ({y_val.mean():.2%})",
     )
     print(
         f"Test: {len(x_test)} samples, {y_test.sum()} promotions ({y_test.mean():.2%})",

@@ -7,14 +7,18 @@ from app.config import CURRENT_YEAR, LOGGER, SEASON_END_MONTH
 from app.core.state import AppState
 from app.scrapers.schedule_scraper import scrape_schedules
 from app.scrapers.scrape import scrape_current_year, scrape_wiki
+from app.services.data_service import DataService
+from app.services.init_service import InitService
 from app.services.prediction_service import PredictionService
 
 
 class CronjobService:
-    def __init__(self, app_state: AppState, model_service, data_service) -> None:
+    def __init__(
+        self, app_state: AppState, data_service: DataService, init_service: InitService
+    ) -> None:
         self.app_state = app_state
-        self.model_service = model_service
         self.data_service = data_service
+        self.init_service = init_service
         self.scheduler = AsyncIOScheduler()
 
     async def start(self):
@@ -51,7 +55,7 @@ class CronjobService:
             ):
                 LOGGER.info(f"New season {CURRENT_YEAR} complete. Starting training...")
                 try:
-                    await self.data_service.initialize_system()
+                    await self.init_service.initialize_system()
                 except Exception as e:
                     LOGGER.error(f"Training task failed: {e}")
             else:

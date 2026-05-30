@@ -150,7 +150,7 @@ class TestProcessMultirowHeaders:
             assert len(data_rows) == 1
 
     def test_stopiteration_when_second_row_has_fewer_headers(self):
-        """When second row has fewer headers than placeholders, StopIteration is caught."""
+        """Second row has fewer headers than placeholders, StopIteration is caught."""
         html = """
         <tr><th colspan="3">Team</th><th>Driver</th></tr>
         <tr><th>Name</th><th>Constructor</th></tr>

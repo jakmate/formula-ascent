@@ -6,7 +6,7 @@ import joblib
 import torch
 
 from app.config import LOGGER, MODELS_DIR
-from app.core.predictor import RacingPredictor
+from app.core.predictor import RacingPredictor, train_models
 from app.core.state import AppState
 
 
@@ -148,7 +148,6 @@ class ModelService:
     async def train_models(self, trainable_df):
         """Train models on provided data."""
         LOGGER.info(f"Training models for {self.series} on {len(trainable_df)} records")
-        from app.core.predictor import train_models
 
         (models, feature_cols, scaler) = await asyncio.to_thread(
             train_models,

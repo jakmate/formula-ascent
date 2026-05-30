@@ -227,7 +227,7 @@ def extract_all_nationalities_from_result(result):
 def extract_nationality_from_result(result):
     """Extract single nationality from result, preferring country for sport.
 
-    When multiple values exist picks first nationalityLabel, else first citizenshipLabel.
+    When multiple values exist picks first nationalityLabel, else citizenshipLabel.
     """
     all_nat = result.get("_all_nationalityLabels", set())
     if all_nat:
@@ -284,7 +284,8 @@ def needs_rescrape(driver, existing_profile, new_data, session=None):
             and existing_nationality in all_new_nationalities
         ):
             print(
-                f"NATIONALITY AMBIGUOUS for {driver}: existing={existing_nationality!r}, "
+                f"Nationality ambigious for {driver}: "
+                f"existing={existing_nationality!r}, "
                 f"wikidata returned={all_new_nationalities} — keeping existing"
             )
             nationality_changed = False
@@ -326,7 +327,7 @@ def get_all_drivers_from_data():
 
 
 def build_profile_from_result(driver, result, session=None):
-    """Build a profile dict from a Wikidata result, applying any hard-coded overrides."""
+    """Build a profile dict from a Wikidata result, applying hard-coded overrides."""
     override = DRIVER_OVERRIDES.get(driver, {})
     wikidata_id = (
         override.get("wikidata_id") or result["person"]["value"].split("/")[-1]

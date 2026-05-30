@@ -319,7 +319,7 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                             if time_span:
                                 # Get the raw text and clean it
                                 time_text = time_span.get_text(strip=True)
-                                # Remove any <time> tags if they are still present as text
+                                # Remove any <time> tags if still present as text
                                 time_str = re.sub(
                                     r"<time[^>]*>|</time>",
                                     "",
@@ -396,7 +396,8 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
 
                     except Exception as e:
                         print(
-                            f"Error scraping F1 race details for round {round_num}: {e}",
+                            f"Error scraping F1 race details "
+                            f"for round {round_num}: {e}",
                         )
 
                 # Add fallback sessions if missing
@@ -554,7 +555,8 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
 
                     except Exception as e:
                         print(
-                            f"Error scraping {series_name.upper()} race details for round {round_num}: {e}",
+                            f"Error scraping {series_name.upper()} "
+                            f"race details for round {round_num}: {e}",
                         )
 
                 # Add fallback race session

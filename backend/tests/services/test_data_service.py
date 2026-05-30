@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
@@ -39,9 +39,9 @@ class TestLoadCurrentData:
     @patch("app.services.data_service.load_data")
     @patch("app.services.data_service.load_standings_data")
     @patch("app.services.data_service.load_qualifying_data")
-    @patch("app.core.predictor.calculate_qualifying_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.engineer_features")
+    @patch("app.services.data_service.calculate_qualifying_features")
+    @patch("app.services.data_service.create_target_variable")
+    @patch("app.services.data_service.engineer_features")
     @pytest.mark.asyncio
     async def test_fallback_to_max_year(
         self,
@@ -75,9 +75,9 @@ class TestLoadCurrentData:
     @patch("app.services.data_service.load_data")
     @patch("app.services.data_service.load_standings_data")
     @patch("app.services.data_service.load_qualifying_data")
-    @patch("app.core.predictor.calculate_qualifying_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.engineer_features")
+    @patch("app.services.data_service.calculate_qualifying_features")
+    @patch("app.services.data_service.create_target_variable")
+    @patch("app.services.data_service.engineer_features")
     @pytest.mark.asyncio
     async def test_no_drivers_available(
         self,
@@ -128,9 +128,9 @@ class TestLoadCurrentData:
         # Verify cached data was returned
         pd.testing.assert_frame_equal(result, cached_data)
 
-    @patch("app.core.predictor.engineer_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.calculate_qualifying_features")
+    @patch("app.services.data_service.engineer_features")
+    @patch("app.services.data_service.create_target_variable")
+    @patch("app.services.data_service.calculate_qualifying_features")
     @patch("app.services.data_service.load_qualifying_data")
     @patch("app.services.data_service.load_standings_data")
     @patch("app.services.data_service.load_data")
@@ -202,153 +202,6 @@ class TestParseSeries:
             data_service._parse_series("unknown_series")
 
         assert "Unknown series: unknown_series" in str(exc_info.value)
-
-
-class TestInitializeSystem:
-    @patch("app.services.data_service.load_data")
-    @patch("app.services.data_service.load_standings_data")
-    @patch("app.services.data_service.load_qualifying_data")
-    @patch("app.core.predictor.calculate_qualifying_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.engineer_features")
-    @patch("app.services.model_service.ModelService")
-    @patch("app.services.prediction_service.PredictionService")
-    @patch("app.services.data_service.LOGGER")
-    @pytest.mark.asyncio
-    async def test_success(
-        self,
-        mock_logger,
-        mock_pred_service_class,
-        mock_model_service_class,
-        mock_engineer,
-        mock_target,
-        mock_quali_features,
-        mock_load_quali,
-        mock_load_standings,
-        mock_load_data,
-        data_service,
-    ):
-        # Setup mock data
-        mock_load_data.return_value = pd.DataFrame({"driver": ["A", "B"]})
-        mock_load_standings.return_value = pd.DataFrame({"driver": ["A", "B"]})
-        mock_load_quali.return_value = pd.DataFrame({"driver": ["A", "B"]})
-        mock_quali_features.return_value = pd.DataFrame({"driver": ["A", "B"]})
-        mock_target.return_value = pd.DataFrame(
-            {"driver": ["A", "B"], "promoted": [1, 0], "year": [2022, 2023]},
-        )
-
-        features_df = pd.DataFrame(
-            {"driver": ["A", "B"], "year": [2022, 2023], "feature1": [1, 2]},
-        )
-        mock_engineer.return_value = features_df
-
-        # Setup mock services
-        mock_model_service = AsyncMock()
-        mock_model_service_class.return_value = mock_model_service
-
-        mock_prediction_service = AsyncMock()
-        mock_pred_service_class.return_value = mock_prediction_service
-
-        data_service.app_state.models = {
-            "f3_to_f2": {"RandomForest": Mock(), "LightGBM": Mock()},
-            "f2_to_f1": {"RandomForest": Mock(), "LightGBM": Mock()},
-        }
-
-        # Setup app_state mock
-        data_service.app_state.save_state = Mock()
-
-        await data_service.initialize_system()
-
-        # Verify logging
-        mock_logger.info.assert_any_call("Initializing system for f3_to_f2...")
-        mock_logger.info.assert_any_call("Initializing system for f2_to_f1...")
-
-        # Verify model training was called for both series
-        assert mock_model_service.train_models.call_count == 2
-        assert mock_model_service.save_models.call_count == 2
-
-        # Verify predictions were updated
-        assert mock_prediction_service.get_prediction_for_model.call_count == 4
-
-        # Verify state was saved
-        data_service.app_state.save_state.assert_called_once()
-
-    @patch("app.services.data_service.load_data")
-    @patch("app.services.data_service.load_standings_data")
-    @patch("app.services.data_service.load_qualifying_data")
-    @patch("app.core.predictor.calculate_qualifying_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.engineer_features")
-    @patch("app.services.model_service.ModelService")
-    @patch("app.services.prediction_service.PredictionService")
-    @patch("app.services.data_service.LOGGER")
-    @pytest.mark.asyncio
-    async def test_no_historical_data(
-        self,
-        mock_logger,
-        mock_pred_service_class,
-        mock_model_service_class,
-        mock_engineer,
-        mock_target,
-        mock_quali_features,
-        mock_load_quali,
-        mock_load_standings,
-        mock_load_data,
-        data_service,
-    ):
-        # Setup mock data with only current year data
-        mock_load_data.return_value = pd.DataFrame({"driver": ["A"]})
-        mock_load_standings.return_value = pd.DataFrame({"driver": ["A"]})
-        mock_load_quali.return_value = pd.DataFrame({"driver": ["A"]})
-        mock_quali_features.return_value = pd.DataFrame({"driver": ["A"]})
-        mock_target.return_value = pd.DataFrame(
-            {
-                "driver": ["A"],
-                "promoted": [1],
-                "year": [CURRENT_YEAR],
-            },
-        )
-
-        features_df = pd.DataFrame(
-            {"driver": ["A"], "year": [CURRENT_YEAR], "feature1": [1]},
-        )
-        mock_engineer.return_value = features_df
-
-        mock_prediction_service = AsyncMock()
-        mock_pred_service_class.return_value = mock_prediction_service
-
-        data_service.app_state.save_state = Mock()
-
-        await data_service.initialize_system()
-
-        # Verify warning was logged for no historical data
-        mock_logger.warning.assert_any_call(
-            "No historical data available for training f3_to_f2",
-        )
-        mock_logger.warning.assert_any_call(
-            "No historical data available for training f2_to_f1",
-        )
-
-        # Verify ModelService was not called since no trainable data
-        mock_model_service_class.assert_not_called()
-
-    @patch("app.services.data_service.load_data")
-    @patch("app.services.data_service.LOGGER")
-    @pytest.mark.asyncio
-    async def test_exception_handling(self, mock_logger, mock_load_data, data_service):
-        # Make load_data raise an exception
-        mock_load_data.side_effect = Exception("Test error")
-
-        data_service.app_state.save_state = Mock()
-
-        await data_service.initialize_system()
-
-        # Verify errors were logged
-        mock_logger.error.assert_any_call("Failed to initialize f3_to_f2: Test error")
-        mock_logger.error.assert_any_call("Failed to initialize f2_to_f1: Test error")
-
-        # Verify state was still saved despite errors
-        data_service.app_state.save_state.assert_called_once()
 
 
 class TestClearCache:

@@ -17,27 +17,27 @@ def mock_app_state():
 
 @pytest.fixture
 def mock_services():
-    model_service = Mock()
     data_service = Mock()
-    data_service.initialize_system = AsyncMock()
-    return model_service, data_service
+    init_service = Mock()
+    init_service.initialize_system = AsyncMock()
+    return data_service, init_service
 
 
 @pytest.fixture
 def cronjobs_service(mock_app_state, mock_services):
-    model_service, data_service = mock_services
+    data_service, init_service = mock_services
     with patch("app.services.cronjobs_service.PredictionService"):
-        return CronjobService(mock_app_state, model_service, data_service)
+        return CronjobService(mock_app_state, data_service, init_service)
 
 
 class TestInit:
     def test_init(self, mock_app_state, mock_services):
-        model_service, data_service = mock_services
-        cronjobs = CronjobService(mock_app_state, model_service, data_service)
+        data_service, init_service = mock_services
+        cronjobs = CronjobService(mock_app_state, data_service, init_service)
 
         assert cronjobs.app_state == mock_app_state
-        assert cronjobs.model_service == model_service
         assert cronjobs.data_service == data_service
+        assert cronjobs.init_service == init_service
         assert cronjobs.scheduler is not None
 
 
@@ -103,7 +103,7 @@ class TestScrapeAndTrainTask:
         # Mock season complete and new season available
         with patch.object(cronjobs_service, "_is_season_complete", return_value=True):
             # Make initialize_system raise exception
-            cronjobs_service.data_service.initialize_system = AsyncMock(
+            cronjobs_service.init_service.initialize_system = AsyncMock(
                 side_effect=Exception("Training failed"),
             )
 

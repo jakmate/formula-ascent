@@ -1,3 +1,4 @@
+import importlib.util
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -67,7 +68,7 @@ class TestLifespan:
                 async with lifespan(app):
                     raise RuntimeError("Test exception")
 
-        # After exception, cleanup should have removed scheduler or state should be saved
+        # After exception, cleanup scheduler removed or state should be saved
         # We check that object exists but lifecycle exited cleanly
         assert hasattr(app.state, "app_state")
 
@@ -110,8 +111,6 @@ def test_main_block_execution():
         patch("app.main.uvicorn.run") as mock_run,
     ):
         # Test by importing the module with __name__ set to "__main__"
-        import importlib.util
-
         spec = importlib.util.spec_from_file_location("__main__", "app/main.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

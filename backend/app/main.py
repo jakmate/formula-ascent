@@ -10,6 +10,7 @@ from app.core.state import AppState
 from app.routes.router import api_router
 from app.services.cronjobs_service import CronjobService
 from app.services.data_service import DataService
+from app.services.init_service import InitService
 from app.services.model_service import ModelService
 
 
@@ -23,15 +24,17 @@ async def lifespan(app: FastAPI):
 
     app.state.model_service = ModelService(app.state.app_state)
     app.state.data_service = DataService(app.state.app_state, {})
-    app.state.cronjob_service = CronjobService(
+    app.state.init_service = InitService(
         app.state.app_state,
-        app.state.model_service,
         app.state.data_service,
+    )
+    app.state.cronjob_service = CronjobService(
+        app.state.app_state, app.state.data_service, app.state.init_service
     )
 
     if not await app.state.model_service.load_models():
         LOGGER.info("No models found. Initializing system...")
-        await app.state.data_service.initialize_system()
+        await app.state.init_service.initialize_system()
 
     await app.state.cronjob_service.start()
 
