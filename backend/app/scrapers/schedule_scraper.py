@@ -139,7 +139,7 @@ def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
     if not time_str:
         return None
 
-    day_mapping = {"friday": 4, "saturday": 5, "sunday": 6}
+    day_mapping = {"thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
 
     if time_str.upper() == "TBC":
         result_date = base_date.date()
@@ -512,7 +512,12 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                                 if "practice" in session_name:
                                     sessions["practice"] = fallback_time
                                 elif "qualifying" in session_name:
-                                    sessions["qualifying"] = fallback_time
+                                    if "group a" in session_name:
+                                        sessions["qualifying_group_a"] = fallback_time
+                                    elif "group b" in session_name:
+                                        sessions["qualifying_group_b"] = fallback_time
+                                    else:
+                                        sessions["qualifying"] = fallback_time
                                 elif "sprint" in session_name:
                                     sessions["sprint"] = fallback_time
                                 elif "feature" in session_name:
@@ -536,7 +541,12 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                                     if "practice" in session_name:
                                         sessions["practice"] = session_dt
                                     elif "qualifying" in session_name:
-                                        sessions["qualifying"] = session_dt
+                                        if "group a" in session_name:
+                                            sessions["qualifying_group_a"] = session_dt
+                                        elif "group b" in session_name:
+                                            sessions["qualifying_group_b"] = session_dt
+                                        else:
+                                            sessions["qualifying"] = session_dt
                                     elif "sprint" in session_name:
                                         sessions["sprint"] = session_dt
                                     elif "feature" in session_name:

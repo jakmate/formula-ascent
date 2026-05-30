@@ -8,6 +8,8 @@ const sessionDisplayNames: Record<string, string> = {
   fp2: 'PRACTICE 2',
   fp3: 'PRACTICE 3',
   qualifying: 'QUALIFYING',
+  qualifying_group_a: 'QUALIFYING GROUP A',
+  qualifying_group_b: 'QUALIFYING GROUP B',
   sprint_qualifying: 'SPRINT QUALIFYING',
   sprint: 'SPRINT',
   race: 'RACE',
