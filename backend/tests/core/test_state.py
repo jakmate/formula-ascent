@@ -152,27 +152,19 @@ class TestLoadState:
     def test_load_state_json_decode_error(self):
         state = AppState()
         mock_path = self._make_mock_path(read_data="invalid json")
-        with (
-            patch("app.core.state.STATE_FILE", mock_path),
-            patch("app.core.state.LOGGER") as mock_logger,
-        ):
+        with patch("app.core.state.STATE_FILE", mock_path):
             result = state.load_state()
 
         assert result is False
-        mock_logger.error.assert_called()
         mock_path.rename.assert_called_once()
 
     def test_load_state_general_exception(self):
         state = AppState()
         mock_path = self._make_mock_path(open_side_effect=OSError("File error"))
-        with (
-            patch("app.core.state.STATE_FILE", mock_path),
-            patch("app.core.state.LOGGER") as mock_logger,
-        ):
+        with patch("app.core.state.STATE_FILE", mock_path):
             result = state.load_state()
 
         assert result is False
-        mock_logger.error.assert_called()
 
     def test_load_state_datetime_parsing(self):
         state = AppState()

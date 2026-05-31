@@ -1,16 +1,16 @@
 import asyncio
+import logging
 import time
 
 from fastapi import HTTPException
 
-from app.config import CURRENT_YEAR, LOGGER
+from app.config import CURRENT_YEAR
+from app.core.feature_creator import calculate_qualifying_features, engineer_features
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
-from app.core.predictor import (
-    calculate_qualifying_features,
-    create_target_variable,
-    engineer_features,
-)
+from app.core.predictor import create_target_variable
 from app.core.state import AppState
+
+log = logging.getLogger(__name__)
 
 
 class DataService:
@@ -25,13 +25,13 @@ class DataService:
 
         # Return cached data if available
         if cache_key in self.data_cache:
-            LOGGER.info(
-                f"Cache HIT for {series} - returned in {time.time() - start_time:.2f}s",
+            log.info(
+                "Cache HIT for %s - returned in %.2fs", series, time.time() - start_time
             )
             await asyncio.sleep(0)
             return self.data_cache[cache_key]
 
-        LOGGER.info(f"Cache MISS for {series} - processing data...")
+        log.info("Cache MISS for %s - processing data...", series)
         load_start = time.time()
 
         # Parse series to get feeder and parent series
@@ -39,7 +39,7 @@ class DataService:
 
         feeder_df = load_data(feeder_series)
         parent_df = load_standings_data(parent_series, "drivers")
-        LOGGER.info(f"Data loading took {time.time() - load_start:.2f}s")
+        log.info("Data loading took %.2fs", time.time() - load_start)
 
         if feeder_df.empty:
             raise HTTPException(
@@ -53,7 +53,7 @@ class DataService:
         feeder_df = create_target_variable(feeder_df, parent_df, parent_series)
         features_df = engineer_features(feeder_df)
         features_df["promoted"] = feeder_df["promoted"]
-        LOGGER.info(f"Feature processing took {time.time() - processing_start:.2f}s")
+        log.info("Feature processing took %.2fs", time.time() - processing_start)
 
         current_df = features_df[features_df["year"] == CURRENT_YEAR].copy()
         if current_df.empty:
@@ -65,9 +65,11 @@ class DataService:
 
         # Cache the processed data
         self.data_cache[cache_key] = current_df
-        LOGGER.info(
-            f"Total processing for {series}: {time.time() - start_time:.2f}s"
-            f" - cached {len(current_df)} records",
+        log.info(
+            "Total processing for %s: %.2fs - cached %s records",
+            series,
+            time.time() - start_time,
+            len(current_df),
         )
 
         return current_df
@@ -86,7 +88,7 @@ class DataService:
             keys_to_remove = [k for k in self.data_cache if series in k]
             for key in keys_to_remove:
                 del self.data_cache[key]
-            LOGGER.info(f"Cleared cache for {series}")
+            log.info("Cleared cache for %s", series)
         else:
             self.data_cache.clear()
-            LOGGER.info("Cleared all cached data")
+            log.info("Cleared all cached data")

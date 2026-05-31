@@ -1,4 +1,5 @@
 import csv
+import logging
 
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -8,6 +9,8 @@ from app.scrapers.scraping_utils import (
     remove_superscripts,
     safe_request,
 )
+
+log = logging.getLogger(__name__)
 
 COLUMN_MAPPING = {
     "Name": "Driver",
@@ -66,12 +69,12 @@ def extract_race_report_links(soup):
     )
 
     if not season_heading:
-        print("No season summary table found")
+        log.warning("No season summary table found")
         return []
 
     table = season_heading.find_next("table", {"class": "wikitable"})
     if not table:
-        print("No season summary table found")
+        log.warning("No season summary table found")
         return []
 
     race_links = []
@@ -90,7 +93,7 @@ def process_qualifying_data(race_url, round_info, session):
     try:
         response = safe_request(session, race_url)
         if response is None:
-            print(f"Failed to fetch {race_url}")
+            log.warning("Failed to fetch %s", race_url)
             return None
 
         parse_only = SoupStrainer(["h2", "h3", "h4", "dt", "table"])
@@ -103,7 +106,7 @@ def process_qualifying_data(race_url, round_info, session):
             or soup.find("h2", {"id": "Qualifying"})
         )
         if not qualifying_heading:
-            print(f"No qualifying section found for {race_url}")
+            log.warning("No qualifying section found for %s", race_url)
             return None
 
         # Check if this is Monte Carlo with Group A and Group B
@@ -132,8 +135,8 @@ def process_qualifying_data(race_url, round_info, session):
 
         return result
 
-    except Exception as e:
-        print(f"Error processing qualifying data from {race_url}: {e!s}")
+    except Exception:
+        log.exception("Error processing qualifying data from %s:", race_url)
         return None
 
 
@@ -176,7 +179,7 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
         )
 
         if not group_a_data and not group_b_data:
-            print(f"No qualifying data found in either group for {race_url}")
+            log.warning("No qualifying data found in either group for %s", race_url)
             return None
 
         # Get headers from the first available table
@@ -215,8 +218,8 @@ def process_two_table_qualifying(group_a_head, group_b_head, round_info, race_ur
             "url": race_url,
         }
 
-    except Exception as e:
-        print(f"Error processing Monte Carlo qualifying from {race_url}: {e!s}")
+    except Exception:
+        log.exception("Error processing Monte Carlo qualifying from %s:", race_url)
         return None
 
 
@@ -225,11 +228,12 @@ def process_single_qualifying_table(qualifying_heading, round_info, race_url):
     try:
         table = qualifying_heading.find_next("table", {"class": "wikitable"})
         if not table:
-            print(f"No qualifying table found for {race_url}")
+            log.warning("No qualifying table found for %s", race_url)
             return None
 
         table_data = extract_quali_table_data(table)
         if not table_data:
+            log.warning("No qualifying table data found for %s", race_url)
             return None
 
         return {
@@ -239,8 +243,8 @@ def process_single_qualifying_table(qualifying_heading, round_info, race_url):
             "url": race_url,
         }
 
-    except Exception as e:
-        print(f"Error processing single qualifying table: {race_url}: {e}")
+    except Exception:
+        log.exception("Error processing single qualifying table for %s:", race_url)
         return None
 
 
@@ -351,8 +355,8 @@ def extract_quali_table_data(table):
 
         return {"headers": headers, "data": data_rows}
 
-    except Exception as e:
-        print(f"Error extracting table data: {e!s}")
+    except Exception:
+        log.exception("Error extracting table data")
         return None
 
 
@@ -385,7 +389,7 @@ def scrape_quali(soup, year, num, session=None):
 
     race_links = extract_race_report_links(soup)
     if not race_links:
-        print(f"No race report links found for F{num} {year}")
+        log.warning("No race report links found for F%s %s", num, year)
         return
 
     quali_results = []

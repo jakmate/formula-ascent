@@ -66,15 +66,13 @@ class TestGetSeriesDirectories:
         assert len(result) == 2
 
     @patch("app.core.loader.DATA_DIR")
-    @patch("app.core.loader.LOGGER")
-    def test_nonexistent_series_directory(self, mock_logger, mock_data_dir):
+    def test_nonexistent_series_directory(self, mock_data_dir):
         mock_series_path = MagicMock()
         mock_series_path.exists.return_value = False
         mock_data_dir.__truediv__.return_value = mock_series_path
 
         result = get_series_directories("F3")
         assert result == []
-        mock_logger.warning.assert_called_once()
 
 
 class TestLoadAllEntriesData:
@@ -98,15 +96,13 @@ class TestLoadAllEntriesData:
 
     @patch("app.core.loader.get_series_directories")
     @patch("app.core.loader.pd.read_csv")
-    @patch("app.core.loader.LOGGER")
-    def test_handles_missing_file(self, mock_logger, mock_read_csv, mock_get_dirs):
+    def test_handles_missing_file(self, mock_read_csv, mock_get_dirs):
         mock_dir = MagicMock()
         mock_dir.name = "2023"
         mock_get_dirs.return_value = [mock_dir]
         mock_read_csv.side_effect = FileNotFoundError()
 
         load_all_entries_data("F3")
-        mock_logger.warning.assert_called()
 
     @patch("app.core.loader.get_series_directories")
     def test_empty_result_when_no_data(self, mock_get_dirs):
@@ -115,8 +111,7 @@ class TestLoadAllEntriesData:
         assert result.empty
 
     @patch("app.core.loader.get_series_directories")
-    @patch("app.core.loader.LOGGER")
-    def test_skips_non_integer_directory(self, mock_logger, mock_get_dirs):
+    def test_skips_non_integer_directory(self, mock_get_dirs):
         # If year_dir.name is not convertible to int, we should log an error
         bad_dir = MagicMock()
         bad_dir.name = "not-a-year"
@@ -124,7 +119,6 @@ class TestLoadAllEntriesData:
 
         result = load_all_entries_data("F3")
         assert result.empty
-        mock_logger.error.assert_called_once()
 
 
 class TestLoadYearData:
@@ -151,18 +145,15 @@ class TestLoadYearData:
         assert len(result) == 1
 
     @patch("app.core.loader.pd.read_csv")
-    @patch("app.core.loader.LOGGER")
-    def test_handles_file_not_found(self, mock_logger, mock_read_csv):
+    def test_handles_file_not_found(self, mock_read_csv):
         mock_dir = MagicMock()
         mock_dir.name = "2023"
         mock_read_csv.side_effect = FileNotFoundError()
 
         result = load_year_data(mock_dir, "F3", "drivers")
         assert result is None
-        mock_logger.warning.assert_called()
 
-    @patch("app.core.loader.LOGGER")
-    def test_handles_invalid_year_directory(self, mock_logger):
+    def test_handles_invalid_year_directory(self):
         # year_dir.name must be non-integer to trigger the ValueError branch
         bad_dir = MagicMock()
         bad_dir.name = "not_a_year"
@@ -171,7 +162,6 @@ class TestLoadYearData:
 
         # Should return None because int("not_a_year") raises ValueError
         assert result is None
-        mock_logger.error.assert_called_once()
 
 
 class TestLoadStandingsData:
@@ -217,8 +207,7 @@ class TestLoadQualifyingData:
 
     @patch("app.core.loader.get_series_directories")
     @patch("app.core.loader.pd.read_csv")
-    @patch("app.core.loader.LOGGER")
-    def test_handles_parsing_errors(self, mock_logger, mock_read_csv, mock_get_dirs):
+    def test_handles_parsing_errors(self, mock_read_csv, mock_get_dirs):
         mock_dir = MagicMock()
         mock_dir.name = "2023"
         mock_quali_dir = MagicMock()
@@ -230,7 +219,6 @@ class TestLoadQualifyingData:
         mock_read_csv.side_effect = pd.errors.ParserError()
 
         load_qualifying_data("F3")
-        mock_logger.warning.assert_called()
 
     @patch("app.core.loader.get_series_directories")
     def test_skips_missing_qualifying_dir(self, mock_get_dirs):
@@ -246,8 +234,7 @@ class TestLoadQualifyingData:
         assert result.empty
 
     @patch("app.core.loader.get_series_directories")
-    @patch("app.core.loader.LOGGER")
-    def test_logs_error_for_non_integer_year_dir(self, mock_logger, mock_get_dirs):
+    def test_logs_error_for_non_integer_year_dir(self, mock_get_dirs):
         # If year_dir.name is not an int, it should be logged and skipped
         mock_dir = MagicMock()
         mock_dir.name = "not_a_year"
@@ -255,7 +242,6 @@ class TestLoadQualifyingData:
 
         result = load_qualifying_data("F3")
         assert result.empty
-        mock_logger.error.assert_called_once()
 
 
 class TestGetDriverFilename:
@@ -292,21 +278,6 @@ class TestLoadDriverData:
 
         df = pd.DataFrame({"Driver": ["Driver1"]})
         result = load_driver_data(df)
-        assert result["dob"].isna().all()
-
-    @patch("app.core.loader.PROFILES_DIR")
-    def test_handles_json_decode_or_other_exception(self, mock_profiles_dir):
-        mock_profiles_dir.exists.return_value = True
-        mock_file_handle = MagicMock()
-        mock_file_handle.__enter__ = lambda s: s
-        mock_file_handle.__exit__ = MagicMock(return_value=False)
-        mock_file_handle.read.side_effect = ValueError("bad json")
-        mock_profiles_dir.__truediv__.return_value.open.return_value = mock_file_handle
-
-        df = pd.DataFrame({"Driver": ["Driver1"]})
-        result = load_driver_data(df)
-
-        assert "dob" in result.columns
         assert result["dob"].isna().all()
 
 

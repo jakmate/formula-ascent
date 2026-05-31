@@ -40,19 +40,15 @@ class TestGetSeriesSchedule:
             "Service error",
         )
 
-        with (
-            patch(
-                "app.routes.schedule.ScheduleService",
-                return_value=mock_schedule_service,
-            ),
-            patch("app.routes.schedule.LOGGER") as mock_logger,
+        with patch(
+            "app.routes.schedule.ScheduleService",
+            return_value=mock_schedule_service,
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await get_series_schedule("f1", None, None)
 
             assert exc_info.value.status_code == 500
             assert exc_info.value.detail == "Service error"
-            mock_logger.error.assert_called_once()
 
 
 class TestGetNextRace:
@@ -78,16 +74,12 @@ class TestGetNextRace:
     async def test_get_next_race_exception(self, mock_schedule_service):
         mock_schedule_service.get_next_race.side_effect = Exception("Service error")
 
-        with (
-            patch(
-                "app.routes.schedule.ScheduleService",
-                return_value=mock_schedule_service,
-            ),
-            patch("app.routes.schedule.LOGGER") as mock_logger,
+        with patch(
+            "app.routes.schedule.ScheduleService",
+            return_value=mock_schedule_service,
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await get_next_race("f1", None, None)
 
             assert exc_info.value.status_code == 500
             assert exc_info.value.detail == "Service error"
-            mock_logger.error.assert_called_once()

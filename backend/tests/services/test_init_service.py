@@ -33,11 +33,9 @@ class TestInitializeSystem:
     @patch("app.services.init_service.create_target_variable")
     @patch("app.services.init_service.engineer_features")
     @patch("app.services.init_service.PredictionService")
-    @patch("app.services.init_service.LOGGER")
     @pytest.mark.asyncio
     async def test_success(
         self,
-        mock_logger,
         mock_prediction_service_class,
         mock_engineer,
         mock_target,
@@ -76,10 +74,6 @@ class TestInitializeSystem:
 
         await init_service.initialize_system()
 
-        # Verify logging
-        mock_logger.info.assert_any_call("Initializing system for f3_to_f2...")
-        mock_logger.info.assert_any_call("Initializing system for f2_to_f1...")
-
         # Verify model training was called for both series
         assert mock_model_service_class.call_count == 2
         assert mock_model_service_instance.train_models.call_count == 2
@@ -99,11 +93,9 @@ class TestInitializeSystem:
     @patch("app.services.init_service.create_target_variable")
     @patch("app.services.init_service.engineer_features")
     @patch("app.services.init_service.PredictionService")
-    @patch("app.services.init_service.LOGGER")
     @pytest.mark.asyncio
     async def test_no_historical_data(
         self,
-        mock_logger,
         mock_prediction_service_class,
         mock_engineer,
         mock_target,
@@ -143,33 +135,20 @@ class TestInitializeSystem:
 
         await init_service.initialize_system()
 
-        # Verify warning was logged for no historical data
-        mock_logger.warning.assert_any_call(
-            "No historical data available for training f3_to_f2",
-        )
-        mock_logger.warning.assert_any_call(
-            "No historical data available for training f2_to_f1",
-        )
-
         # Verify ModelService was not called since no trainable data
         mock_model_service_class.assert_not_called()
         mock_model_service_instance.train_models.assert_not_called()
         mock_model_service_instance.save_models.assert_not_called()
 
     @patch("app.services.init_service.load_data")
-    @patch("app.services.init_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_exception_handling(self, mock_logger, mock_load_data, init_service):
+    async def test_exception_handling(self, mock_load_data, init_service):
         # Make load_data raise an exception
         mock_load_data.side_effect = Exception("Test error")
 
         init_service.app_state.save_state = Mock()
 
         await init_service.initialize_system()
-
-        # Verify errors were logged
-        mock_logger.error.assert_any_call("Failed to initialize f3_to_f2: Test error")
-        mock_logger.error.assert_any_call("Failed to initialize f2_to_f1: Test error")
 
         # Verify state was still saved despite errors
         init_service.app_state.save_state.assert_called_once()

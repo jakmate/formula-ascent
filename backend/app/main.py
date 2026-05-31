@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -5,7 +6,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import LOGGER
 from app.core.state import AppState
 from app.routes.router import api_router
 from app.services.cronjobs_service import CronjobService
@@ -13,11 +13,13 @@ from app.services.data_service import DataService
 from app.services.init_service import InitService
 from app.services.model_service import ModelService
 
+log = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown handling."""
-    LOGGER.info("Starting application...")
+    log.info("Starting application...")
 
     app.state.app_state = AppState()
     app.state.app_state.load_state()
@@ -33,17 +35,17 @@ async def lifespan(app: FastAPI):
     )
 
     if not await app.state.model_service.load_models():
-        LOGGER.info("No models found. Initializing system...")
+        log.info("No models found. Initializing system...")
         await app.state.init_service.initialize_system()
 
     await app.state.cronjob_service.start()
 
     yield
 
-    LOGGER.info("Shutting down application...")
+    log.info("Shutting down application...")
     await app.state.cronjob_service.stop()
     app.state.app_state.save_state()
-    LOGGER.info("Application shutdown complete")
+    log.info("Application shutdown complete")
 
 
 def create_app() -> FastAPI:

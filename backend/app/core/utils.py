@@ -1,6 +1,9 @@
+import logging
 from datetime import UTC, datetime
 
 import numpy as np
+
+log = logging.getLogger(__name__)
 
 
 def get_race_columns(df):
@@ -42,29 +45,24 @@ def calculate_age(df):
     if df.empty:
         return df
 
-    try:
-        if "dob" not in df.columns:
-            df["age"] = np.nan
-            return df
-
-        ages = []
-        for _, row in df.iterrows():
-            try:
-                if len(str(row["dob"])) != 10:
-                    ages.append(np.nan)
-                    continue
-
-                dob = datetime.strptime(str(row["dob"]), "%Y-%m-%d").replace(tzinfo=UTC)
-                season_start = datetime(int(row["year"]), 1, 1, tzinfo=UTC)
-                age = round((season_start - dob).days / 365.25, 1)
-                ages.append(age)
-            except (ValueError, TypeError):
-                ages.append(np.nan)
-
-        df["age"] = ages
-        return df
-
-    except Exception as e:
-        print(f"Error in calculate_age: {e}")
+    if "dob" not in df.columns:
         df["age"] = np.nan
         return df
+
+    ages = []
+    for _, row in df.iterrows():
+        try:
+            if len(str(row["dob"])) != 10:
+                ages.append(np.nan)
+                continue
+
+            dob = datetime.strptime(str(row["dob"]), "%Y-%m-%d").replace(tzinfo=UTC)
+            season_start = datetime(int(row["year"]), 1, 1, tzinfo=UTC)
+            age = round((season_start - dob).days / 365.25, 1)
+            ages.append(age)
+        except (ValueError, TypeError):
+            log.exception("Invalid dob for row: %s")
+            ages.append(np.nan)
+
+    df["age"] = ages
+    return df

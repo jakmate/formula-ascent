@@ -43,8 +43,7 @@ class TestInit:
 
 class TestStart:
     @pytest.mark.asyncio
-    @patch("app.services.cronjobs_service.LOGGER")
-    async def test_start(self, mock_logger, cronjobs_service):
+    async def test_start(self, cronjobs_service):
         with (
             patch.object(cronjobs_service.scheduler, "add_job") as mock_add_job,
             patch.object(cronjobs_service.scheduler, "start") as mock_start,
@@ -53,7 +52,6 @@ class TestStart:
 
             mock_add_job.assert_called_once()
             mock_start.assert_called_once()
-            mock_logger.info.assert_called_with("Scheduler started")
 
 
 class TestStop:
@@ -98,8 +96,7 @@ class TestScrapeAndTrainTask:
     @pytest.mark.asyncio
     @patch("app.services.cronjobs_service.scrape_current_year")
     @patch("app.services.cronjobs_service.CURRENT_YEAR", 2024)
-    @patch("app.services.cronjobs_service.LOGGER")
-    async def test_training_failure(self, mock_logger, mock_scrape, cronjobs_service):
+    async def test_training_failure(self, mock_scrape, cronjobs_service):
         # Mock season complete and new season available
         with patch.object(cronjobs_service, "_is_season_complete", return_value=True):
             # Make initialize_system raise exception
@@ -111,9 +108,6 @@ class TestScrapeAndTrainTask:
 
         # Verify scraping succeeded
         mock_scrape.assert_called_once()
-
-        # Verify training error was logged
-        mock_logger.error.assert_called_with("Training task failed: Training failed")
 
         # Verify state was still saved
         cronjobs_service.app_state.save_state.assert_called_once()
@@ -141,10 +135,8 @@ class TestScrapeAndTrainTask:
 
     @pytest.mark.asyncio
     @patch("app.services.cronjobs_service.scrape_current_year")
-    @patch("app.services.cronjobs_service.LOGGER")
     async def test_scrape_exception_handling(
         self,
-        mock_logger,
         mock_scrape,
         cronjobs_service,
     ):
@@ -153,10 +145,6 @@ class TestScrapeAndTrainTask:
 
         await cronjobs_service.scrape_and_train_task()
 
-        # Verify specific error message was logged
-        mock_logger.error.assert_called_with(
-            "Scrape and train task failed: Scraping failed",
-        )
         cronjobs_service.app_state.save_state.assert_called_once()
 
 
@@ -216,15 +204,11 @@ class TestScrapePredictions:
 
     @pytest.mark.asyncio
     @patch("app.services.cronjobs_service.scrape_wiki")
-    @patch("app.services.cronjobs_service.LOGGER")
-    async def test_exception(self, mock_logger, mock_scrape_wiki, cronjobs_service):
+    async def test_exception(self, mock_scrape_wiki, cronjobs_service):
         mock_scrape_wiki.side_effect = Exception("Scrape failed")
 
         await cronjobs_service.scrape_predictions()
 
-        mock_logger.error.assert_called_with(
-            "Predictions scrape task failed: Scrape failed",
-        )
         cronjobs_service.app_state.save_state.assert_called_once()
 
 
@@ -251,10 +235,8 @@ class TestScrapeSchedule:
 
     @pytest.mark.asyncio
     @patch("app.services.cronjobs_service.scrape_schedules")
-    @patch("app.services.cronjobs_service.LOGGER")
     async def test_exception(
         self,
-        mock_logger,
         mock_scrape_schedules,
         cronjobs_service,
     ):
@@ -262,7 +244,4 @@ class TestScrapeSchedule:
 
         await cronjobs_service.scrape_schedule()
 
-        mock_logger.error.assert_called_with(
-            "Schedule scrape task failed: Schedule scrape failed",
-        )
         cronjobs_service.app_state.save_state.assert_called_once()

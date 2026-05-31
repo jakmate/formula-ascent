@@ -1,10 +1,11 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException, Query
 
-from app.config import LOGGER
 from app.services.schedule_service import ScheduleRequest, ScheduleService
 
+log = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -24,7 +25,7 @@ async def get_series_schedule(
         schedule_service = ScheduleService()
         return await schedule_service.get_series_schedule(request)
     except Exception as e:
-        LOGGER.error(f"Error getting schedule for {series}: {e}")
+        log.exception("Error getting schedule for %s", series)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -44,5 +45,5 @@ async def get_next_race(
         schedule_service = ScheduleService()
         return await schedule_service.get_next_race(request)
     except Exception as e:
-        LOGGER.error(f"Error getting next race for {series}: {e}")
+        log.exception("Error getting next race for %s", series)
         raise HTTPException(status_code=500, detail=str(e)) from e

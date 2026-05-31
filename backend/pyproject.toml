@@ -35,7 +35,8 @@ dev = [
     "pre-commit>=4.6.0",
 ]
 lint = [
-    "ruff>=0.15.14"
+    "ruff>=0.15.14",
+    "ty>=0.0.40"
 ]
 test = [
     "pytest>=9.0.3",
@@ -57,8 +58,6 @@ ignore = [
   "RUF001",
   "FBT002", "FBT003",
   "EM102", "EM101",
-  "BLE001",
-  "T201",
   "C901",
   "D203", # causes incompatbility warning
   "D213", # causes incompatbility warning

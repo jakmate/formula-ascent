@@ -1,4 +1,5 @@
 import gc
+import logging
 
 from bs4 import BeautifulSoup
 
@@ -9,6 +10,8 @@ from app.scrapers.entries_scraper import process_entries
 from app.scrapers.qualifying_scraper import scrape_quali
 from app.scrapers.schedule_scraper import scrape_schedules
 from app.scrapers.scraping_utils import create_session, safe_request
+
+log = logging.getLogger(__name__)
 
 BASE_URL = "https://en.wikipedia.org/wiki/"
 
@@ -37,11 +40,11 @@ def scrape_wiki(
     for num in formulas:
         for year in range(start_year, end_year):
             url = map_url(num, year)
-            print(f"Processing F{num} {year}...")
+            log.info("Processing F%s %s...", num, year)
 
             response = safe_request(session, url)
             if response is None:
-                print(f"Skipping F{num} {year} due to request failure")
+                log.info("Skipping F%s %s due to request failure", num, year)
                 continue
 
             try:
@@ -57,8 +60,8 @@ def scrape_wiki(
                 soup.decompose()
                 gc.collect()
 
-            except Exception as e:
-                print(f"Error processing data for F{num} {year}: {e!s}")
+            except Exception:
+                log.exception("Error processing data for F%s %s:", num, year)
 
 
 def scrape():

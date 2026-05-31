@@ -64,6 +64,13 @@ repos:
         files: ^backend/.*\.py$
         entry: cmd /c "cd backend && uv run ruff check --fix ."
 
+      # - id: ty-check
+      #  name: ty-check
+      #  language: system
+      #  pass_filenames: false
+      #  files: ^backend/.*\.py$
+      #  entry: cmd /c "cd backend && uv run ty check ."
+
       - id: prettier-formatting
         name: prettier-formatting
         language: system

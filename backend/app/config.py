@@ -17,4 +17,3 @@ ACADEMIES_DIR = DATA_DIR / "academies"
 SCHEDULE_DIR = DATA_DIR / "schedules" / str(CURRENT_YEAR)
 
 logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger(__name__)

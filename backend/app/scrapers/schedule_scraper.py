@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from datetime import UTC, datetime, time, timedelta
 from urllib.parse import urljoin
@@ -10,6 +11,8 @@ from timezonefinder import TimezoneFinder
 
 from app.config import CURRENT_YEAR, SCHEDULE_DIR
 from app.scrapers.scraping_utils import create_session
+
+log = logging.getLogger(__name__)
 
 F1_MAIN_STRAINER = SoupStrainer(
     "a",
@@ -96,8 +99,8 @@ def get_timezone_for_location(location_str):
             timezone_str = tf.timezone_at(lat=location.latitude, lng=location.longitude)
             if timezone_str:
                 return timezone_str
-    except Exception as e:
-        print(f"Geocoding error for '{location_str}': {e!s}")
+    except Exception:
+        log.exception("Geocoding error for %s:", location_str)
 
     # Fallback to UTC if geocoding fails
     return "UTC"
@@ -197,8 +200,8 @@ def parse_time_to_datetime(time_str, base_date, day_name=None, location=None):
             result["end"] = format_utc_datetime(end_dt)
 
         return result
-    except Exception as e:
-        print(f"Error parsing time '{time_str}' with day '{day_name}': {e}")
+    except Exception:
+        log.exception("Error parsing time %s with day %s:", time_str, day_name)
         return None
 
 
@@ -394,10 +397,9 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                             if session_key and session_info:
                                 sessions[session_key] = session_info
 
-                    except Exception as e:
-                        print(
-                            f"Error scraping F1 race details "
-                            f"for round {round_num}: {e}",
+                    except Exception:
+                        log.exception(
+                            "Error scraping F1 race details for round %s:", round_num
                         )
 
                 # Add fallback sessions if missing
@@ -417,12 +419,12 @@ def scrape_f1_schedule(session, existing_races_by_round=None):
                         "sessions": sessions,
                     },
                 )
-            except Exception as e:
-                print(f"Error processing F1 race card: {e}")
+            except Exception:
+                log.exception("Error processing F1 race card:")
 
         return races
-    except Exception as e:
-        print(f"Error scraping F1 schedule: {e}")
+    except Exception:
+        log.exception("Error scraping F1 schedule:")
         return []
 
 
@@ -553,10 +555,11 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                                     elif "feature" in session_name:
                                         sessions["race"] = session_dt
 
-                    except Exception as e:
-                        print(
-                            f"Error scraping {series_name.upper()} "
-                            f"race details for round {round_num}: {e}",
+                    except Exception:
+                        log.exception(
+                            "Error scraping %s race details for round %s:",
+                            series_name.upper(),
+                            round_num,
                         )
 
                 # Add fallback race session
@@ -571,12 +574,14 @@ def scrape_fia_formula_schedule(session, series_name, existing_races_by_round=No
                         "sessions": sessions,
                     },
                 )
-            except Exception as e:
-                print(f"Error processing {series_name.upper()} race container: {e}")
+            except Exception:
+                log.exception(
+                    "Error processing %s race container:", series_name.upper()
+                )
 
         return races
-    except Exception as e:
-        print(f"Error scraping {series_name.upper()} schedule: {e}")
+    except Exception:
+        log.exception("Error scraping %s schedule:", series_name.upper())
         return []
 
 
@@ -608,7 +613,9 @@ def scrape_schedules(session=None):
                     try:
                         existing_schedule = json.load(f)
                     except json.JSONDecodeError:
-                        print(f"Warning: Could not parse existing {name} schedule")
+                        log.exception(
+                            "Warning: Could not parse existing %s schedule", name
+                        )
                         existing_schedule = []
 
             # Create a map of existing races by round number
@@ -617,7 +624,7 @@ def scrape_schedules(session=None):
             # Scrape new schedule
             new_schedule = scraper(existing_races, session)
             if not new_schedule:
-                print(f"Warning: No races scraped for {name}")
+                log.warning("No races scraped for %s", name)
                 continue
 
             new_schedule.sort(key=lambda x: x["round"])
@@ -626,12 +633,14 @@ def scrape_schedules(session=None):
             if new_schedule != existing_schedule:
                 with file_path.open("w") as f:
                     json.dump(new_schedule, f, indent=2)
-                print(f"Updated {name.upper()} schedule: {len(new_schedule)} races")
+                log.info(
+                    "Updated %s schedule: %s races", name.upper(), len(new_schedule)
+                )
             else:
-                print(f"No changes detected for {name.upper()} schedule")
+                log.info("No changes detected for %s schedule", name.upper())
 
-        except Exception as e:
-            print(f"Error saving {name} schedule: {e}")
+        except Exception:
+            log.exception("Error saving %s schedule:", name)
 
 
 if __name__ == "__main__":  # pragma: no cover

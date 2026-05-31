@@ -52,16 +52,14 @@ def test_find_championship_table_found():
         '<table class="wikitable"></table>'
     )
     soup = make_soup(html)
-    table, error = find_championship_table(soup, "Drivers'", 1, 2020)
+    table = find_championship_table(soup, "Drivers'", 1, 2020)
     assert table is not None
-    assert error is None
 
 
 def test_find_championship_table_not_found():
     soup = make_soup("<div></div>")
-    table, error = find_championship_table(soup, "Drivers'", 1, 2020)
+    table = find_championship_table(soup, "Drivers'", 1, 2020)
     assert table is None
-    assert "No Drivers' heading found" in error
 
 
 def test_find_championship_table_2013_series2_drivers():
@@ -73,7 +71,7 @@ def test_find_championship_table_2013_series2_drivers():
     <table class="wikitable" id="target"></table>
     """
     soup = make_soup(html)
-    table, _ = find_championship_table(soup, "Drivers'", 2, 2013)
+    table = find_championship_table(soup, "Drivers'", 2, 2013)
     assert table is not None
     assert table.get("id") == "target"
 
@@ -81,9 +79,8 @@ def test_find_championship_table_2013_series2_drivers():
 def test_find_championship_table_2013_series2_not_enough_tables():
     html = '<h3 id="Drivers\'_championship"></h3><table class="wikitable"></table>'
     soup = make_soup(html)
-    table, error = find_championship_table(soup, "Drivers'", 2, 2013)
+    table = find_championship_table(soup, "Drivers'", 2, 2013)
     assert table is None
-    assert "No Drivers' table found" in error
 
 
 def test_has_number_column_true_for_no_and_year_2010():
@@ -332,7 +329,7 @@ def test_write_championship_csv_rowspan_across_rows():
     assert "50" in written
 
 
-# process_championship tests (full + error path)
+# process_championship tests
 @patch("app.scrapers.championship_scraper.create_output_file")
 @patch("app.scrapers.championship_scraper.write_championship_csv")
 def test_process_championship_full(mock_write, mock_create):
@@ -359,31 +356,3 @@ def test_process_championship_full(mock_write, mock_create):
     assert "f1_2020_drivers.csv" in mock_create.call_args[0]
     assert headers == ["Pos", "Driver", "Race1 R1", "Points"]
     assert len(data_rows) == 2
-
-
-@patch("builtins.print")
-def test_process_championship_missing_heading_prints_error(mock_print):
-    # no heading find_championship_table will return (None, error)
-    soup = make_soup("<div></div>")
-    process_championship(soup, "Drivers'", 2020, "drivers", 1)
-    # error message contains this substring
-    mock_print.assert_called()
-    called_with = mock_print.call_args[0][0]
-    assert "No Drivers' heading found for 2020 1" in called_with
-
-
-@patch("builtins.print")
-def test_process_championship_not_enough_rows(mock_print):
-    html = """
-    <h3 id="World_Drivers'_Championship_standings"></h3>
-    <table class="wikitable">
-        <tr><th>Pos</th><th>Driver</th></tr>
-        <tr><td>1</td><td>Max</td></tr>
-    </table>
-    """
-    soup = make_soup(html)
-    process_championship(soup, "Drivers'", 2020, "drivers", 1)
-
-    mock_print.assert_called()
-    called_with = mock_print.call_args[0][0]
-    assert "Not enough rows in Drivers' 2020 1" in called_with

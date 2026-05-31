@@ -1,7 +1,10 @@
 import contextlib
 import csv
+import logging
 
 from app.scrapers.scraping_utils import create_output_file, remove_superscripts
+
+log = logging.getLogger(__name__)
 
 HEADER_MAPPING = {
     "Entrant": "Team",
@@ -236,12 +239,12 @@ def process_entries(soup, year, series):
     """Process entries table and save to CSV."""
     table = find_entries_table(soup, year, series)
     if not table:
-        print(f"No entries table found for F{series} {year}")
+        log.warning("No entries table found for F%s %s", series, year)
         return
 
     all_rows = table.find_all("tr")
     if len(all_rows) < 3:
-        print(f"Not enough rows in table for F{series} {year}")
+        log.warning("Not enough rows in table for F%s %s", series, year)
         return
 
     # Process headers

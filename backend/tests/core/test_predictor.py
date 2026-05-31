@@ -352,46 +352,6 @@ class TestMain:
     @patch("app.core.predictor.load_standings_data")
     @patch("app.core.predictor.load_data")
     @patch("app.core.predictor.load_qualifying_data")
-    @patch("builtins.print")
-    def test_main_prints_progress(
-        self,
-        mock_print,
-        mock_load_quali,
-        mock_load_data,
-        mock_load_standings,
-        mock_calc_quali,
-        mock_create_target,
-        mock_engineer,
-        mock_train,
-    ):
-        """Test main function prints progress messages."""
-        # Setup basic mocks
-        mock_load_quali.return_value = MagicMock()
-        mock_load_data.return_value = MagicMock()
-        mock_load_standings.return_value = MagicMock()
-        mock_calc_quali.return_value = MagicMock()
-        mock_create_target.return_value = MagicMock()
-        mock_engineer.return_value = MagicMock()
-        mock_train.return_value = ({}, [], None)
-
-        main()
-
-        # Verify progress messages
-        print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Loading F3 qualifying data" in str(call) for call in print_calls)
-        assert any("Adding qualifying features" in str(call) for call in print_calls)
-        assert any("Creating target variable" in str(call) for call in print_calls)
-        assert any("Engineering features" in str(call) for call in print_calls)
-        assert any("Training all models" in str(call) for call in print_calls)
-        assert any("Making predictions" in str(call) for call in print_calls)
-
-    @patch("app.core.predictor.train_models")
-    @patch("app.core.predictor.engineer_features")
-    @patch("app.core.predictor.create_target_variable")
-    @patch("app.core.predictor.calculate_qualifying_features")
-    @patch("app.core.predictor.load_standings_data")
-    @patch("app.core.predictor.load_data")
-    @patch("app.core.predictor.load_qualifying_data")
     def test_main_handles_feature_dataframe_promoted_column(
         self,
         mock_load_quali,

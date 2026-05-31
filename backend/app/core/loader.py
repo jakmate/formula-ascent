@@ -1,9 +1,12 @@
 import json
+import logging
 import re
 
 import pandas as pd
 
-from app.config import DATA_DIR, LOGGER, PROFILES_DIR
+from app.config import DATA_DIR, PROFILES_DIR
+
+log = logging.getLogger(__name__)
 
 FILE_PATTERNS = {
     "drivers": "{series}_{year}_drivers_standings.csv",
@@ -25,7 +28,7 @@ def get_series_directories(series):
     """Get all directories for a series and their patterns."""
     series_path = DATA_DIR / series
     if not series_path.exists():
-        LOGGER.warning(f"Series directory not found: {series_path}")
+        log.warning("Series directory not found: %s", series_path)
         return []
     return [p for p in series_path.iterdir() if p.is_dir() and p.name.isdigit()]
 
@@ -43,15 +46,17 @@ def load_all_entries_data(series):
             try:
                 entries_df = pd.read_csv(entries_file)
             except FileNotFoundError as e:
-                LOGGER.warning(f"Skipping entries for {year_dir.name} ({series}): {e}")
+                log.warning(
+                    "Skipping entries for %s (%s): %s", year_dir.name, series, e
+                )
                 continue
 
             entries_df["year"] = year_int
             entries_df["series"] = series
             all_entries.append(entries_df)
 
-        except ValueError as e:
-            LOGGER.error(f"Failed to process entries in {year_dir}: {e}")
+        except ValueError:
+            log.exception("Failed to process entries in %s", year_dir)
             continue
 
     return pd.concat(all_entries, ignore_index=True) if all_entries else pd.DataFrame()
@@ -66,8 +71,8 @@ def load_year_data(year_dir, series, data_type):
         try:
             df = pd.read_csv(data_file)
         except FileNotFoundError as e:
-            LOGGER.warning(
-                f"Skipping {data_type} data for {year_dir.name} ({series}): {e}",
+            log.warning(
+                "Skipping %s data for %s (%s): %s", data_type, year_dir.name, series, e
             )
             return None
 
@@ -79,8 +84,8 @@ def load_year_data(year_dir, series, data_type):
         df.loc[:, "series"] = series
         return df
 
-    except ValueError as e:
-        LOGGER.error(f"Error processing {data_type} data in {year_dir}: {e}")
+    except ValueError:
+        log.exception("Error processing %s data in %s", data_type, year_dir)
         return None
 
 
@@ -118,11 +123,11 @@ def load_qualifying_data(series):
                     df["round"] = quali_file.stem.split("_")[-1]  # e.g., "5"
                     quali_data.append(df)
                 except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
-                    LOGGER.warning(f"Error loading qualifying file {quali_file}: {e}")
+                    log.warning("Error loading qualifying file %s: %s", quali_file, e)
                     continue
 
-        except ValueError as e:
-            LOGGER.error(f"Error processing qualifying data for {year_dir}: {e}")
+        except ValueError:
+            log.exception("Error processing qualifying data for %s", year_dir)
             continue
 
     return pd.concat(quali_data, ignore_index=True) if quali_data else pd.DataFrame()
@@ -151,7 +156,8 @@ def load_driver_data(df):
                         if profile_data.get("scraped", True)
                         else default_profile
                     )
-            except Exception:
+            except (OSError, json.JSONDecodeError) as e:
+                log.warning("Could not load profile for %s: %s", driver, e)
                 profiles[driver] = default_profile
 
     # Map profiles to dataframe
@@ -218,7 +224,7 @@ def load_academies_data():
     academies_dir = DATA_DIR / "academies"
 
     if not academies_dir.exists():
-        LOGGER.warning(f"Academies directory not found: {academies_dir}")
+        log.warning("Academies directory not found: %s", academies_dir)
         return pd.DataFrame()
 
     all_academy_data = []
@@ -234,7 +240,7 @@ def load_academies_data():
             all_academy_data.append(df)
 
         except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
-            LOGGER.warning(f"Error loading academy file {csv_file}: {e}")
+            log.warning("Error loading academy file %s: %s", csv_file, e)
             continue
 
     if not all_academy_data:

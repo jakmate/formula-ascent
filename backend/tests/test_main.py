@@ -8,12 +8,6 @@ from fastapi.testclient import TestClient
 from app.main import create_app, lifespan
 
 
-@pytest.fixture
-def mock_logger():
-    with patch("app.main.LOGGER") as mock_logger:
-        yield mock_logger
-
-
 class TestCreateApp:
     def test_app_configuration(self):
         app = create_app()

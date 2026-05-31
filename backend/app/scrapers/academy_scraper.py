@@ -1,4 +1,5 @@
 import csv
+import logging
 
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -9,17 +10,19 @@ from app.scrapers.scraping_utils import (
     safe_request,
 )
 
+log = logging.getLogger(__name__)
+
 
 def extract_team_links(soup):
     """Extract team links from the Formula One driver development programs table."""
     f1_heading = soup.find("h3", {"id": "Formula_One"})
     if not f1_heading:
-        print("No Formula One section found")
+        log.warning("No Formula One section found")
         return []
 
     table = f1_heading.find_next("table", {"class": "wikitable"})
     if not table:
-        print("No driver development programs table found")
+        log.warning("No driver development programs table found")
         return []
 
     team_links = []
@@ -157,7 +160,7 @@ def scrape_academy_page(academy_url, academy_name, session):
     try:
         response = safe_request(session, academy_url)
         if response is None:
-            print(f"Failed to fetch {academy_url}")
+            log.warning("Failed to fetch %s", academy_url)
             return None
 
         parse_only = SoupStrainer(["h2", "h3", "table"])
@@ -251,8 +254,8 @@ def scrape_academy_page(academy_url, academy_name, session):
 
         return results
 
-    except Exception as e:
-        print(f"Error scraping {academy_url}: {e!s}")
+    except (ValueError, AttributeError, KeyError):
+        log.exception("Error scraping %s:", academy_url)
         return None
 
 
@@ -294,7 +297,7 @@ def scrape_academies(session=None):
 
     response = safe_request(session, url)
     if response is None:
-        print(f"Failed to fetch {url}")
+        log.warning("Failed to fetch %s", url)
         return
 
     parse_only = SoupStrainer(["h3", "table"])
@@ -302,10 +305,10 @@ def scrape_academies(session=None):
 
     team_links = extract_team_links(soup)
     if not team_links:
-        print("No team links found")
+        log.warning("No team links found")
         return
 
-    print(f"Found {len(team_links)} driver development programs")
+    log.info("Found %s driver development programs", len(team_links))
 
     response.close()
     del response
@@ -316,10 +319,10 @@ def scrape_academies(session=None):
 
     for team in team_links:
         if team["name"] in skip_programs:
-            print(f"Skipping {team['name']}")
+            log.info("Skipping %s", team["name"])
             continue
 
-        print(f"Scraping {team['name']}...")
+        log.info("Scraping %s...", team["name"])
         academy_data = scrape_academy_page(team["url"], team["name"], session)
 
         if academy_data:

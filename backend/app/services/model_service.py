@@ -1,13 +1,16 @@
 import asyncio
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
 import joblib
 import torch
 
-from app.config import LOGGER, MODELS_DIR
-from app.core.predictor import RacingPredictor, train_models
+from app.config import MODELS_DIR
 from app.core.state import AppState
+from app.core.trainer import RacingPredictor, train_models
+
+log = logging.getLogger(__name__)
 
 
 class ModelService:
@@ -63,9 +66,9 @@ class ModelService:
                 series_dir / "preprocessor.joblib",
             )
 
-            LOGGER.info(f"Models saved successfully for {self.series or 'all series'}")
-        except Exception as e:
-            LOGGER.error(f"Error saving models: {e}")
+            log.info("Models saved successfully for %s", self.series or "all series")
+        except Exception:
+            log.exception("Error saving models")
 
     async def load_models(self) -> bool:
         """Load models from disk."""
@@ -95,13 +98,13 @@ class ModelService:
                     )
 
             if models_loaded:
-                LOGGER.info(
-                    f"Loaded models for series: {list(self.app_state.models.keys())}",
+                log.info(
+                    "Loaded models for series: %s", list(self.app_state.models.keys())
                 )
 
             return models_loaded
-        except Exception as e:
-            LOGGER.error(f"Error loading models: {e}")
+        except Exception:
+            log.exception("Error loading models")
             return False
 
     async def _load_preprocessor(self, series: str, series_dir: Path) -> None:
@@ -147,7 +150,7 @@ class ModelService:
 
     async def train_models(self, trainable_df):
         """Train models on provided data."""
-        LOGGER.info(f"Training models for {self.series} on {len(trainable_df)} records")
+        log.info("Training models for %s on %s records", self.series, len(trainable_df))
 
         (models, feature_cols, scaler) = await asyncio.to_thread(
             train_models,

@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from datetime import UTC, datetime
 from pathlib import Path
@@ -7,6 +8,8 @@ import pandas as pd
 
 from app.config import PROFILES_DIR
 from app.scrapers.scraping_utils import create_session
+
+log = logging.getLogger(__name__)
 
 SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
 DRIVER_ALIASES = {
@@ -126,8 +129,8 @@ def fetch_driver_by_qid(qid, session):
                 )
         return merged
 
-    except Exception as e:
-        print(f"QID fetch error for {qid}: {e}")
+    except Exception:
+        log.exception("QID fetch error for %s:", qid)
         return None
 
 
@@ -204,10 +207,10 @@ def search_wikidata_drivers(driver_names, session, batch_size=100):
                             binding["citizenshipLabel"]["value"]
                         )
             else:
-                print(response.status_code)
+                log.warning(response.status_code)
 
-        except Exception as e:
-            print(f"Batch query error for batch {i // batch_size + 1}: {e}")
+        except Exception:
+            log.exception("Batch query error for batch %s:", i // batch_size + 1)
 
     return results
 
@@ -278,16 +281,11 @@ def needs_rescrape(driver, existing_profile, new_data, session=None):
     new_nationality = extract_nationality_from_result(new_data)
 
     if existing_nationality != new_nationality:
-        all_new_nationalities = extract_all_nationalities_from_result(new_data)
-        if (
-            len(all_new_nationalities) > 1
-            and existing_nationality in all_new_nationalities
-        ):
-            print(
-                f"Nationality ambigious for {driver}: "
-                f"existing={existing_nationality!r}, "
-                f"wikidata returned={all_new_nationalities} — keeping existing"
-            )
+        new_nationalities = extract_all_nationalities_from_result(new_data)
+        if len(new_nationalities) > 1 and existing_nationality in new_nationalities:
+            log.info("Nationality ambigious for %s", driver)
+            log.info("Existing nationality: %s", existing_nationality)
+            log.info("Wikidata returned: %s", new_nationalities)
             nationality_changed = False
         else:
             nationality_changed = True
@@ -320,8 +318,8 @@ def get_all_drivers_from_data():
                     if "Driver" in df.columns:
                         drivers = df["Driver"].dropna().str.strip().unique()
                         all_drivers.update(drivers)
-                except Exception as e:
-                    print(f"Error reading {entries_file}: {e}")
+                except Exception:
+                    log.exception("Error reading %s", entries_file)
 
     return sorted(all_drivers)
 
@@ -357,14 +355,14 @@ def scrape_drivers(session=None):
     if not session:
         session = create_session()
 
-    print("Scanning data files for driver names...")
+    log.info("Scanning data files for driver names...")
     all_drivers = get_all_drivers_from_data()
 
     if not all_drivers:
-        print("No drivers found.")
+        log.warning("No drivers found.")
         return
 
-    print(f"Found {len(all_drivers)} unique drivers")
+    log.info("Found %s unique drivers", len(all_drivers))
 
     # Ensure profiles directory exists
     PROFILES_DIR.mkdir(parents=True, exist_ok=True)
@@ -388,11 +386,11 @@ def scrape_drivers(session=None):
             else:
                 new_drivers.append(driver)
 
-        print(f"New drivers: {len(new_drivers)}, Existing: {len(existing_drivers)}")
+        log.info("New drivers:%s, Existing:%s", len(new_drivers), len(existing_drivers))
 
         # Batch query for new drivers (use search names)
         if new_drivers:
-            print(f"Querying {len(new_drivers)} new drivers in batches...")
+            log.info("Querying %s new drivers in batches...", len(new_drivers))
             search_names = [driver_search_map[d] for d in new_drivers]
             new_results = search_wikidata_drivers(search_names, session)
 
@@ -409,7 +407,7 @@ def scrape_drivers(session=None):
                 override = DRIVER_OVERRIDES.get(driver, {})
 
                 if not result and not override:
-                    print(f"NO RESULTS FOR {driver}")
+                    log.warning("No results for %s", driver)
                     profile = {
                         "name": driver,
                         "dob": None,
@@ -417,7 +415,7 @@ def scrape_drivers(session=None):
                         "scraped": False,
                     }
                 elif not result and override:
-                    print(f"No Wikidata result for {driver}, applying override only")
+                    log.warning("No Wikidata result for %s, applying override", driver)
                     bio_result = fetch_driver_by_qid(override["wikidata_id"], session)
                     profile = {
                         "name": driver,
@@ -440,7 +438,7 @@ def scrape_drivers(session=None):
 
         # Check existing drivers for updates
         if existing_drivers:
-            print(f"Checking {len(existing_drivers)} existing drivers for updates...")
+            log.info("Checking %s existing drivers for updates", len(existing_drivers))
             search_names = [driver_search_map[d] for d in existing_drivers]
             existing_results = search_wikidata_drivers(search_names, session)
 
@@ -460,14 +458,14 @@ def scrape_drivers(session=None):
 
                 result = existing_results.get(driver)
                 if result and needs_rescrape(driver, existing_profile, result, session):
-                    print(f"Updating {driver}...")
+                    log.info("Updating %s...", driver)
                     profile = build_profile_from_result(driver, result, session)
                     save_profile(profile_file, profile)
                     updated_count += 1
 
-            print(f"Updated {updated_count} profiles")
+            log.info("Updated %s profiles", updated_count)
 
-        print("Scraping complete")
+        log.info("Scraping complete")
 
     finally:
         session.close()

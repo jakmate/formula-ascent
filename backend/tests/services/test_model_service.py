@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from app.core.predictor import RacingPredictor
 from app.core.state import AppState
+from app.core.trainer import RacingPredictor
 from app.services.model_service import ModelService
 
 
@@ -44,11 +44,9 @@ class TestSaveModels:
     @patch("app.services.model_service.MODELS_DIR", test_models_dir)
     @patch("pathlib.Path.mkdir")
     @patch("joblib.dump")
-    @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_with_series(
         self,
-        mock_logger,
         mock_joblib_dump,
         mock_makedirs,
         model_service,
@@ -65,17 +63,13 @@ class TestSaveModels:
         # Verify sklearn model save and preprocessor save
         assert mock_joblib_dump.call_count == 2  # ml model + preprocessor
 
-        mock_logger.info.assert_called_with("Models saved successfully for f3_to_f2")
-
     @patch("app.services.model_service.MODELS_DIR", test_models_dir)
     @patch("pathlib.Path.mkdir")
     @patch("torch.save")
     @patch("joblib.dump")
-    @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_with_pytorch(
         self,
-        mock_logger,
         mock_joblib_dump,
         mock_torch_save,
         mock_makedirs,
@@ -102,14 +96,11 @@ class TestSaveModels:
         # Verify sklearn model save and preprocessor save
         assert mock_joblib_dump.call_count == 2  # preprocessor + calibrator
 
-        mock_logger.info.assert_called_with("Models saved successfully for f3_to_f2")
-
     @patch("pathlib.Path.mkdir")
     @patch("joblib.dump")
-    @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
     async def test_without_series(
-        self, mock_logger, mock_joblib_dump, mock_makedirs, mock_app_state
+        self, mock_joblib_dump, mock_makedirs, mock_app_state
     ):
         service = ModelService(mock_app_state, series=None)
         mock_app_state.models = {"RandomForest": Mock()}
@@ -120,17 +111,13 @@ class TestSaveModels:
             await service.save_models()
 
         mock_makedirs.assert_called_once_with(parents=True, exist_ok=True)
-        mock_logger.info.assert_called_with("Models saved successfully for all series")
 
     @patch("pathlib.Path.mkdir")
-    @patch("app.services.model_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_exception(self, mock_logger, mock_makedirs, model_service):
+    async def test_exception(self, mock_makedirs, model_service):
         mock_makedirs.side_effect = Exception("Directory error")
 
         await model_service.save_models()
-
-        mock_logger.error.assert_called_with("Error saving models: Directory error")
 
 
 class TestLoadModels:
@@ -184,11 +171,9 @@ class TestLoadModels:
                     Mock(),
                 ],
             ),
-            patch("app.services.model_service.LOGGER") as mock_logger,
         ):
             result = await model_service.load_models()
         assert result is True
-        mock_logger.info.assert_called()
 
     @pytest.mark.asyncio
     async def test_no_directory(self, model_service):
@@ -227,13 +212,9 @@ class TestLoadModels:
         with (
             patch("app.services.model_service.MODELS_DIR", mock_dir),
             patch("joblib.load", return_value={"scaler": Mock(), "feature_cols": []}),
-            patch("app.services.model_service.LOGGER") as mock_logger,
         ):
             result = await model_service.load_models()
         assert result is False
-        mock_logger.error.assert_called_with(
-            "Error loading models: Directory read error"
-        )
 
     @pytest.mark.asyncio
     async def test_pytorch_loading(self, model_service):

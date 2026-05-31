@@ -1,14 +1,15 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.config import LOGGER
 from app.core.state import AppState
 from app.dependencies import get_app_state, get_data_service
 from app.models.predictions import ModelResults
 from app.services.data_service import DataService
 from app.services.prediction_service import PredictionService
 
+log = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -26,5 +27,5 @@ async def get_prediction(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        LOGGER.error(f"Error in get_prediction: {e}")
+        log.exception("Error in get_prediction")
         raise HTTPException(status_code=500, detail=str(e)) from e

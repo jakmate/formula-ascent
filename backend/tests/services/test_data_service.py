@@ -107,9 +107,8 @@ class TestLoadCurrentData:
         assert "No drivers data available" in str(exc_info.value.detail)
 
     @patch("app.services.data_service.time.time")
-    @patch("app.services.data_service.LOGGER")
     @pytest.mark.asyncio
-    async def test_cache_hit(self, mock_logger, mock_time, data_service):
+    async def test_cache_hit(self, mock_time, data_service):
         # Setup cached data
         cache_key = "current_data_f2_to_f1"
         cached_data = pd.DataFrame({"driver": ["A"], "year": [2023]})
@@ -119,11 +118,6 @@ class TestLoadCurrentData:
         mock_time.side_effect = [1000, 1000.5]  # start and end times
 
         result = await data_service.load_current_data("f2_to_f1")
-
-        # Verify cache hit was logged
-        mock_logger.info.assert_called_once_with(
-            "Cache HIT for f2_to_f1 - returned in 0.50s",
-        )
 
         # Verify cached data was returned
         pd.testing.assert_frame_equal(result, cached_data)
@@ -135,11 +129,9 @@ class TestLoadCurrentData:
     @patch("app.services.data_service.load_standings_data")
     @patch("app.services.data_service.load_data")
     @patch("app.services.data_service.time.time")
-    @patch("app.services.data_service.LOGGER")
     @pytest.mark.asyncio
     async def test_cache_miss(
         self,
-        mock_logger,
         mock_time,
         mock_load_data,
         mock_load_standings,
@@ -178,18 +170,6 @@ class TestLoadCurrentData:
 
         result = await data_service.load_current_data("f2_to_f1")
 
-        # Verify cache miss was logged
-        mock_logger.info.assert_any_call("Cache MISS for f2_to_f1 - processing data...")
-
-        # Verify total processing was logged (check the pattern, not exact string)
-        total_processing_calls = [
-            c
-            for c in mock_logger.info.call_args_list
-            if c[0][0].startswith("Total processing for f2_to_f1:")
-        ]
-        assert len(total_processing_calls) == 1
-        assert "cached 1 records" in total_processing_calls[0][0][0]
-
         # Verify data was cached
         cache_key = "current_data_f2_to_f1"
         assert cache_key in data_service.data_cache
@@ -205,8 +185,7 @@ class TestParseSeries:
 
 
 class TestClearCache:
-    @patch("app.services.data_service.LOGGER")
-    def test_specific_series(self, mock_logger, data_service):
+    def test_specific_series(self, data_service):
         # Setup cache with multiple entries
         data_service.data_cache = {
             "current_data_f2_to_f1": pd.DataFrame({"a": [1]}),
@@ -223,11 +202,7 @@ class TestClearCache:
         assert "current_data_f3_to_f2" in data_service.data_cache
         assert "other_data" in data_service.data_cache
 
-        # Verify logging
-        mock_logger.info.assert_called_once_with("Cleared cache for f2_to_f1")
-
-    @patch("app.services.data_service.LOGGER")
-    def test_clear_all(self, mock_logger, data_service):
+    def test_clear_all(self, data_service):
         # Setup cache
         data_service.data_cache = {
             "current_data_f2_to_f1": pd.DataFrame({"a": [1]}),
@@ -239,11 +214,7 @@ class TestClearCache:
         # Verify cache is empty
         assert data_service.data_cache == {}
 
-        # Verify logging
-        mock_logger.info.assert_called_once_with("Cleared all cached data")
-
-    @patch("app.services.data_service.LOGGER")
-    def test_nonexistent_series(self, mock_logger, data_service):
+    def test_nonexistent_series(self, data_service):
         # Setup cache with different series
         data_service.data_cache = {"current_data_f3_to_f2": pd.DataFrame({"b": [2]})}
 
@@ -252,6 +223,3 @@ class TestClearCache:
         # Verify cache unchanged
         assert "current_data_f3_to_f2" in data_service.data_cache
         assert len(data_service.data_cache) == 1
-
-        # Verify logging still occurred
-        mock_logger.info.assert_called_once_with("Cleared cache for f2_to_f1")

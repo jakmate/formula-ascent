@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import numpy as np
 import pandas as pd
 
@@ -128,21 +126,6 @@ class TestCalculateAge:
         assert pd.isna(result.loc[1, "age"])  # Invalid
         assert not pd.isna(result.loc[2, "age"])  # Valid
         assert pd.isna(result.loc[3, "age"])  # None
-
-    @patch("builtins.print")
-    @patch("app.core.utils.datetime")
-    def test_exception_handling(self, mock_datetime, mock_print):
-        """Test that exceptions are caught and handled."""
-        # Make datetime.strptime raise an exception
-        mock_datetime.strptime.side_effect = Exception("Test exception")
-        mock_datetime.return_value = mock_datetime
-
-        df = pd.DataFrame({"dob": ["1990-05-15"], "year": [2020]})
-
-        result = calculate_age(df)
-        assert "age" in result.columns
-        assert result["age"].isna().all()
-        mock_print.assert_called()  # Error should be printed
 
     def test_short_dob_strings(self):
         """Test that short dob strings are handled."""

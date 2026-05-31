@@ -1,14 +1,15 @@
-from app.config import CURRENT_YEAR, LOGGER
+import logging
+
+from app.config import CURRENT_YEAR
+from app.core.feature_creator import calculate_qualifying_features, engineer_features
 from app.core.loader import load_data, load_qualifying_data, load_standings_data
-from app.core.predictor import (
-    calculate_qualifying_features,
-    create_target_variable,
-    engineer_features,
-)
+from app.core.predictor import create_target_variable
 from app.core.state import AppState
 from app.services.data_service import DataService
 from app.services.model_service import ModelService
 from app.services.prediction_service import PredictionService
+
+log = logging.getLogger(__name__)
 
 
 class InitService:
@@ -24,7 +25,7 @@ class InitService:
         """Initial data loading, training, and prediction generation."""
         for series in ["f3_to_f2", "f2_to_f1"]:
             try:
-                LOGGER.info(f"Initializing system for {series}...")
+                log.info("Initializing system for %s...", series)
                 feeder_series, parent_series = self.data_service._parse_series(series)
 
                 feeder_df = load_data(feeder_series)
@@ -44,9 +45,7 @@ class InitService:
                     await series_model_service.train_models(trainable_df)
                     await series_model_service.save_models()
                 else:
-                    LOGGER.warning(
-                        f"No historical data available for training {series}"
-                    )
+                    log.warning("No historical data available for training %s", series)
 
                 prediction_service = PredictionService(
                     self.app_state, series, self.data_service
@@ -54,7 +53,7 @@ class InitService:
                 for model_name in self.app_state.models[series]:
                     await prediction_service.get_prediction_for_model(model_name)
 
-            except Exception as e:
-                LOGGER.error(f"Failed to initialize {series}: {e}")
+            except Exception:
+                log.exception("Failed to initialize %s", series)
 
         self.app_state.save_state()

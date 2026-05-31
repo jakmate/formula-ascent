@@ -1,8 +1,11 @@
+import logging
 import time
 
 import requests
 
 from app.config import DATA_DIR
+
+log = logging.getLogger(__name__)
 
 
 def create_session():
@@ -38,7 +41,7 @@ def safe_request(session, url, max_retries=3, base_delay=1):
                 raise
             if not _handle_403_retry(attempt, max_retries, url):
                 return None
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             if not _handle_generic_retry(attempt, max_retries, url, e, base_delay):
                 return None
 
@@ -47,21 +50,21 @@ def safe_request(session, url, max_retries=3, base_delay=1):
 
 def _handle_403_retry(attempt, max_retries, url):
     """Handle 403 error with retry logic. Returns True to continue, False to stop."""
-    print(f"403 error on attempt {attempt + 1} for {url}")
+    log.warning("403 error on attempt %s for %s", attempt + 1, url)
 
     if attempt >= max_retries - 1:
-        print(f"Final 403 error for {url} - skipping")
+        log.warning("Final 403 error for %s - skipping", url)
         return False
 
     wait_time = 2 + attempt
-    print(f"Waiting {wait_time} seconds before retry...")
+    log.info("Waiting %s seconds before retry...", wait_time)
     time.sleep(wait_time)
     return True
 
 
 def _handle_generic_retry(attempt, max_retries, url, error, base_delay):
     """Retry logic for generic exceptions. Returns True to continue, False to stop."""
-    print(f"Error on attempt {attempt + 1} for {url}: {error!s}")
+    log.warning("Error on attempt %s for %s: %s", attempt + 1, url, error)
 
     if attempt >= max_retries - 1:
         return False

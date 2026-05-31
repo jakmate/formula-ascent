@@ -1,12 +1,15 @@
+import logging
 from datetime import UTC, datetime
 
 import pandas as pd
 import torch
 
-from app.config import CURRENT_YEAR, LOGGER
+from app.config import CURRENT_YEAR
 from app.core.state import AppState
 from app.models.predictions import ModelResults, PredictionResponse
 from app.services.data_service import DataService
+
+log = logging.getLogger(__name__)
 
 
 class PredictionService:
@@ -133,7 +136,7 @@ class PredictionService:
                 ].copy()
 
             if current_df.empty:
-                LOGGER.warning(f"No current data for {self.series} predictions")
+                log.warning("No current data for %s predictions", self.series)
                 return
 
             x_current = current_df[self.app_state.feature_cols[self.series]].fillna(0)
@@ -149,23 +152,23 @@ class PredictionService:
                             "timestamp": datetime.now(UTC),
                         },
                     )
-                except Exception as e:
-                    LOGGER.error(
-                        f"Prediction failed for {model_name} in {self.series}: {e}",
+                except Exception:
+                    log.exception(
+                        "Prediction failed for %s in %s", model_name, self.series
                     )
 
             # Store predictions with series key
             if not hasattr(self.app_state, "current_predictions"):
                 self.app_state.current_predictions = {}
             self.app_state.current_predictions[self.series] = predictions
-            LOGGER.info(
-                f"Generated {len(predictions)} prediction sets for {self.series}",
+            log.info(
+                "Generated %s prediction sets for %s", len(predictions), self.series
             )
 
-        except Exception as e:
-            LOGGER.error(f"Prediction update failed for {self.series}: {e}")
+        except Exception:
+            log.exception("Prediction update failed for %s", self.series)
 
     def clear_prediction_cache(self):
         """Clear cached predictions and features."""
         self.prediction_cache.clear()
-        LOGGER.info(f"Cleared prediction cache for {self.series}")
+        log.info("Cleared prediction cache for %s", self.series)

@@ -1,6 +1,9 @@
 import csv
+import logging
 
 from app.scrapers.scraping_utils import create_output_file, remove_superscripts
+
+log = logging.getLogger(__name__)
 
 
 def map_url(championship_type, series, year):
@@ -23,9 +26,11 @@ def find_championship_table(soup, championship_type, series, year):
     """Find and return the championship table from the soup."""
     heading_id = map_url(championship_type, series, year)
     heading = soup.find("h3", {"id": heading_id.replace(" ", "_")})
+    table = None
 
     if not heading:
-        return None, f"No {championship_type} heading found for {year} {series}"
+        log.warning("No %s heading found for %s %s", championship_type, year, series)
+        return table
 
     # Special case for 2013 series 2 drivers
     if year == 2013 and series == 2 and championship_type == "Drivers'":
@@ -40,9 +45,9 @@ def find_championship_table(soup, championship_type, series, year):
         table = heading.find_next("table", {"class": "wikitable"})
 
     if not table:
-        return None, f"No {championship_type} table found for {year} {series}"
+        log.warning("No %s table found for %s %s", championship_type, year, series)
 
-    return table, None
+    return table
 
 
 def has_number_column(race_headers, year):
@@ -229,14 +234,14 @@ def write_championship_csv(file_path, combined_headers, data_rows, has_no_col):
 
 def process_championship(soup, championship_type, year, file_suffix, series):
     """Main function to process a championship table and save as CSV."""
-    table, error = find_championship_table(soup, championship_type, series, year)
-    if error:
-        print(error)
+    table = find_championship_table(soup, championship_type, series, year)
+    if table is None:
+        log.warning("Table not found for %s %s %s", championship_type, year, series)
         return
 
     all_rows = table.find_all("tr")
     if len(all_rows) < 3:
-        print(f"Not enough rows in {championship_type} {year} {series}")
+        log.warning("Not enough rows: %s %s %s", championship_type, year, series)
         return
 
     # Extract headers
