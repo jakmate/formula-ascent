@@ -20,6 +20,30 @@ from app.core.pytorch_model import RacingPredictor
 log = logging.getLogger(__name__)
 
 
+def get_default_feature_cols(series: str) -> list[str]:
+    """Return default feature columns for a feeder series."""
+    if series == "F2":
+        return [
+            "experience",
+            "std_quali_pos",
+            "weighted_win_rate",
+            "champ_pos_pct",
+            "nationality_encoded",
+        ]
+
+    return [
+        "avg_quali_pos",
+        "sprint_win_rate",
+        "feature_win_rate",
+        "experience",
+        "teammate_h2h_rate",
+        "nationality_encoded",
+        "participation_rate",
+        "dnf_rate",
+        "champ_pos_pct",
+    ]
+
+
 def train_pytorch_model(x_train_sub, y_train_sub, x_val, y_val, x_test, feature_cols):
     """Train a PyTorch neural network model for binary classification."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -103,34 +127,20 @@ def train_pytorch_model(x_train_sub, y_train_sub, x_val, y_val, x_test, feature_
     return pytorch_model, scaler, test_probas
 
 
-def train_models(df):
+def train_models(df, feature_cols_override=None, include_metrics=False):
     """Training function."""
     if df.empty:
         log.warning("No data available for training")
+        if include_metrics:
+            return {}, None, None, {}
         return {}, None, None
 
     df_clean = df.dropna(subset=["promoted"])
 
-    if df_clean["series"][0] == "F2":
-        feature_cols = [
-            "experience",
-            "std_quali_pos",
-            "feature_win_rate",
-            "champ_pos_pct",
-            "nationality_encoded",
-        ]
+    if feature_cols_override is not None:
+        feature_cols = feature_cols_override
     else:
-        feature_cols = [
-            "avg_quali_pos",
-            "sprint_win_rate",
-            "feature_win_rate",
-            "experience",
-            "teammate_h2h_rate",
-            "nationality_encoded",
-            "participation_rate",
-            "dnf_rate",
-            "champ_pos_pct",
-        ]
+        feature_cols = get_default_feature_cols(df_clean["series"][0])
 
     x = df_clean[feature_cols].fillna(0)
     y = df_clean["promoted"]
@@ -237,6 +247,7 @@ def train_models(df):
     }
 
     results = {}
+    metrics = {}
 
     # Train traditional models
     for name, pipeline in traditional_pipelines.items():
@@ -264,6 +275,7 @@ def train_models(df):
         log.debug("Test PR-AUC (calibrated): %.4f", pr_auc_calibrated)
 
         results[name] = pipeline
+        metrics[name] = float(pr_auc_calibrated)
 
     # Train PyTorch Model
     log.info("Training PyTorch Model")
@@ -284,5 +296,8 @@ def train_models(df):
     pr_auc_calibrated = average_precision_score(y_test, calibrated_probas)
     log.debug("Test PR-AUC (calibrated): %.4f", pr_auc_calibrated)
     results["PyTorch"] = pytorch_model
+    metrics["PyTorch"] = float(pr_auc_calibrated)
 
+    if include_metrics:
+        return results, feature_cols, scaler, metrics
     return results, feature_cols, scaler
