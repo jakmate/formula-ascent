@@ -46,7 +46,9 @@ export const Schedule = () => {
             </label>
 
             <button
-              onClick={refreshSchedule}
+              onClick={() => {
+                void refreshSchedule();
+              }}
               disabled={loading}
               className="px-6 py-2 bg-[#2A2A2A] hover:bg-[#00FF66] hover:text-[#0A0A0A] disabled:opacity-50 text-[#00FF66] font-mono transition-colors duration-100 flex items-center gap-2 border border-[#2A2A2A]"
             >

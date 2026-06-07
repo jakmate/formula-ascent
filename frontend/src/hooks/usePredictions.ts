@@ -4,6 +4,11 @@ import type { ModelResults } from '../types/ModelResults';
 
 export type SeriesType = 'f3_to_f2' | 'f2_to_f1';
 
+interface ModelsResponse {
+  models: string[];
+  system_status: SystemStatus;
+}
+
 // Parse fragment: #f3_to_f2/LightGBM
 const parseFragment = (): { series: SeriesType; model: string | null } => {
   const hash = globalThis.location.hash.slice(1);
@@ -38,7 +43,8 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
   const refreshStatusRef = useRef<SystemStatus | null>(null);
   const lastFetchedKeyRef = useRef<string>('');
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE =
+    (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
 
   const fetchModelsAndStatus = useCallback(
     async (targetSeries: SeriesType) => {
@@ -46,10 +52,10 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
         setLoadingModels(true);
         const response = await fetch(`${API_BASE}/api/models/${targetSeries}`);
         if (!response.ok) throw new Error('Failed to fetch models');
-        const data = await response.json();
-        setModelsList(data.models || []);
+        const data = (await response.json()) as ModelsResponse;
+        setModelsList(data.models ?? []);
         setSystemStatus(data.system_status);
-        return data.models as string[];
+        return data.models;
       } catch (err) {
         setError('Failed to load models list');
         console.error(err);
@@ -75,7 +81,7 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
           if (response.status === 404) throw new Error('Model not found');
           throw new Error('Server error');
         }
-        const data: ModelResults = await response.json();
+        const data = (await response.json()) as ModelResults;
         setCurrentModelResults(data);
         lastFetchedKeyRef.current = key;
         setError(null);
@@ -114,16 +120,14 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
         setSelectedModel(targetModel);
       }
     };
-    loadModels();
+    void loadModels();
   }, [series, fragmentModel, fetchModelsAndStatus]);
 
   // Fetch predictions when selectedModel or modelsList changes
   useEffect(() => {
     if (selectedModel && modelsList.includes(selectedModel)) {
-      const run = async () => {
-        await fetchModelPredictions(series, selectedModel);
-      };
-      run();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchModelPredictions(series, selectedModel);
     }
   }, [selectedModel, modelsList, series, fetchModelPredictions]);
 
@@ -149,7 +153,7 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
           );
           if (!modelsResponse.ok)
             throw new Error('Failed to fetch updated status');
-          const data = await modelsResponse.json();
+          const data = (await modelsResponse.json()) as ModelsResponse;
           setModelsList(data.models);
           setSystemStatus(data.system_status);
 
@@ -171,7 +175,9 @@ export const usePredictions = (initialSeries: SeriesType = 'f3_to_f2') => {
             return;
           }
 
-          setTimeout(checkForUpdates, 3000);
+          setTimeout(() => {
+            void checkForUpdates();
+          }, 3000);
         } catch (err) {
           setLoadingModels(false);
           setError(

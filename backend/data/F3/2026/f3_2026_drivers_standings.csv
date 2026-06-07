@@ -1,31 +1,32 @@
 Pos,Driver,ALB SR,ALB FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR,RBR SR,SIL SR,SIL FR,SPA FR,SPA SR,HUN SR,HUN FR,MNZ FR,MNZ SR,MAD SR,MAD FR,Points
-1,Ugo Ugochukwu,8,1,,,,,,,,,,,,,,,,,25
-2,Bruno del Pino,1,4,,,,,,,,,,,,,,,,,18
-3,Freddie Slater,9,2,,,,,,,,,,,,,,,,,18
-4,Taito Kato,5,3,,,,,,,,,,,,,,,,,16
-5,Enzo Deligny,2,6,,,,,,,,,,,,,,,,,12
-6,Maciej Gładysz,6,5,,,,,,,,,,,,,,,,,10
-7,Brad Benavides,17,7,,,,,,,,,,,,,,,,,6
-8,Pedro Clerot,14,8,,,,,,,,,,,,,,,,,4
-9,Brando Badoer,3,16,,,,,,,,,,,,,,,,,3
-10,Noah Strømsted,4,23,,,,,,,,,,,,,,,,,2
-11,Jin Nakamura,13,9,,,,,,,,,,,,,,,,,2
-12,Théophile Naël,10,12,,,,,,,,,,,,,,,,,2
-13,Mattia Colnaghi,30,10,,,,,,,,,,,,,,,,,1
-14,James Wharton,7,WD,,,,,,,,,,,,,,,,,0
-15,Hiyu Yamakoshi,20,11,,,,,,,,,,,,,,,,,0
-16,Nicola Lacorte,11,25,,,,,,,,,,,,,,,,,0
-17,Tuukka Taponen,12,13,,,,,,,,,,,,,,,,,0
-18,Fionn McLaughlin,15,14,,,,,,,,,,,,,,,,,0
-19,Alessandro Giusti,21,15,,,,,,,,,,,,,,,,,0
-20,Louis Sharp,16,WD,,,,,,,,,,,,,,,,,0
-21,Patrick Heuzenroeder,23,17,,,,,,,,,,,,,,,,,0
-22,Christian Ho,18,21,,,,,,,,,,,,,,,,,0
-23,Fernando Barrichello,27,18,,,,,,,,,,,,,,,,,0
-24,Gerrard Xie,19,19,,,,,,,,,,,,,,,,,0
-25,Yevan David,22,20,,,,,,,,,,,,,,,,,0
-26,Matteo De Palo,26,22,,,,,,,,,,,,,,,,,0
-27,José Garfias,24,24,,,,,,,,,,,,,,,,,0
-28,Michael Shin,25,Ret,,,,,,,,,,,,,,,,,0
-29,Kanato Le,28,Ret,,,,,,,,,,,,,,,,,0
-30,Nandhavud Bhirombhakdi,29,Ret,,,,,,,,,,,,,,,,,0
+1,Ugo Ugochukwu,8,1,6,4,,,,,,,,,,,,,,,43
+2,Bruno del Pino,1,4,2,6,,,,,,,,,,,,,,,35
+3,Freddie Slater,9,2,19,3,,,,,,,,,,,,,,,34
+4,Brando Badoer,3,16,Ret,1,,,,,,,,,,,,,,,28
+5,Théophile Naël,10,12,24,2,,,,,,,,,,,,,,,22
+6,Taito Kato,5,3,16,11,,,,,,,,,,,,,,,16
+7,Pedro Clerot,14,8,3,8,,,,,,,,,,,,,,,16
+8,Alessandro Giusti,21,15,4,7,,,,,,,,,,,,,,,13
+9,Maciej Gładysz,6,5,8,24,,,,,,,,,,,,,,,13
+10,Gerrard Xie,19,19,1,9,,,,,,,,,,,,,,,12
+11,Enzo Deligny,2,6,23,14,,,,,,,,,,,,,,,12
+12,Ernesto Rivera,,,Ret,5,,,,,,,,,,,,,,,10
+13,Noah Strømsted,4,23,5,10,,,,,,,,,,,,,,,9
+14,Jin Nakamura,13,9,7,23,,,,,,,,,,,,,,,6
+15,Brad Benavides,17,7,Ret,WD,,,,,,,,,,,,,,,6
+16,Kanato Le,28,Ret,9,17,,,,,,,,,,,,,,,2
+17,Mattia Colnaghi,30,10,11,19,,,,,,,,,,,,,,,1
+18,José Garfias,24,24,10,15,,,,,,,,,,,,,,,1
+19,James Wharton,7,WD,15,18,,,,,,,,,,,,,,,0
+20,Hiyu Yamakoshi,20,11,DSQ,13,,,,,,,,,,,,,,,0
+21,Nicola Lacorte,11,25,22,27,,,,,,,,,,,,,,,0
+22,Tuukka Taponen,12,13,Ret,Ret,,,,,,,,,,,,,,,0
+23,Louis Sharp,16,WD,17,12,,,,,,,,,,,,,,,0
+24,Nandhavud Bhirombhakdi,29,Ret,12,22,,,,,,,,,,,,,,,0
+25,Fionn McLaughlin,15,14,13,21,,,,,,,,,,,,,,,0
+26,Matteo De Palo,26,22,14,25,,,,,,,,,,,,,,,0
+27,Christian Ho,18,21,Ret,16,,,,,,,,,,,,,,,0
+28,Patrick Heuzenroeder,23,17,,,,,,,,,,,,,,,,,0
+29,Fernando Barrichello,27,18,20,Ret,,,,,,,,,,,,,,,0
+30,Michael Shin,25,Ret,18,26,,,,,,,,,,,,,,,0
+31,Yevan David,22,20,21,20,,,,,,,,,,,,,,,0

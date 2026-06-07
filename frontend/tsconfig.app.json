@@ -6,6 +6,7 @@
     "lib": ["ES2025", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["vitest/globals"],
 
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -22,6 +23,5 @@
     "noUncheckedSideEffectImports": true
   },
   "extends": "./tsconfig.json",
-  "include": ["src"],
-  "exclude": ["**/*.test.ts", "**/*.test.tsx", "src/test/**"]
+  "include": ["src"]
 }

@@ -91,18 +91,18 @@ describe('useSchedule', () => {
       expect.stringContaining('/api/races/f1?timezone='),
       expect.objectContaining({
         headers: expect.objectContaining({
-          'X-Timezone': expect.any(String),
+          'X-Timezone': expect.any(String) as unknown,
           'Content-Type': 'application/json',
-        }),
+        }) as unknown,
       })
     );
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/races/f1/next?timezone='),
       expect.objectContaining({
         headers: expect.objectContaining({
-          'X-Timezone': expect.any(String),
+          'X-Timezone': expect.any(String) as unknown,
           'Content-Type': 'application/json',
-        }),
+        }) as unknown,
       })
     );
 
@@ -205,7 +205,7 @@ describe('useSchedule', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           'X-Timezone': expectedTimezone,
-        }),
+        }) as unknown,
       })
     );
   });

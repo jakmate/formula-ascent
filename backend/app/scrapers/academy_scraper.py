@@ -183,7 +183,7 @@ def scrape_academy_page(academy_url, academy_name, session):
             ("Graduates_to_Formula_1", "f1_graduates"),
             ("Graduates_to_Formula_One", "f1_graduates"),
             ("Graduates_to_Red_Bull_Racing_in_Formula_1", "f1_graduates"),
-            ("Graduates_to_Toro_Rosso/AlphaTauri/RB", "f1_graduates"),
+            ("Graduates_to_Toro_Rosso/AlphaTauri/Racing_Bulls", "f1_graduates"),
             ("Former_drivers", "former_drivers"),
             ("Driver_development_programme", None),  # Skip this one
         ]

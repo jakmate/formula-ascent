@@ -7,13 +7,28 @@ export const useSchedule = () => {
     return ['f1', 'f2', 'f3'].includes(hash) ? hash : 'f1';
   };
 
-  const [races, setRaces] = useState([]);
-  const [nextRace, setNextRace] = useState(null);
+  interface Race {
+    round: number;
+    name: string;
+    location: string;
+    sessions: Record<string, { start: string; end?: string; time?: string }>;
+    totalRounds?: number;
+    seasonCompleted?: boolean;
+    nextSession?: {
+      name: string;
+      date: string;
+      isTBC: boolean;
+    };
+  }
+
+  const [races, setRaces] = useState<Race[]>([]);
+  const [nextRace, setNextRace] = useState<Race | null>(null);
   const [selectedSeries, setSelectedSeries] = useState(getInitialSeries);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE =
+    (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000';
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const series = [
@@ -56,9 +71,9 @@ export const useSchedule = () => {
           console.warn(`No next race found for ${series.toUpperCase()}`);
         }
 
-        const racesData = await racesResponse.json();
+        const racesData = (await racesResponse.json()) as Race[];
         const nextRaceData = nextRaceResponse.ok
-          ? await nextRaceResponse.json()
+          ? ((await nextRaceResponse.json()) as Race)
           : null;
 
         setRaces(racesData);
@@ -107,10 +122,8 @@ export const useSchedule = () => {
 
   // Fetch when selectedSeries changes
   useEffect(() => {
-    const run = async () => {
-      await fetchSchedule(selectedSeries);
-    };
-    run();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchSchedule(selectedSeries);
   }, [selectedSeries, fetchSchedule]);
 
   // Update URL fragment when series changes

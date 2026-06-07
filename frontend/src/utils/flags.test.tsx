@@ -1,20 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CountryFlag, getFlagComponent } from './flags';
+import type { ComponentType } from 'react';
 
 // Mock the country-flag-icons module
 vi.mock('country-flag-icons/react/3x2', () => ({
-  US: vi.fn(({ className }) => (
+  US: vi.fn<ComponentType<{ className?: string }>>(({ className }) => (
     <div data-testid="us-flag" className={className}>
       US Flag
     </div>
   )),
-  GB: vi.fn(({ className }) => (
+  GB: vi.fn<ComponentType<{ className?: string }>>(({ className }) => (
     <div data-testid="gb-flag" className={className}>
       GB Flag
     </div>
   )),
-  FR: vi.fn(({ className }) => (
+  FR: vi.fn<ComponentType<{ className?: string }>>(({ className }) => (
     <div data-testid="fr-flag" className={className}>
       FR Flag
     </div>

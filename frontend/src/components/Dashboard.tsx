@@ -15,7 +15,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (location.pathname === '/') {
-      navigate('/predictions', { replace: true });
+      void navigate('/predictions', { replace: true });
     }
   }, [location.pathname, navigate]);
 

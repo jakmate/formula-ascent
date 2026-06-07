@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Schedule } from './Schedule';
+import type { useSchedule } from '../../hooks/useSchedule';
 
 // Mock child components
 vi.mock('./NextRaceCard', () => ({
@@ -41,7 +42,7 @@ vi.mock('../ErrorDisplay', () => ({
 // Mock the useSchedule hook
 const mockUseSchedule = vi.fn();
 vi.mock('../../hooks/useSchedule', () => ({
-  useSchedule: () => mockUseSchedule(),
+  useSchedule: () => mockUseSchedule() as ReturnType<typeof useSchedule>,
 }));
 
 // Mock Lucide icons

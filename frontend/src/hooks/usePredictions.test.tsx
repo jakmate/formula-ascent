@@ -178,9 +178,7 @@ describe('usePredictions', () => {
 
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
-    await act(async () => {
-      result.current.refreshPredictions();
-    });
+    await act(() => result.current.refreshPredictions());
 
     await waitFor(() =>
       expect(result.current.error).toBe(
@@ -216,9 +214,7 @@ describe('usePredictions', () => {
         json: () => Promise.resolve(mockPredictionsResponse),
       }); // predictions force-fetch
 
-    await act(async () => {
-      result.current.refreshPredictions();
-    });
+    await act(() => result.current.refreshPredictions());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -251,9 +247,7 @@ describe('usePredictions', () => {
       });
     }
 
-    await act(async () => {
-      result.current.refreshPredictions();
-    });
+    await act(() => result.current.refreshPredictions());
 
     await waitFor(
       () => {
@@ -264,7 +258,7 @@ describe('usePredictions', () => {
     );
   }, 40000);
 
-  it('uses VITE_API_URL env var', async () => {
+  it('uses VITE_API_URL env var', () => {
     import.meta.env.VITE_API_URL = 'https://api.example.com';
     mockInitialLoad();
 

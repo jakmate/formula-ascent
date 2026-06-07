@@ -41,7 +41,7 @@ describe('PredictionsTable', () => {
 
     const seriesOptions = JSON.parse(
       getByTestId('series-options').textContent || ''
-    );
+    ) as Array<{ value: string; label: string }>;
     expect(seriesOptions).toEqual([
       { value: 'f3_to_f2', label: 'F3 → F2 Promotions' },
       { value: 'f2_to_f1', label: 'F2 → F1 Promotions' },

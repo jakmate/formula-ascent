@@ -55,8 +55,10 @@ describe('DriverHoverCard', () => {
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+    });
 
     expect(screen.getByText('Lewis Hamilton')).toBeVisible();
   });
@@ -68,15 +70,16 @@ describe('DriverHoverCard', () => {
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
-    fireEvent.mouseLeave(screen.getByText('Trigger'));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+      fireEvent.mouseLeave(screen.getByText('Trigger'));
+    });
 
     expect(screen.queryByText('Lewis Hamilton')).not.toBeInTheDocument();
   });
 
-  it('handles position calculation for top placement', () => {
-    // Mock getBoundingClientRect for trigger element
+  it('handles position calculation for top placement', async () => {
     const mockRect = {
       bottom: 900,
       top: 800,
@@ -98,8 +101,10 @@ describe('DriverHoverCard', () => {
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+    });
 
     // Find the card by its content instead of role
     const card = screen
@@ -108,7 +113,7 @@ describe('DriverHoverCard', () => {
     expect(card).toBeInTheDocument();
   });
 
-  it('handles missing age field', () => {
+  it('handles missing age field', async () => {
     const driverWithoutAge = { ...mockDriver, age: undefined };
     render(
       <DriverHoverCard driver={driverWithoutAge}>
@@ -116,8 +121,10 @@ describe('DriverHoverCard', () => {
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+    });
 
     expect(screen.getByText('Age:')).toBeInTheDocument();
     // Age should not be displayed when undefined
@@ -125,43 +132,49 @@ describe('DriverHoverCard', () => {
     expect(ageValue).toHaveTextContent('');
   });
 
-  it('displays experience correctly', () => {
+  it('displays experience correctly', async () => {
     render(
       <DriverHoverCard driver={{ ...mockDriver, experience: 0 }}>
         <button>Trigger</button>
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+    });
 
     expect(screen.getByText('Rookie')).toBeInTheDocument();
   });
 
-  it('displays 1 year experience correctly', () => {
+  it('displays 1 year experience correctly', async () => {
     render(
       <DriverHoverCard driver={{ ...mockDriver, experience: 1 }}>
         <button>Trigger</button>
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(300));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(300);
+    });
 
     expect(screen.getByText('1 year')).toBeInTheDocument();
   });
 
-  it('cancels show timer on mouse leave', () => {
+  it('cancels show timer on mouse leave', async () => {
     render(
       <DriverHoverCard driver={mockDriver}>
         <button>Trigger</button>
       </DriverHoverCard>
     );
 
-    fireEvent.mouseEnter(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(100));
-    fireEvent.mouseLeave(screen.getByText('Trigger'));
-    act(() => vi.advanceTimersByTime(200));
+    await act(async () => {
+      fireEvent.mouseEnter(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(100);
+      fireEvent.mouseLeave(screen.getByText('Trigger'));
+      await vi.advanceTimersByTimeAsync(200);
+    });
 
     expect(screen.queryByText('Lewis Hamilton')).not.toBeInTheDocument();
   });

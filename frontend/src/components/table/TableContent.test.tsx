@@ -23,7 +23,7 @@ vi.mock('../TableHeader', () => ({
 // Don't mock TableRow - test with real component
 
 vi.mock('../../../hooks/useSorting', () => ({
-  useSorting: vi.fn((data) => ({
+  useSorting: vi.fn((data: Driver[]) => ({
     sortedData: data,
     sortConfig: { field: null, direction: 'asc' },
     handleSort: vi.fn(),

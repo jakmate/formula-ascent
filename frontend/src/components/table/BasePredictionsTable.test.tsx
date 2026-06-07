@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BasePredictionsTable } from './BasePredictionsTable';
-import type { SeriesType } from '../../hooks/usePredictions';
+import type { SeriesType, usePredictions } from '../../hooks/usePredictions';
 
 // Mock components
 vi.mock('../ErrorDisplay', () => ({
@@ -45,7 +45,7 @@ vi.mock('../Header', () => ({
 const mockUsePredictions = vi.fn();
 vi.mock('../../hooks/usePredictions', () => ({
   usePredictions: (selectedSeries: string) =>
-    mockUsePredictions(selectedSeries),
+    mockUsePredictions(selectedSeries) as ReturnType<typeof usePredictions>,
 }));
 
 describe('BasePredictionsTable', () => {
