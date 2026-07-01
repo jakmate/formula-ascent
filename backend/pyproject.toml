@@ -5,7 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "aiofiles>=25.1.0",
     "apscheduler>=3.11.2",
-    "beautifulsoup4>=4.14.3",
+    "beautifulsoup4>=4.15.0",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.136.3",
     "geopy>=2.4.1",
     "imbalanced-learn>=0.14.1",
