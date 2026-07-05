@@ -17,9 +17,13 @@ class TestCreateApp:
         assert app.version == "1.0.0"
         assert app.description == "API for predicting Formula 2 and 3 career promotions"
 
-        # Check that routes are registered with /api prefix
-        routes = [route.path for route in app.routes if route.path.startswith("/api")]
-        assert len(routes) > 0
+    def test_api_router_configuration(self):
+        app = create_app()
+        openapi_schema = app.openapi()
+        paths = list(openapi_schema["paths"].keys())
+
+        assert len(paths) > 0
+        assert all(path.startswith("/api") for path in paths)
 
 
 class TestLifespan:
