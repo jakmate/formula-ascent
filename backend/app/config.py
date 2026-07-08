@@ -5,6 +5,11 @@ from pathlib import Path
 CURRENT_YEAR = datetime.now(UTC).year
 SEASON_END_MONTH = 12
 SEED = 69
+WEIGHTED_SPRINT_WEIGHTS = {
+    "F2": 0.45,
+    "F3": 0.4,
+}
+EXPERIENCE_SEASON_PARTICIPATION_THRESHOLD = 0.5
 NOT_PARTICIPATED_CODES = ["nan", "DNS", "WD", "DNQ", "DNA", "C", "EX"]
 RETIREMENT_CODES = ["Ret", "NC", "DSQ", "DSQP"]
 

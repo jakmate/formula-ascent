@@ -4,7 +4,12 @@ import re
 import numpy as np
 import pandas as pd
 
-from app.config import NOT_PARTICIPATED_CODES, RETIREMENT_CODES
+from app.config import (
+    EXPERIENCE_SEASON_PARTICIPATION_THRESHOLD,
+    NOT_PARTICIPATED_CODES,
+    RETIREMENT_CODES,
+    WEIGHTED_SPRINT_WEIGHTS,
+)
 from app.core.utils import calculate_age, extract_position, get_race_columns
 
 log = logging.getLogger(__name__)
@@ -459,6 +464,16 @@ def engineer_features(df):
 
     features_df = features_df[features_df["races_completed"] > 0]
 
+    # Make late-season cameo entries do not inflate season-level experience.
+    features_df["counts_for_experience"] = (
+        features_df["participation_rate"] >= EXPERIENCE_SEASON_PARTICIPATION_THRESHOLD
+    ).astype(int)
+    experience_cumsum = features_df.groupby("Driver")["counts_for_experience"].cumsum()
+    features_df["experience"] = (
+        experience_cumsum - features_df["counts_for_experience"]
+    ).astype(int)
+    features_df = features_df.drop(columns=["counts_for_experience"])
+
     # Race-type specific rates
     features_df["sprint_races"] = features_df["sprint_races"].fillna(0)
     features_df["feature_races"] = features_df["feature_races"].fillna(0)
@@ -472,6 +487,18 @@ def engineer_features(df):
     features_df["feature_win_rate"] = np.where(
         features_df["feature_races"] > 0,
         features_df["feature_wins"].fillna(0) / features_df["feature_races"],
+        0,
+    )
+    series_weights = features_df["series"].map(WEIGHTED_SPRINT_WEIGHTS).fillna(0.45)
+    weighted_numerator = features_df["feature_wins"].fillna(0) + (
+        series_weights * features_df["sprint_wins"].fillna(0)
+    )
+    weighted_denominator = features_df["feature_races"].fillna(0) + (
+        series_weights * features_df["sprint_races"].fillna(0)
+    )
+    features_df["weighted_win_rate"] = np.where(
+        weighted_denominator > 0,
+        weighted_numerator / weighted_denominator,
         0,
     )
 
