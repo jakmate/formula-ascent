@@ -6,9 +6,9 @@ import pandas as pd
 
 from app.config import (
     EXPERIENCE_SEASON_PARTICIPATION_THRESHOLD,
-    F2_WEIGHTED_SPRINT_WEIGHT,
     NOT_PARTICIPATED_CODES,
     RETIREMENT_CODES,
+    WEIGHTED_SPRINT_WEIGHTS,
 )
 from app.core.utils import calculate_age, extract_position, get_race_columns
 
@@ -489,11 +489,12 @@ def engineer_features(df):
         features_df["feature_wins"].fillna(0) / features_df["feature_races"],
         0,
     )
+    series_weights = features_df["series"].map(WEIGHTED_SPRINT_WEIGHTS).fillna(0.45)
     weighted_numerator = features_df["feature_wins"].fillna(0) + (
-        F2_WEIGHTED_SPRINT_WEIGHT * features_df["sprint_wins"].fillna(0)
+        series_weights * features_df["sprint_wins"].fillna(0)
     )
     weighted_denominator = features_df["feature_races"].fillna(0) + (
-        F2_WEIGHTED_SPRINT_WEIGHT * features_df["sprint_races"].fillna(0)
+        series_weights * features_df["sprint_races"].fillna(0)
     )
     features_df["weighted_win_rate"] = np.where(
         weighted_denominator > 0,

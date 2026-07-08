@@ -269,7 +269,7 @@ def train_models(df, feature_cols_override=None, include_metrics=False):
         iso_reg.fit(probas_val, y_val)
         pipeline.calibrator = iso_reg
 
-        log.debug(classification_report(y_test, y_pred))
+        log.debug(classification_report(y_test, y_pred, zero_division=0))
         calibrated_probas = pipeline.calibrator.transform(probas_test)
         pr_auc_calibrated = average_precision_score(y_test, calibrated_probas)
         log.debug("Test PR-AUC (calibrated): %.4f", pr_auc_calibrated)
@@ -291,7 +291,7 @@ def train_models(df, feature_cols_override=None, include_metrics=False):
 
     calibrated_probas = pytorch_model.calibrator.transform(test_probas)
     y_pred = (test_probas > 0.5).astype(int)
-    log.debug(classification_report(y_test, y_pred))
+    log.debug(classification_report(y_test, y_pred, zero_division=0))
 
     pr_auc_calibrated = average_precision_score(y_test, calibrated_probas)
     log.debug("Test PR-AUC (calibrated): %.4f", pr_auc_calibrated)
