@@ -6,7 +6,7 @@
     "lib": ["ES2025", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["vite/client"],
+    "types": ["vitest/globals"],
 
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
