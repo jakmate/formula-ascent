@@ -21,7 +21,7 @@ jobs:
     - name: Run tests with coverage
       working-directory: backend
       run: |
-        uv run --no-build pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
+        uv run --no-build --locked pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@f30e4959ba63075080d4f7f90cacc18d9f3fafd7 #v4
