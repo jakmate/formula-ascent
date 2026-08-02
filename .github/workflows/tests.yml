@@ -16,12 +16,12 @@ jobs:
     - name: Install dependencies
       working-directory: backend
       run: |
-        uv sync --extra cpu --group test
+        uv sync --no-build --locked --extra cpu --group test
 
     - name: Run tests with coverage
       working-directory: backend
       run: |
-        uv run pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
+        uv run --no-build pytest --cov=. --cov-report=xml --cov-report=term-missing -n auto
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@f30e4959ba63075080d4f7f90cacc18d9f3fafd7 #v4
@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies
       working-directory: frontend
       run: |
-        npm ci
+        npm ci --ignore-scripts
 
     - name: Run tests with coverage
       working-directory: frontend

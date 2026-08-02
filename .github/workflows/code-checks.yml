@@ -16,18 +16,18 @@ jobs:
     - name: Install dependencies
       working-directory: backend
       run: |
-        uv sync --only-group lint
+        uv sync --no-build --locked --only-group lint
 
     # - name: Run ty
     #  working-directory: backend
     #  run: |
-    #    uv run --no-sync ty check
+    #    uv run --no-sync --no-build ty check
 
     - name: Run ruff
       working-directory: backend
       run: |
-        uv run --no-sync ruff check
-        uv run --no-sync ruff format --check
+        uv run --no-sync --no-build ruff check
+        uv run --no-sync --no-build ruff format --check
 
   frontend-lint:
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
     - name: Install dependencies
       working-directory: frontend
       run: |
-        npm ci
+        npm ci --ignore-scripts
 
     - name: Run ESLint
       working-directory: frontend
