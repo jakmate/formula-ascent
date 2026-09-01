@@ -7,13 +7,13 @@ dependencies = [
     "apscheduler>=3.11.3",
     "beautifulsoup4>=4.15.0",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.139.0",
-    "geopy>=2.4.1",
+    "geopy>=2.5.0",
     "imbalanced-learn>=0.14.2",
     "joblib>=1.5.3",
     "lightgbm>=4.6.0",
     "lxml>=6.1.1",
     "markupsafe<3.0.4",
-    "numpy>=2.5.0",
+    "numpy>=2.5.2",
     "pandas>=3.0.5",
     "requests>=2.34.2",
     "scikit-learn<1.10.0",
@@ -32,11 +32,11 @@ cu128 = [
 dev = [
     {include-group = "lint"},
     {include-group = "test"},
-    "pre-commit>=4.6.1",
+    "pre-commit>=4.6.2",
 ]
 lint = [
     "ruff>=0.15.20",
-    "ty>=0.0.64"
+    "ty>=0.0.75"
 ]
 test = [
     "pytest>=9.1.1",
