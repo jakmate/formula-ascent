@@ -48,8 +48,9 @@ test = [
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY001",
   "D100", "D101", "D102", "D103", "D104", "D107", "D401",
-  "PLR2004", "PLR0913", "PLR0915", "PLR0912",
+  "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0917",
   "S101",
   "ANN001", "ANN202", "ANN201",
   "TRY003", "TRY300",
