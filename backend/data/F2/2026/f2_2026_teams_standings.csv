@@ -1,23 +1,23 @@
-Pos,Team,ALB SR,ALB FR,MIA FR,MIA SR,MTL SR,MTL FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR,RBR SR,SIL SR,SIL FR,SPA FR,SPA SR,HUN SR,HUN FR,MNZ FR,MNZ SR,MAD SR,MAD FR,BAK FR,BAK SR,LUS SR,LUS FR,YAS FR,YAS SR,Points
-1,Campos Racing,2,1,1,4,1,10,1,1,,,,,,,,,,,,,,,,,,,,,107
-1,Campos Racing,17,14,9,Ret,14,12,10,9,,,,,,,,,,,,,,,,,,,,,107
-2,Rodin Motorsport,3,Ret,3,Ret,3,1,6,2,,,,,,,,,,,,,,,,,,,,,96
-2,Rodin Motorsport,10,Ret,6,Ret,13,2,9,5,,,,,,,,,,,,,,,,,,,,,96
-3,MP Motorsport,6,4,7,1,2,3,3,11,,,,,,,,,,,,,,,,,,,,,75
-3,MP Motorsport,18,8,11,Ret,10,15,Ret,14,,,,,,,,,,,,,,,,,,,,,75
-4,Invicta Racing,1,2,5,3,7,11,4,15,,,,,,,,,,,,,,,,,,,,,60
-4,Invicta Racing,11,10,10,10,Ret,14,8,Ret,,,,,,,,,,,,,,,,,,,,,60
-5,DAMS Lucas Oil,8,12,8,2,6,13,2,3,,,,,,,,,,,,,,,,,,,,,54
-5,DAMS Lucas Oil,20,Ret,14,DNS,8,Ret,5,10,,,,,,,,,,,,,,,,,,,,,54
-6,Hitech,5,5,12,6,9,7,11,6,,,,,,,,,,,,,,,,,,,,,46
-6,Hitech,16,7,15,8,11,16,15,19,,,,,,,,,,,,,,,,,,,,,46
-7,ART Grand Prix,4,6,Ret,5,12,9,7,4,,,,,,,,,,,,,,,,,,,,,41
-7,ART Grand Prix,12,16,Ret,15,WD,WD,NC,13,,,,,,,,,,,,,,,,,,,,,41
-8,Trident,7,3,2,11,4,Ret,19,12,,,,,,,,,,,,,,,,,,,,,33
-8,Trident,15,18,13,14,Ret,Ret,20,18,,,,,,,,,,,,,,,,,,,,,33
-9,Prema Racing,9,9,16,7,15,4,13,8,,,,,,,,,,,,,,,,,,,,,30
-9,Prema Racing,Ret,13,17,9,17,8,14,16,,,,,,,,,,,,,,,,,,,,,30
-10,AIX Racing,14,15,18,12,5,5,17,7,,,,,,,,,,,,,,,,,,,,,20
-10,AIX Racing,19,19,Ret,Ret,Ret,Ret,18,17,,,,,,,,,,,,,,,,,,,,,20
-11,Van Amersfoort Racing,13,11,4,13,16,6,12,20,,,,,,,,,,,,,,,,,,,,,14
-11,Van Amersfoort Racing,21,17,Ret,Ret,Ret,Ret,16,21,,,,,,,,,,,,,,,,,,,,,14
+Pos,Team,ALB SR,ALB FR,MIA FR,MIA SR,MTL SR,MTL FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR2,RBR SR,SIL FR1,SIL FR2,SPA SR,SPA FR1,HUN FR,HUN SR,MNZ SR,MNZ FR,MAD FR,MAD SR,BAK SR,BAK FR,BAK SR,LUS SR,LUS FR,YAS FR,YAS SR,Points
+1,Campos Racing,2,1,1,4,1,10,1,1,3,4,8,1,1,1,4,3,9,1,4,3,4,16,5,5,2,,,,,333
+1,Campos Racing,17,14,9,Ret,14,12,10,9,4,8,10,7,12,7,Ret,DSQ,Ret,7,5,7,Ret,18,20,Ret,8,,,,,333
+2,Invicta Racing,1,2,5,3,7,11,4,15,6,1,9,4,8,5,1,1,4,3,1,1,6,4,15,4,1,,,,,297
+2,Invicta Racing,11,10,10,10,Ret,14,8,Ret,20,14,Ret,9,10,9,6,14,7,8,Ret,2,14,10,Ret,Ret,13,,,,,297
+3,Rodin Motorsport,3,Ret,3,Ret,3,1,6,2,8,2,4,6,9,4,2,4,8,11,6,6,5,2,3,1,3,,,,,296
+3,Rodin Motorsport,10,Ret,6,Ret,13,2,9,5,18,17,14,19,20,DNS,5,10,19,21,7,15,7,8,4,2,4,,,,,296
+4,MP Motorsport,6,4,7,1,2,3,3,11,2,3,5,2,2,6,8,5,1,9,3,9,9,7,14,6,9,,,,,200
+4,MP Motorsport,18,8,11,Ret,10,15,Ret,14,11,Ret,Ret,3,16,18,Ret,Ret,12,18,10,11,12,Ret,16,14,11,,,,,200
+5,DAMS Lucas Oil,8,12,8,2,6,13,2,3,7,6,6,10,6,8,3,Ret,2,6,12,14,10,1,1,3,7,,,,,173
+5,DAMS Lucas Oil,20,Ret,14,DNS,8,Ret,5,10,21,10,13,13,7,12,7,Ret,18,14,Ret,21,11,9,6,7,10,,,,,173
+6,ART Grand Prix,4,6,Ret,5,12,9,7,4,1,9,7,5,4,3,12,2,5,2,19,8,15,6,8,10,12,,,,,161
+6,ART Grand Prix,12,16,Ret,15,WD,WD,NC,13,9,12,Ret,12,5,10,15,16,6,5,20,17,Ret,Ret,11,11,Ret,,,,,161
+7,Trident,7,3,2,11,4,Ret,19,12,13,5,1,8,14,11,10,15,3,4,2,4,3,12,2,Ret,5,,,,,128
+7,Trident,15,18,13,14,Ret,Ret,20,18,19,7,15,11,Ret,17,Ret,Ret,10,10,8,12,Ret,Ret,10,Ret,Ret,,,,,128
+8,Hitech,5,5,12,6,9,7,11,6,5,15,17,15,11,14,13,7,13,13,9,5,1,3,9,13,15,,,,,96
+8,Hitech,16,7,15,8,11,16,15,19,14,18,Ret,18,15,16,17,8,14,19,15,Ret,WD,WD,19,Ret,Ret,,,,,96
+9,Van Amersfoort Racing,13,11,4,13,16,6,12,20,12,11,3,16,3,2,16,6,11,12,11,10,13,14,13,8,14,,,,,59
+9,Van Amersfoort Racing,21,17,Ret,Ret,Ret,Ret,16,21,17,13,12,Ret,18,13,NC,13,15,Ret,17,19,Ret,15,17,9,Ret,,,,,59
+10,Prema Racing,9,9,16,7,15,4,13,8,10,16,2,Ret,13,15,9,9,17,15,13,13,8,11,7,Ret,6,,,,,51
+10,Prema Racing,Ret,13,17,9,17,8,14,16,15,21,11,Ret,Ret,Ret,11,11,Ret,16,14,18,17,13,Ret,DNS,17,,,,,51
+11,AIX Racing,14,15,18,12,5,5,17,7,16,19,16,14,17,19,14,12,16,17,16,16,2,5,12,12,16,,,,,38
+11,AIX Racing,19,19,Ret,Ret,Ret,Ret,18,17,22,20,Ret,17,19,20,Ret,Ret,20,20,18,20,16,17,18,Ret,18,,,,,38

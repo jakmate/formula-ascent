@@ -406,6 +406,33 @@
   },
   {
     "round": 16,
+    "name": "GULF AIR BAHRAIN",
+    "location": "Malaysia",
+    "sessions": {
+      "fp1": {
+        "start": "2026-10-02T04:30:00Z",
+        "end": "2026-10-02T05:30:00Z"
+      },
+      "sprint_qualifying": {
+        "start": "2026-10-02T08:00:00Z",
+        "end": "2026-10-02T09:00:00Z"
+      },
+      "sprint": {
+        "start": "2026-10-03T04:30:00Z",
+        "end": "2026-10-03T05:30:00Z"
+      },
+      "qualifying": {
+        "start": "2026-10-03T08:00:00Z",
+        "end": "2026-10-03T09:00:00Z"
+      },
+      "race": {
+        "start": "2026-10-04T07:00:00Z",
+        "end": "2026-10-04T09:00:00Z"
+      }
+    }
+  },
+  {
+    "round": 17,
     "name": "SINGAPORE AIRLINES SINGAPORE",
     "location": "Singapore",
     "sessions": {
@@ -432,7 +459,7 @@
     }
   },
   {
-    "round": 17,
+    "round": 18,
     "name": "MSC CRUISES UNITED STATES",
     "location": "United States",
     "sessions": {
@@ -459,7 +486,7 @@
     }
   },
   {
-    "round": 18,
+    "round": 19,
     "name": "GRAN PREMIO DE LA CIUDAD DE M\u00c9XICO",
     "location": "Mexico",
     "sessions": {
@@ -486,7 +513,7 @@
     }
   },
   {
-    "round": 19,
+    "round": 20,
     "name": "MSC CRUISES GRANDE PR\u00caMIO DE S\u00c3O PAULO",
     "location": "Brazil",
     "sessions": {
@@ -513,7 +540,7 @@
     }
   },
   {
-    "round": 20,
+    "round": 21,
     "name": "HEINEKEN LAS VEGAS",
     "location": "United States",
     "sessions": {
@@ -540,7 +567,7 @@
     }
   },
   {
-    "round": 21,
+    "round": 22,
     "name": "QATAR AIRWAYS QATAR",
     "location": "Qatar",
     "sessions": {
@@ -567,7 +594,7 @@
     }
   },
   {
-    "round": 22,
+    "round": 23,
     "name": "ETIHAD AIRWAYS ABU DHABI",
     "location": "United Arab Emirates",
     "sessions": {

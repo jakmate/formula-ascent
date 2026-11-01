@@ -1,23 +1,24 @@
-Pos,Driver,ALB SR,ALB FR,MIA FR,MIA SR,MTL SR,MTL FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR,RBR SR,SIL SR,SIL FR,SPA FR,SPA SR,HUN SR,HUN FR,MNZ FR,MNZ SR,MAD SR,MAD FR,BAK FR,BAK SR,LUS SR,LUS FR,YAS FR,YAS SR,Points
-1,Gabriele Minì,6,8,7,1,2,3,3,11,,,,,,,,,,,,,,,,,,,,,63
-2,Nikola Tsolov,17,1,1,Ret,14,12,10,1,,,,,,,,,,,,,,,,,,,,,62
-3,Martinius Stenshorne,10,Ret,6,Ret,3,1,6,5,,,,,,,,,,,,,,,,,,,,,48
-4,Alex Dunne,3,Ret,3,Ret,13,2,9,2,,,,,,,,,,,,,,,,,,,,,48
-5,Noel León,2,14,9,4,1,10,1,9,,,,,,,,,,,,,,,,,,,,,45
-6,Dino Beganovic,20,Ret,8,2,6,Ret,5,3,,,,,,,,,,,,,,,,,,,,,43
-7,Rafael Câmara,11,2,10,3,7,14,8,Ret,,,,,,,,,,,,,,,,,,,,,39
-8,Laurens van Hoepen,7,3,2,11,4,Ret,19,12,,,,,,,,,,,,,,,,,,,,,33
-9,Ritomo Miyata,5,5,12,6,11,16,11,6,,,,,,,,,,,,,,,,,,,,,30
-10,Kush Maini,12,16,Ret,5,12,9,7,4,,,,,,,,,,,,,,,,,,,,,28
-11,Joshua Dürksen,1,10,5,10,Ret,11,4,15,,,,,,,,,,,,,,,,,,,,,21
-12,Sebastián Montoya,9,9,16,9,17,4,13,8,,,,,,,,,,,,,,,,,,,,,20
-13,Colton Herta,16,7,15,8,9,7,15,19,,,,,,,,,,,,,,,,,,,,,16
-14,Nico Varrone,21,17,4,13,16,6,12,20,,,,,,,,,,,,,,,,,,,,,14
-15,Tasanapol Inthraphuvasak,4,6,Ret,15,WD,WD,NC,13,,,,,,,,,,,,,,,,,,,,,13
-16,Oliver Goethe,18,4,11,Ret,10,15,Ret,14,,,,,,,,,,,,,,,,,,,,,12
-17,Roman Bilinski,8,12,14,DNS,8,13,2,10,,,,,,,,,,,,,,,,,,,,,11
-18,Emerson Fittipaldi Jr.,14,15,Ret,12,5,Ret,17,7,,,,,,,,,,,,,,,,,,,,,10
-19,Cian Shields,19,19,18,Ret,Ret,5,18,17,,,,,,,,,,,,,,,,,,,,,10
-20,Mari Boya,Ret,13,17,7,15,8,14,16,,,,,,,,,,,,,,,,,,,,,10
-21,Rafael Villagómez,13,11,Ret,Ret,Ret,Ret,16,21,,,,,,,,,,,,,,,,,,,,,0
-22,John Bennett,15,18,13,14,Ret,Ret,20,18,,,,,,,,,,,,,,,,,,,,,0
+Pos,Driver,ALB SR,ALB FR,MIA FR,MIA SR,MTL SR,MTL FR,MON FR,MON SR,CAT SR,CAT FR,RBR FR2,RBR SR,SIL FR1,SIL FR2,SPA SR,SPA FR1,HUN FR,HUN SR,MNZ SR,MNZ FR,MAD FR,MAD SR,BAK SR,BAK FR,BAK SR,LUS SR,LUS FR,YAS FR,YAS SR,Points
+1,Rafael Câmara,11,2,10,3,7,14,8,Ret,6,1,9,4,10,5,6,1,4,3,Ret,2,6,10,15,4,1,,,,,207
+2,Nikola Tsolov,17,1,1,Ret,14,12,10,1,3,4,8,1,1,1,4,3,Ret,7,5,7,Ret,18,5,Ret,2,,,,,200
+3,Alex Dunne,3,Ret,3,Ret,13,2,9,2,8,2,4,6,9,4,5,4,19,11,7,6,7,2,3,1,3,,,,,189
+4,Gabriele Minì,6,8,7,1,2,3,3,11,2,3,5,2,2,6,Ret,5,1,9,10,11,9,7,14,6,9,,,,,163
+5,Dino Beganovic,20,Ret,8,2,6,Ret,5,3,7,6,13,13,6,12,3,Ret,2,6,12,14,10,1,1,3,7,,,,,137
+6,Noel León,2,14,9,4,1,10,1,9,4,8,10,7,12,7,Ret,DSQ,9,1,4,3,4,16,20,5,8,,,,,133
+7,Martinius Stenshorne,10,Ret,6,Ret,3,1,6,5,18,17,14,19,20,DNS,2,10,8,21,6,15,5,8,4,2,4,,,,,107
+8,Joshua Dürksen,1,10,5,10,Ret,11,4,15,20,14,Ret,9,8,9,1,14,7,8,1,1,14,4,Ret,Ret,13,,,,,90
+9,Kush Maini,12,16,Ret,5,12,9,7,4,1,9,7,12,4,3,15,16,5,2,20,17,Ret,Ret,8,10,12,,,,,90
+10,Laurens van Hoepen,7,3,2,11,4,Ret,19,12,19,5,15,8,14,17,10,Ret,3,4,8,12,3,12,2,Ret,5,,,,,90
+11,Tasanapol Inthraphuvasak,4,6,Ret,15,WD,WD,NC,13,9,12,Ret,5,5,10,12,2,6,5,19,8,15,6,11,11,Ret,,,,,71
+12,Ritomo Miyata,5,5,12,6,11,16,11,6,14,18,17,15,11,14,17,8,13,13,9,5,1,3,19,Ret,Ret,,,,,70
+13,Rafael Villagómez,13,11,Ret,Ret,Ret,Ret,16,21,17,11,3,Ret,3,2,16,6,15,Ret,17,19,13,14,13,8,Ret,,,,,42
+14,John Bennett,15,18,13,14,Ret,Ret,20,18,13,7,1,11,Ret,11,Ret,15,10,10,2,4,Ret,Ret,10,Ret,Ret,,,,,38
+15,Oliver Goethe,18,4,11,Ret,10,15,Ret,14,11,Ret,Ret,3,16,18,8,Ret,12,18,3,9,12,Ret,16,14,11,,,,,37
+16,Roman Bilinski,8,12,14,DNS,8,13,2,10,21,10,6,10,7,8,7,Ret,18,14,Ret,21,11,9,6,7,10,,,,,36
+17,Sebastián Montoya,9,9,16,9,17,4,13,8,10,16,2,Ret,Ret,Ret,9,11,Ret,16,14,18,17,13,7,DNS,17,,,,,30
+18,Emerson Fittipaldi Jr.,14,15,Ret,12,5,Ret,17,7,16,19,Ret,14,17,20,14,Ret,20,17,16,20,2,5,18,12,16,,,,,28
+19,Colton Herta,16,7,15,8,9,7,15,19,5,15,Ret,18,15,16,13,7,14,19,15,Ret,WD,WD,9,13,15,,,,,26
+20,Mari Boya,Ret,13,17,7,15,8,14,16,15,21,11,Ret,13,15,11,9,17,15,13,13,8,11,Ret,Ret,6,,,,,21
+21,Nico Varrone,21,17,4,13,16,6,12,20,12,13,12,16,18,13,NC,13,11,12,11,10,Ret,15,,,,,,,,15
+22,Cian Shields,19,19,18,Ret,Ret,5,18,17,22,20,16,17,19,19,Ret,12,16,20,18,16,16,17,12,Ret,18,,,,,10
+23,Hiyu Yamakoshi,,,,,,,,,,,,,,,,,,,,,,,17,9,14,,,,,2
